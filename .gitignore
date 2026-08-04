@@ -1,0 +1,29 @@
+# Backend
+backend/**/bin/
+backend/**/obj/
+backend/**/node_modules/
+backend/**/App_Data/uploads/
+*.user
+*.suo
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Superpowers
+.superpowers/
+
+# OS
+.DS_Store
+Thumbs.db
