@@ -1,4 +1,5 @@
 using Atlas.Domain.Sellers;
+using Atlas.Infrastructure.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -18,7 +19,7 @@ public class SellerProfileConfiguration : IEntityTypeConfiguration<SellerProfile
         b.Property(x => x.JoinedDate).HasColumnName("joined_date").IsRequired();
         b.Property(x => x.VerificationBadge).HasColumnName("verification_badge").HasDefaultValue(false);
 
-        b.HasOne<Atlas.Domain.Users.User>()
+        b.HasOne<AppUser>()
             .WithOne()
             .HasForeignKey<SellerProfile>(x => x.UserId)
             .OnDelete(DeleteBehavior.Cascade);

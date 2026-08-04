@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Atlas.Infrastructure.Migrations
 {
     [DbContext(typeof(AtlasDbContext))]
-    [Migration("20260804123925_InitialCreate")]
+    [Migration("20260804130121_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -527,40 +527,6 @@ namespace Atlas.Infrastructure.Migrations
                     b.ToTable("seller_profiles", (string)null);
                 });
 
-            modelBuilder.Entity("Atlas.Domain.Users.User", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsEmailVerified")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Phone")
-                        .HasColumnType("text");
-
-                    b.Property<int>("Role")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("User");
-                });
-
             modelBuilder.Entity("Atlas.Infrastructure.Authentication.AppUser", b =>
                 {
                     b.Property<Guid>("Id")
@@ -849,7 +815,7 @@ namespace Atlas.Infrastructure.Migrations
 
             modelBuilder.Entity("Atlas.Domain.Sellers.SellerProfile", b =>
                 {
-                    b.HasOne("Atlas.Domain.Users.User", null)
+                    b.HasOne("Atlas.Infrastructure.Authentication.AppUser", null)
                         .WithOne()
                         .HasForeignKey("Atlas.Domain.Sellers.SellerProfile", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)

@@ -1,5 +1,4 @@
 using Atlas.Domain;
-using Atlas.Domain.Users;
 using Atlas.Domain.Listings;
 using Atlas.Domain.Sellers;
 using Atlas.Domain.Auctions;

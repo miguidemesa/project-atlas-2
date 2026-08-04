@@ -195,24 +195,6 @@ namespace Atlas.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "User",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Email = table.Column<string>(type: "text", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Phone = table.Column<string>(type: "text", nullable: true),
-                    Role = table.Column<int>(type: "integer", nullable: false),
-                    IsEmailVerified = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_User", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "AspNetUserClaims",
                 columns: table => new
                 {
@@ -268,6 +250,29 @@ namespace Atlas.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_AspNetUserTokens_aspnet_users_UserId",
                         column: x => x.UserId,
+                        principalTable: "aspnet_users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "seller_profiles",
+                columns: table => new
+                {
+                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    display_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    rating_avg = table.Column<decimal>(type: "numeric(3,2)", nullable: false, defaultValue: 0m),
+                    rating_count = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
+                    sold_count = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
+                    joined_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    verification_badge = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_seller_profiles", x => x.user_id);
+                    table.ForeignKey(
+                        name: "FK_seller_profiles_aspnet_users_user_id",
+                        column: x => x.user_id,
                         principalTable: "aspnet_users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -360,29 +365,6 @@ namespace Atlas.Infrastructure.Migrations
                         column: x => x.listing_id,
                         principalTable: "listings",
                         principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "seller_profiles",
-                columns: table => new
-                {
-                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    display_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    rating_avg = table.Column<decimal>(type: "numeric(3,2)", nullable: false, defaultValue: 0m),
-                    rating_count = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
-                    sold_count = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
-                    joined_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    verification_badge = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_seller_profiles", x => x.user_id);
-                    table.ForeignKey(
-                        name: "FK_seller_profiles_User_user_id",
-                        column: x => x.user_id,
-                        principalTable: "User",
-                        principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -582,13 +564,10 @@ namespace Atlas.Infrastructure.Migrations
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "aspnet_users");
-
-            migrationBuilder.DropTable(
                 name: "listings");
 
             migrationBuilder.DropTable(
-                name: "User");
+                name: "aspnet_users");
         }
     }
 }
