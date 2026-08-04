@@ -8,5 +8,6 @@ public class Message
     public Guid? ListingId { get; set; }
     public string Content { get; set; } = string.Empty;
     public bool IsRead { get; set; }
+    public DateTime? ReadAt { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

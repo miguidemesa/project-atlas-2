@@ -12,6 +12,7 @@ public class Order
     public OrderStatus Status { get; set; } = OrderStatus.PendingPayment;
     public string? ShippingAddress { get; set; }
     public string? TrackingNumber { get; set; }
+    public DateTime? PaidAt { get; set; }
     public DateTime? ShippedAt { get; set; }
     public DateTime? DeliveredAt { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

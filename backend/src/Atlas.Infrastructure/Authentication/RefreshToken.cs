@@ -1,6 +1,6 @@
-namespace Atlas.Domain.Users;
+namespace Atlas.Infrastructure.Authentication;
 
-public class RefreshToken
+public class RefreshTokenEntity
 {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }
