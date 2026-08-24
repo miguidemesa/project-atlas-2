@@ -22,6 +22,7 @@ public class SellerProfileConfiguration : IEntityTypeConfiguration<SellerProfile
         b.HasOne<AppUser>()
             .WithOne()
             .HasForeignKey<SellerProfile>(x => x.UserId)
+            .HasConstraintName("fk_seller_profiles_user")
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -25,5 +25,23 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
 
         b.HasIndex(x => new { x.BuyerId, x.Status }).HasDatabaseName("idx_orders_buyer");
         b.HasIndex(x => new { x.SellerId, x.Status }).HasDatabaseName("idx_orders_seller");
+
+        b.HasOne<Atlas.Domain.Listings.Listing>()
+            .WithMany()
+            .HasForeignKey(x => x.ListingId)
+            .HasConstraintName("fk_orders_listings")
+            .OnDelete(DeleteBehavior.Restrict);
+
+        b.HasOne<Atlas.Infrastructure.Authentication.AppUser>()
+            .WithMany()
+            .HasForeignKey(x => x.BuyerId)
+            .HasConstraintName("fk_orders_buyer")
+            .OnDelete(DeleteBehavior.Restrict);
+
+        b.HasOne<Atlas.Infrastructure.Authentication.AppUser>()
+            .WithMany()
+            .HasForeignKey(x => x.SellerId)
+            .HasConstraintName("fk_orders_seller")
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

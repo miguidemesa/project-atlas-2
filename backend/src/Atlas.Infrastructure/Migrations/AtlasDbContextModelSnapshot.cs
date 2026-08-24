@@ -17,7 +17,7 @@ namespace Atlas.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("ProductVersion", "10.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -297,7 +297,7 @@ namespace Atlas.Infrastructure.Migrations
                     b.Property<bool>("IsRead")
                         .HasColumnType("boolean");
 
-                    b.Property<Guid>("ListingId")
+                    b.Property<Guid?>("ListingId")
                         .HasColumnType("uuid")
                         .HasColumnName("listing_id");
 
@@ -385,6 +385,8 @@ namespace Atlas.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ListingId");
+
                     b.HasIndex("BuyerId", "Status")
                         .HasDatabaseName("idx_orders_buyer");
 
@@ -468,6 +470,8 @@ namespace Atlas.Infrastructure.Migrations
 
                     b.HasIndex("RevieweeId")
                         .HasDatabaseName("idx_reviews_reviewee");
+
+                    b.HasIndex("ReviewerId");
 
                     b.HasIndex("OrderId", "ReviewerId")
                         .IsUnique()
@@ -654,6 +658,10 @@ namespace Atlas.Infrastructure.Migrations
                     b.HasIndex("ExpiresAt")
                         .HasDatabaseName("idx_refreshtokens_expiry");
 
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("uq_refresh_tokens_token_hash");
+
                     b.HasIndex("UserId", "TokenHash")
                         .HasDatabaseName("idx_refreshtokens_user");
 
@@ -796,7 +804,25 @@ namespace Atlas.Infrastructure.Migrations
                         .WithOne()
                         .HasForeignKey("Atlas.Domain.Auctions.Auction", "ListingId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_auctions_listings");
+                });
+
+            modelBuilder.Entity("Atlas.Domain.Auctions.Bid", b =>
+                {
+                    b.HasOne("Atlas.Infrastructure.Authentication.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("BidderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_bids_bidder");
+
+                    b.HasOne("Atlas.Domain.Listings.Listing", null)
+                        .WithMany()
+                        .HasForeignKey("ListingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_bids_listings");
                 });
 
             modelBuilder.Entity("Atlas.Domain.Listings.ListingPhoto", b =>
@@ -805,9 +831,81 @@ namespace Atlas.Infrastructure.Migrations
                         .WithMany("Photos")
                         .HasForeignKey("ListingId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_listing_photos_listings");
 
                     b.Navigation("Listing");
+                });
+
+            modelBuilder.Entity("Atlas.Domain.Messages.Message", b =>
+                {
+                    b.HasOne("Atlas.Domain.Listings.Listing", null)
+                        .WithMany()
+                        .HasForeignKey("ListingId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_messages_listings");
+
+                    b.HasOne("Atlas.Infrastructure.Authentication.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("RecipientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_messages_recipient");
+
+                    b.HasOne("Atlas.Infrastructure.Authentication.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_messages_sender");
+                });
+
+            modelBuilder.Entity("Atlas.Domain.Orders.Order", b =>
+                {
+                    b.HasOne("Atlas.Infrastructure.Authentication.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("BuyerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_orders_buyer");
+
+                    b.HasOne("Atlas.Domain.Listings.Listing", null)
+                        .WithMany()
+                        .HasForeignKey("ListingId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_orders_listings");
+
+                    b.HasOne("Atlas.Infrastructure.Authentication.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("SellerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_orders_seller");
+                });
+
+            modelBuilder.Entity("Atlas.Domain.Reviews.Review", b =>
+                {
+                    b.HasOne("Atlas.Domain.Orders.Order", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_reviews_orders");
+
+                    b.HasOne("Atlas.Infrastructure.Authentication.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("RevieweeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_reviews_reviewee");
+
+                    b.HasOne("Atlas.Infrastructure.Authentication.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("ReviewerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_reviews_reviewer");
                 });
 
             modelBuilder.Entity("Atlas.Domain.Sellers.SellerProfile", b =>
@@ -816,7 +914,18 @@ namespace Atlas.Infrastructure.Migrations
                         .WithOne()
                         .HasForeignKey("Atlas.Domain.Sellers.SellerProfile", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_seller_profiles_user");
+                });
+
+            modelBuilder.Entity("Atlas.Infrastructure.Authentication.RefreshTokenEntity", b =>
+                {
+                    b.HasOne("Atlas.Infrastructure.Authentication.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_refresh_tokens_user");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

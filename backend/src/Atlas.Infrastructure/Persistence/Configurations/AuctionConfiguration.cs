@@ -23,6 +23,7 @@ public class AuctionConfiguration : IEntityTypeConfiguration<Auction>
         b.HasOne<Atlas.Domain.Listings.Listing>()
             .WithOne()
             .HasForeignKey<Auction>(x => x.ListingId)
+            .HasConstraintName("fk_auctions_listings")
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

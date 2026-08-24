@@ -20,5 +20,23 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
 
         b.HasIndex(x => new { x.OrderId, x.ReviewerId }).IsUnique().HasDatabaseName("uq_review_per_order");
         b.HasIndex(x => x.RevieweeId).HasDatabaseName("idx_reviews_reviewee");
+
+        b.HasOne<Atlas.Domain.Orders.Order>()
+            .WithMany()
+            .HasForeignKey(x => x.OrderId)
+            .HasConstraintName("fk_reviews_orders")
+            .OnDelete(DeleteBehavior.Restrict);
+
+        b.HasOne<Atlas.Infrastructure.Authentication.AppUser>()
+            .WithMany()
+            .HasForeignKey(x => x.ReviewerId)
+            .HasConstraintName("fk_reviews_reviewer")
+            .OnDelete(DeleteBehavior.Restrict);
+
+        b.HasOne<Atlas.Infrastructure.Authentication.AppUser>()
+            .WithMany()
+            .HasForeignKey(x => x.RevieweeId)
+            .HasConstraintName("fk_reviews_reviewee")
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

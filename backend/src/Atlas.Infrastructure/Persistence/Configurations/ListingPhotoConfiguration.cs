@@ -20,6 +20,7 @@ public class ListingPhotoConfiguration : IEntityTypeConfiguration<ListingPhoto>
         b.HasOne(x => x.Listing)
             .WithMany(l => l.Photos)
             .HasForeignKey(x => x.ListingId)
+            .HasConstraintName("fk_listing_photos_listings")
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

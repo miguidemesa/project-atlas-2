@@ -18,5 +18,17 @@ public class BidConfiguration : IEntityTypeConfiguration<Bid>
 
         b.HasIndex(x => new { x.ListingId, x.Amount }).IsDescending(false, true).HasDatabaseName("idx_bids_listing_amount");
         b.HasIndex(x => x.BidderId).HasDatabaseName("idx_bids_bidder");
+
+        b.HasOne<Atlas.Domain.Listings.Listing>()
+            .WithMany()
+            .HasForeignKey(x => x.ListingId)
+            .HasConstraintName("fk_bids_listings")
+            .OnDelete(DeleteBehavior.Cascade);
+
+        b.HasOne<Atlas.Infrastructure.Authentication.AppUser>()
+            .WithMany()
+            .HasForeignKey(x => x.BidderId)
+            .HasConstraintName("fk_bids_bidder")
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
