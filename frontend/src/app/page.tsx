@@ -6,6 +6,7 @@ import { HeroShowcase } from "@/components/home/hero-showcase";
 import { GrailShowcase } from "@/components/home/grail-showcase";
 import { ForYou } from "@/components/home/for-you";
 import { SoldStrip } from "@/components/home/sold-strip";
+import { RecentlyViewed } from "@/components/home/recently-viewed";
 import { Reveal } from "@/components/motion/reveal";
 import { ListingCard } from "@/components/cards/listing-card";
 import { fetchFeed, fetchMovers } from "@/lib/api";
@@ -53,6 +54,7 @@ export default async function HomePage() {
       </section>
 
       <ForYou />
+      <RecentlyViewed />
 
       <section className="mx-auto max-w-7xl px-4 pb-16 lg:px-8" aria-labelledby="ending-soon">
         <Reveal>

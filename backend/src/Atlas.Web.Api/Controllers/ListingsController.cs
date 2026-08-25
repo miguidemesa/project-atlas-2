@@ -99,7 +99,8 @@ public class ListingsController(AtlasDbContext db, IObjectStorage storage, IVali
             query = query.Where(l =>
                 EF.Functions.ILike(l.Title, $"%{q}%") ||
                 EF.Functions.ILike(l.Player, $"%{q}%") ||
-                EF.Functions.ILike(l.Set, $"%{q}%"));
+                EF.Functions.ILike(l.Set, $"%{q}%") ||
+                EF.Functions.ILike(l.Sport, $"%{q}%"));
 
         query = sort switch
         {

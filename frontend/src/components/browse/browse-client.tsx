@@ -85,10 +85,17 @@ export function BrowseClient({ initial }: { initial: BrowseFilters & { q?: strin
   });
 
   let results = data ?? [];
-  if (initial.q) {
-    const q = initial.q.toLowerCase();
+  // once the AI parser has translated free-text into structured filters,
+  // the raw phrase no longer substring-filters (it would zero-out matches)
+  const effectiveQ = aiApplied ? undefined : initial.q;
+  if (effectiveQ) {
+    const qlc = effectiveQ.toLowerCase();
     results = results.filter(
-      (l) => l.title.toLowerCase().includes(q) || l.player.toLowerCase().includes(q) || l.set.toLowerCase().includes(q),
+      (l) =>
+        l.title.toLowerCase().includes(qlc) ||
+        l.player.toLowerCase().includes(qlc) ||
+        l.set.toLowerCase().includes(qlc) ||
+        l.category.includes(qlc),
     );
   }
 

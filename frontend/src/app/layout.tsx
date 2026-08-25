@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, JetBrains_Mono } from "next/font/google";
+import { Bricolage_Grotesque, Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import "./globals.css";
 
-const bricolage = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-bricolage" });
+const bricolage = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-bricolage", axes: ["opsz", "wdth"] });
+const hanken = Hanken_Grotesk({ subsets: ["latin"], variable: "--font-hanken" });
 const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains" });
 
 export const metadata: Metadata = {
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${bricolage.variable} ${jetbrains.variable}`}>
+    <html lang="en" className={`${bricolage.variable} ${hanken.variable} ${jetbrains.variable}`}>
       <body className="min-h-dvh font-sans antialiased">
         {/*
           THESIS: the card is a physical object under gallery light, not an ecommerce SKU —

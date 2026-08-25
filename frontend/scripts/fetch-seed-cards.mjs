@@ -13,6 +13,7 @@
  * Replace with seller uploads before production.
  */
 import { writeFile, mkdir } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import path from "node:path";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
@@ -105,9 +106,13 @@ async function ebay(query, outFileBase, limit = 6) {
 
 const PTCG_TARGETS = [
   [{ q: "set.id:base1 number:4" }, "charizard-base1.png"],
+  [{ q: "set.id:base1 number:2" }, "blastoise-base1.png"],
   [{ q: "set.id:sv8 number:238" }, "pikachu-ex-ssp.png"],
   [{ q: "set.id:swsh7 number:215" }, "umbreon-vmax-es.png"],
   [{ q: "set.id:sv3pt5 number:205" }, "mew-ex-151.png"],
+  [{ q: "set.id:sv8 number:239" }, "latias-ex-ssp.png"],
+  [{ q: "set.id:swsh45sv number:107" }, "charizard-vmax-shf.png"],
+  [{ q: "set.id:swsh4 number:44" }, "pikachu-vmax-viv.png"],
   [{ q: "name:giratina", pick: (c) => c.set?.id === "pl1" }, "giratina-pl1.png"],
 ];
 

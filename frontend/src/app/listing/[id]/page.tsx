@@ -7,7 +7,7 @@ import { BidBox } from "@/components/listing/bid-box";
 import { SellerTrust } from "@/components/listing/seller-trust";
 import { PriceChart } from "@/components/charts/price-chart";
 import { DealBadge } from "@/components/cards/deal-badge";
-import { ViewTracker } from "@/components/listing/view-tracker";
+import { ViewTracker } from "@/lib/recent";
 import { ListingCard } from "@/components/cards/listing-card";
 import { fetchListing, fetchFeed } from "@/lib/api";
 
@@ -46,7 +46,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-8">
-      <ViewTracker category={listing.category} />
+      <ViewTracker listing={listing} />
       <Link href="/browse" className="mb-6 inline-flex items-center gap-1.5 text-sm text-ink-dim transition-colors hover:text-gold">
         <ArrowLeft size={14} /> Back to browse
       </Link>
