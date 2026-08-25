@@ -31,3 +31,4 @@ node_modules/
 backend/**/bin/
 backend/**/obj/
 frontend/.next/
+**/node_modules/
