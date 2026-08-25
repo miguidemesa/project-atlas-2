@@ -101,7 +101,7 @@ export const listings: Listing[] = [
     description: "On-card auto from Hali's rookie year in Indiana. League-pass favorite, priced before the next leap.",
   },
   {
-    id: "l15", category: "pokemon", title: "Charizard 1999 Base Set PSA 9", player: "Charizard", team: "Kanto",
+    id: "l15", category: "pokemon", imageUrl: "/seed-images/charizard-base1.png", title: "Charizard 1999 Base Set PSA 9", player: "Charizard", team: "Kanto",
     year: 1999, set: "Base Set", graded: true, gradingCompany: "PSA", gradeValue: "9", type: "single_card",
     format: "auction", price: 185000, currentBid: 168000, bidCount: 38, endsAt: hoursFromNow(31), views: 8214,
     watchers: 312, createdAt: daysAgo(10), sellerId: "s4",
@@ -151,6 +151,24 @@ export const listings: Listing[] = [
     year: 2024, set: "Into the Inklands", parallel: "Foil", type: "single_card", format: "fixed", price: 12500,
     previousPrice: 13800, views: 987, watchers: 41, createdAt: daysAgo(5), sellerId: "s1",
     description: "Snow Queen foil with the full-art treatment. Frozen fans and competitive players both want this in the deck.",
+  },
+  {
+    id: "l24", category: "pokemon",
+    title: "Umbreon VMAX Alt Art — Evolving Skies", player: "Umbreon VMAX", team: "Johto",
+    year: 2021, set: "Evolving Skies", parallel: "Alt Art", type: "single_card", format: "auction",
+    price: 38000, currentBid: 32000, bidCount: 19, endsAt: hoursFromNow(20), views: 4102, watchers: 188,
+    createdAt: daysAgo(6), sellerId: "s2",
+    imageUrl: "/seed-images/umbreon-vmax-es.png",
+    description: "The moonbreon. Centering is exceptional; one faint whitening on the back edge.",
+  },
+  {
+    id: "l25", category: "pokemon",
+    title: "Mew ex SIR — Pokémon 151", player: "Mew ex", team: "Kanto",
+    year: 2023, set: "151", parallel: "Special Illustration Rare", type: "single_card", format: "fixed",
+    price: 6800, previousPrice: 7400, views: 986, watchers: 47,
+    createdAt: daysAgo(2), sellerId: "s1",
+    imageUrl: "/seed-images/mew-ex-151.png",
+    description: "151's chase card, pack-fresh from a booster bundle.",
   },
   {
     id: "l23", category: "disney", title: "Lorcana Stitch Playmat (Official)", player: "Stitch", team: "—",

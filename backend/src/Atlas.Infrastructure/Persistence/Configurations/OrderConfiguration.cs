@@ -22,6 +22,7 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         b.Property(x => x.ShippedAt).HasColumnName("shipped_at");
         b.Property(x => x.DeliveredAt).HasColumnName("delivered_at");
         b.Property(x => x.TrackingNumber).HasColumnName("tracking_number").HasMaxLength(100);
+        b.Property(x => x.PaymentSessionId).HasColumnName("payment_session_id").HasMaxLength(100);
 
         b.HasIndex(x => new { x.BuyerId, x.Status }).HasDatabaseName("idx_orders_buyer");
         b.HasIndex(x => new { x.SellerId, x.Status }).HasDatabaseName("idx_orders_seller");

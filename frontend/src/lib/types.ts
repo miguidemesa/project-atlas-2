@@ -53,7 +53,9 @@ export interface Listing {
   endsAt?: string;
   views?: number;
   watchers?: number;
+  status?: string;
   createdAt: string;
+  updatedAt?: string;
   sellerId: string;
   dealScore?: DealScore;
   description?: string;

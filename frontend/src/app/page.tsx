@@ -4,6 +4,8 @@ import { MarketTicker } from "@/components/layout/ticker";
 import { HeroSearch } from "@/components/home/hero-search";
 import { HeroShowcase } from "@/components/home/hero-showcase";
 import { GrailShowcase } from "@/components/home/grail-showcase";
+import { ForYou } from "@/components/home/for-you";
+import { SoldStrip } from "@/components/home/sold-strip";
 import { Reveal } from "@/components/motion/reveal";
 import { ListingCard } from "@/components/cards/listing-card";
 import { fetchFeed, fetchMovers } from "@/lib/api";
@@ -27,11 +29,16 @@ function SectionHead({ title, href }: { title: string; href?: string }) {
 }
 
 export default async function HomePage() {
-  const [all, auctions, movers] = await Promise.all([fetchFeed(), fetchFeed({ format: "auction", sort: "ending" }), fetchMovers()]);
+  const [all, auctions, movers, pokemon] = await Promise.all([
+    fetchFeed(),
+    fetchFeed({ format: "auction", sort: "ending" }),
+    fetchMovers(),
+    fetchFeed({ category: "pokemon" }),
+  ]);
   const recent = all.slice(0, 10);
   const ending = auctions.slice(0, 4);
   const gainers = [...movers].sort((a, b) => b.changePct - a.changePct);
-  const featured = [all.find((l) => l.id === "l06"), all.find((l) => l.id === "l21"), all.find((l) => l.id === "l15")].filter(
+  const featured = [all.find((l) => l.id === "l06"), all.find((l) => l.id === "l24"), all.find((l) => l.id === "l15")].filter(
     (l): l is NonNullable<typeof l> => Boolean(l),
   );
   const grail = all.find((l) => l.id === "l06")!;
@@ -45,12 +52,27 @@ export default async function HomePage() {
         <HeroShowcase listings={featured} />
       </section>
 
+      <ForYou />
+
       <section className="mx-auto max-w-7xl px-4 pb-16 lg:px-8" aria-labelledby="ending-soon">
         <Reveal>
           <SectionHead title="Ending soon" href="/browse?format=auction&sort=ending" />
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {ending.map((l, i) => (
               <Reveal key={l.id} delay={i * 70}>
+                <ListingCard listing={l} />
+              </Reveal>
+            ))}
+          </div>
+        </Reveal>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 pb-16 lg:px-8" aria-labelledby="pokemon-vault">
+        <Reveal>
+          <SectionHead title="Pokémon vault" href="/browse?category=pokemon" />
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+            {pokemon.slice(0, 5).map((l, i) => (
+              <Reveal key={l.id} delay={i * 60}>
                 <ListingCard listing={l} />
               </Reveal>
             ))}
@@ -72,6 +94,8 @@ export default async function HomePage() {
           </Reveal>
         </div>
       </section>
+
+      <SoldStrip />
 
       {grail && <GrailShowcase listing={grail} />}
 
@@ -121,7 +145,7 @@ export default async function HomePage() {
       <section className="mx-auto max-w-7xl px-4 pb-20 lg:px-8" aria-labelledby="popular-players">
         <SectionHead title="Popular players" />
         <div className="flex flex-wrap gap-2.5">
-          {["Victor Wembanyama", "LeBron James", "Stephen Curry", "Anthony Edwards", "Giannis Antetokounmpo", "Jordan Clarkson", "Luka Dončić"].map((p) => (
+          {["Victor Wembanyama", "Charizard", "Pikachu ex", "Anthony Edwards", "Umbreon VMAX", "Shanks", "Mew ex", "Jordan Clarkson", "Giannis Antetokounmpo"].map((p) => (
             <a
               key={p}
               href={`/browse?player=${encodeURIComponent(p)}`}

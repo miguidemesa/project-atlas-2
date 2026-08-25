@@ -15,6 +15,7 @@ public class ListingConfiguration : IEntityTypeConfiguration<Listing>
         b.Property(x => x.Type).HasColumnName("type").HasConversion<string>().IsRequired();
         b.Property(x => x.Title).HasColumnName("title").HasMaxLength(200).IsRequired();
         b.Property(x => x.Description).HasColumnName("description").HasMaxLength(2000);
+        b.Property(x => x.ImageUrl).HasColumnName("image_url").HasMaxLength(500);
         b.Property(x => x.Sport).HasColumnName("sport").HasMaxLength(50).HasDefaultValue("basketball");
         b.Property(x => x.Player).HasColumnName("player").HasMaxLength(200).IsRequired();
         b.Property(x => x.Team).HasColumnName("team").HasMaxLength(200).IsRequired();

@@ -31,18 +31,27 @@ public static class DbSeeder
         var daysAgo = (int d) => now.AddDays(-d);
 
         var devPassword = "DevCollect0r!";
-        var sellerSeeds = new (Guid Id, string Name)[]
+        var sellerSeeds = new (Guid Id, string Handle, string Name)[]
         {
-            (new Guid("5f0c2e64-0001-4a11-9c1a-000000000001"), "Kolektib & Co."),
-            (new Guid("5f0c2e64-0002-4a11-9c1a-000000000002"), "Slab Hunter MNL"),
-            (new Guid("5f0c2e64-0003-4a11-9c1a-000000000003"), "Hooper Manila"),
-            (new Guid("5f0c2e64-0004-4a11-9c1a-000000000004"), "Hardwood PH"),
-            (new Guid("5f0c2e64-0005-4a11-9c1a-000000000005"), "Three-Point Cebu"),
+            (new Guid("5f0c2e64-0001-4a11-9c1a-000000000001"), "kolektibco", "Kolektib & Co."),
+            (new Guid("5f0c2e64-0002-4a11-9c1a-000000000002"), "slabhuntermnl", "Slab Hunter MNL"),
+            (new Guid("5f0c2e64-0003-4a11-9c1a-000000000003"), "hoopermanila", "Hooper Manila"),
+            (new Guid("5f0c2e64-0004-4a11-9c1a-000000000004"), "hardwoodph", "Hardwood PH"),
+            (new Guid("5f0c2e64-0005-4a11-9c1a-000000000005"), "threepointcebu", "Three-Point Cebu"),
+        };
+        var ratings = new (decimal Avg, int Count, int Sold, bool Verified)[]
+        {
+            (4.9m, 312, 487, true),
+            (4.8m, 198, 342, true),
+            (4.7m, 96, 154, false),
+            (4.9m, 421, 690, true),
+            (4.6m, 74, 118, false),
         };
 
-        foreach (var (id, name) in sellerSeeds)
+        for (var i = 0; i < sellerSeeds.Length; i++)
         {
-            var email = $"{id.ToString()[..8]}@seed.atlas.local";
+            var (id, handle, name) = sellerSeeds[i];
+            var email = $"{handle}@seed.atlas.local";
             var user = await userManager.FindByEmailAsync(email);
             if (user is null)
             {
@@ -57,20 +66,20 @@ public static class DbSeeder
                 };
                 var result = await userManager.CreateAsync(user, devPassword);
                 if (!result.Succeeded)
-                {
-                    logger.LogWarning("Seed user {Email} failed: {Errors}", email, string.Join(", ", result.Errors.Select(e => e.Description)));
-                }
+                    throw new InvalidOperationException(
+                        $"Seed user {email} failed: {string.Join(", ", result.Errors.Select(e => e.Description))}");
             }
 
+            var (avg, count, sold, verified) = ratings[i];
             db.SellerProfiles.Add(new Domain.Sellers.SellerProfile
             {
                 UserId = id,
                 DisplayName = name,
-                RatingAvg = 4.7m,
-                RatingCount = 120,
-                SoldCount = 300,
+                RatingAvg = avg,
+                RatingCount = count,
+                SoldCount = sold,
                 JoinedDate = daysAgo(800),
-                VerificationBadge = true,
+                VerificationBadge = verified,
             });
         }
 
@@ -105,6 +114,19 @@ public static class DbSeeder
             ("l21","disney","Mickey Mouse Lorcana Enchanted","Mickey Mouse","Inklands",2023,"The First Chapter","Enchanted",false,null,false,null,null,null,ListingType.SingleCard,ListingFormat.Auction,28000,24500,17,6,8,s2,"Brave Little Tailor enchanted — pulled first-hand, sleeved immediately."),
             ("l22","disney","Elsa Lorcana Super Rare","Elsa","Arendelle",2024,"Into the Inklands","Foil",false,null,false,null,null,null,ListingType.SingleCard,ListingFormat.FixedPrice,12500,null,0,0,5,s1,"Snow Queen foil with full-art treatment."),
             ("l23","disney","Lorcana Stitch Playmat (Official)","Stitch","—",2024,"Accessories",null,false,null,false,null,null,null,ListingType.Accessory,ListingFormat.FixedPrice,750,null,0,0,1,s5,"Official rubber-backed playmat. Tournament legal, stitched edges."),
+            ("l24","pokemon","Umbreon VMAX Alt Art — Evolving Skies","Umbreon VMAX","Johto",2021,"Evolving Skies","Alt Art",false,null,false,null,null,null,ListingType.SingleCard,ListingFormat.Auction,38000,32000,19,20,6,s2,"The moonbreon. Centering is exceptional; one faint whitening on the back edge."),
+            ("l25","pokemon","Mew ex SIR — Pokémon 151","Mew ex","Kanto",2023,"151","Special Illustration Rare",false,null,false,null,null,null,ListingType.SingleCard,ListingFormat.FixedPrice,6800,null,0,0,2,s1,"151's chase card, pack-fresh from a booster bundle."),
+            ("l26","nba","Zion Williamson Prizm RC — SOLD","Zion Williamson","New Orleans Pelicans",2019,"Prizm",null,false,null,true,"PSA","9",null,ListingType.SingleCard,ListingFormat.FixedPrice,21500,null,0,0,14,s4,"Delivered to a collector in Quezon City."),
+            ("l27","one_piece","Shanks OP-01 ST21 Leader — SOLD","Shanks","Red Hair Pirates",2022,"Romance Dawn",null,false,null,false,null,null,null,ListingType.SingleCard,ListingFormat.FixedPrice,4800,null,0,0,9,s2,"Picked up same-day by a Cebu buyer."),
+        };
+
+        var imageBySeed = new Dictionary<string, string>
+        {
+            ["l15"] = "/seed-images/charizard-base1.png",
+            ["l16"] = "/seed-images/pikachu-ex-ssp.png",
+            ["l17"] = "/seed-images/giratina-v-crz.png",
+            ["l24"] = "/seed-images/umbreon-vmax-es.png",
+            ["l25"] = "/seed-images/mew-ex-151.png",
         };
 
         foreach (var t in listingSeeds)
@@ -130,10 +152,11 @@ public static class DbSeeder
                 GradeValue = t.GradeValue,
                 Condition = t.Condition,
                 Price = t.Price,
+                ImageUrl = imageBySeed.GetValueOrDefault(t.Id),
                 ListingFormat = t.Format,
-                Status = ListingStatus.Active,
+                Status = t.Id is "l26" or "l27" ? ListingStatus.Sold : ListingStatus.Active,
                 CreatedAt = daysAgo(t.CreatedDaysAgo),
-                UpdatedAt = now,
+                UpdatedAt = t.Id is "l26" ? now.AddHours(-30) : t.Id is "l27" ? now.AddHours(-52) : now,
             });
 
             if (t.Format == ListingFormat.Auction)

@@ -1,3 +1,4 @@
+using Atlas.Application;
 using Atlas.Infrastructure.DI;
 using Atlas.Infrastructure.Persistence;
 using Atlas.Web.Api.Middleware;
@@ -9,6 +10,7 @@ builder.Host.UseSerilog((ctx, lc) => lc.ReadFrom.Configuration(ctx.Configuration
 
 // Application + infrastructure services
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddApplication();
 
 var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>()
     ?? ["http://localhost:3000", "http://localhost:3001"];
@@ -23,6 +25,15 @@ builder.Services.AddCors(options =>
             .AllowCredentials()));
 
 var app = builder.Build();
+
+// serve locally-stored listing photos
+var uploadsRoot = Path.Combine(app.Environment.ContentRootPath, "App_Data", "uploads");
+Directory.CreateDirectory(uploadsRoot);
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsRoot),
+    RequestPath = "/uploads",
+});
 
 if (app.Environment.IsDevelopment() && builder.Configuration.GetValue("SeedData", true))
 {

@@ -1,4 +1,5 @@
 using Atlas.Infrastructure.Authentication;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,7 +29,9 @@ public class AuthController(IAuthService auth) : ControllerBase
     [HttpGet("me")]
     public async Task<IActionResult> Me(CancellationToken ct)
     {
-        if (!Guid.TryParse(User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value, out var userId))
+        var subjectId = User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value
+            ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(subjectId, out var userId))
             return Unauthorized();
         var user = await auth.GetCurrentUserAsync(userId, ct);
         return user is null ? Unauthorized() : Ok(new { data = user });

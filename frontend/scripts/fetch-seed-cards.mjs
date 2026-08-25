@@ -37,6 +37,7 @@ async function ptcg(search, outFile) {
   if (!img) throw new Error(`ptcg ${card.id}: no image`);
   await mkdir(OUT_DIR, { recursive: true });
   const bin = await fetch(img, { headers: { "User-Agent": UA } }).then((r) => r.arrayBuffer());
+  await new Promise((r) => setTimeout(r, 1200)); // stay friendly to the free API
   await writeFile(path.join(OUT_DIR, outFile), Buffer.from(bin));
   console.log(`✓ ${card.name} [${card.set?.name} #${card.number}] (${card.rarity ?? "?"}) → public/seed-images/${outFile}`);
   return {
@@ -103,8 +104,11 @@ async function ebay(query, outFileBase, limit = 6) {
 }
 
 const PTCG_TARGETS = [
+  [{ q: "set.id:base1 number:4" }, "charizard-base1.png"],
   [{ q: "set.id:sv8 number:238" }, "pikachu-ex-ssp.png"],
-  [{ q: "name:giratina", pick: (c) => c.set?.id === "swsh12pt5" && c.name === "Giratina V" }, "giratina-v-crz.png"],
+  [{ q: "set.id:swsh7 number:215" }, "umbreon-vmax-es.png"],
+  [{ q: "set.id:sv3pt5 number:205" }, "mew-ex-151.png"],
+  [{ q: "name:giratina", pick: (c) => c.set?.id === "pl1" }, "giratina-pl1.png"],
 ];
 
 const args = process.argv.slice(2);

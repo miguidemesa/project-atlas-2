@@ -14,7 +14,8 @@ public class MessageConfiguration : IEntityTypeConfiguration<Message>
         b.Property(x => x.SenderId).HasColumnName("sender_id").IsRequired();
         b.Property(x => x.RecipientId).HasColumnName("recipient_id").IsRequired();
         b.Property(x => x.ListingId).HasColumnName("listing_id");
-        b.Property(x => x.Content).HasColumnName("content").HasMaxLength(2000).IsRequired();
+        b.Property(x => x.Content).HasColumnName("content").HasMaxLength(4000).IsRequired();
+        b.Property(x => x.Kind).HasColumnName("kind").HasMaxLength(20).HasDefaultValue("user");
         b.Property(x => x.CreatedAt).HasColumnName("created_at").IsRequired();
         b.Property(x => x.ReadAt).HasColumnName("read_at");
 

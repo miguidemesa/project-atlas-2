@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Search, Store } from "lucide-react";
+import { LogOut, Search, Store } from "lucide-react";
+import { useAuth } from "@/lib/auth";
 
 export function Navbar() {
   const [q, setQ] = useState("");
   const router = useRouter();
+  const { user, logout } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-base/85 backdrop-blur-md">
@@ -50,9 +52,29 @@ export function Navbar() {
           Sell
         </Link>
 
-        <button type="button" onClick={() => router.push("/login")} className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink transition-colors hover:border-line-hv hover:bg-raised">
-          Sign in
-        </button>
+        {user ? (
+          <div className="flex items-center gap-1">
+            <span title={user.email} aria-hidden className="flex h-9 w-9 items-center justify-center rounded-full bg-raised font-display text-sm text-gold">
+              {user.name.charAt(0).toUpperCase()}
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                logout();
+                router.push("/");
+              }}
+              aria-label="Sign out"
+              className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-ink-dim transition-colors hover:text-ink"
+            >
+              <LogOut size={15} />
+              <span className="hidden sm:inline">Sign out</span>
+            </button>
+          </div>
+        ) : (
+          <button type="button" onClick={() => router.push("/login")} className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink transition-colors hover:border-line-hv hover:bg-raised">
+            Sign in
+          </button>
+        )}
       </div>
     </header>
   );

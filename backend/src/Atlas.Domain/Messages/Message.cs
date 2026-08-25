@@ -7,6 +7,7 @@ public class Message
     public Guid RecipientId { get; set; }
     public Guid? ListingId { get; set; }
     public string Content { get; set; } = string.Empty;
+    public string Kind { get; set; } = "user"; // user | offer
     public bool IsRead { get; set; }
     public DateTime? ReadAt { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

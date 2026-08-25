@@ -1,5 +1,12 @@
+using System.Security.Claims;
+using Atlas.Application.Common.Interfaces;
+using Atlas.Application.Listings;
 using Atlas.Application.Pricing;
+using Atlas.Domain.Listings;
+using Atlas.Infrastructure.Authentication;
 using Atlas.Infrastructure.Persistence;
+using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,6 +30,7 @@ public sealed record ListingDto(
     string? GradeValue,
     string? Condition,
     string? Description,
+    string? ImageUrl,
     Guid SellerId,
     decimal Price,
     decimal? PreviousPrice,
@@ -31,7 +39,9 @@ public sealed record ListingDto(
     DateTime? EndsAt,
     string Type,
     string Format,
+    string Status,
     DateTime CreatedAt,
+    DateTime UpdatedAt,
     DealScoreDto? DealScore);
 
 public sealed record SellerDto(
@@ -50,7 +60,7 @@ public sealed record PagedResult<T>(IReadOnlyList<T> Items, int Total, int Page,
 
 [ApiController]
 [Route("api/listings")]
-public class ListingsController(AtlasDbContext db) : ControllerBase
+public class ListingsController(AtlasDbContext db, IObjectStorage storage, IValidator<CreateListingRequest> createValidator) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> Feed(
@@ -160,6 +170,212 @@ public class ListingsController(AtlasDbContext db) : ControllerBase
         return Ok(new { data = dto });
     }
 
+    [Authorize]
+    [HttpGet("mine")]
+    public async Task<IActionResult> Mine(CancellationToken ct)
+    {
+        var userId = CurrentUserId();
+        if (userId is null) return Unauthorized();
+
+        var items = await db.Listings.AsNoTracking()
+            .Where(l => l.SellerId == userId)
+            .OrderByDescending(l => l.CreatedAt)
+            .ToListAsync(ct);
+        return Ok(new { data = items.Select(l => ToDto(l, null, 0, null, includeDescription: true)).ToList() });
+    }
+
+    [Authorize]
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] CreateListingRequest request, CancellationToken ct)
+    {
+        var userId = CurrentUserId();
+        if (userId is null) return Unauthorized();
+
+        var validation = await createValidator.ValidateAsync(request, ct);
+        if (!validation.IsValid)
+            return BadRequest(new { error = validation.Errors[0].ErrorMessage, errors = validation.Errors.Select(e => e.ErrorMessage) });
+
+        var listing = new Listing
+        {
+            Id = Guid.NewGuid(),
+            SellerId = userId.Value,
+            Sport = request.Category,
+            Type = ParseListingType(request.Type),
+            Title = $"{request.Player} {request.Year} {request.Set}{(string.IsNullOrEmpty(request.Parallel) ? "" : $" {request.Parallel}")}".Trim(),
+            Description = $"Listed by an Atlas seller. Ships bubble-wrapped with tracking anywhere in PH.",
+            Player = request.Player.Trim(),
+            Team = string.IsNullOrWhiteSpace(request.Team) ? "—" : request.Team.Trim(),
+            Year = request.Year,
+            Set = request.Set.Trim(),
+            Parallel = string.IsNullOrWhiteSpace(request.Parallel) ? null : request.Parallel!.Trim(),
+            Numbered = false,
+            SerialNumber = null,
+            Graded = request.Graded,
+            GradingCompany = request.Graded ? request.GradingCompany : null,
+            GradeValue = request.Graded ? request.GradeValue : null,
+            Condition = request.Graded ? null : request.Condition,
+            Price = Math.Round(request.Price, 2),
+            ListingFormat = request.Format == "auction" ? ListingFormat.Auction : ListingFormat.FixedPrice,
+            Status = ListingStatus.Active,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+        };
+        db.Listings.Add(listing);
+
+        if (request.Format == "auction")
+        {
+            db.Auctions.Add(new Domain.Auctions.Auction
+            {
+                ListingId = listing.Id,
+                StartPrice = listing.Price,
+                EndTime = DateTime.UtcNow.AddHours(request.EndsInHours!.Value),
+                Status = Domain.Auctions.AuctionStatus.Active,
+            });
+        }
+
+        await db.SaveChangesAsync(ct);
+        return CreatedAtAction(nameof(Detail), new { id = listing.Id }, new { data = ToDto(listing, null, 0, null, includeDescription: true) });
+    }
+
+    [Authorize]
+    [HttpPost("{id:guid}/photos")]
+    public async Task<IActionResult> UploadPhoto(Guid id, IFormFile file, CancellationToken ct)
+    {
+        var userId = CurrentUserId();
+        if (userId is null) return Unauthorized();
+
+        var listing = await db.Listings.FirstOrDefaultAsync(l => l.Id == id, ct);
+        if (listing is null) return NotFound(new { error = "Listing not found." });
+        if (listing.SellerId != userId.Value) return Forbid();
+
+        if (file is null || file.Length == 0)
+            return BadRequest(new { error = "Choose a photo to upload." });
+        if (file.Length > MaxPhotoBytes)
+            return BadRequest(new { error = "Photos must be 5 MB or smaller." });
+        if (!IsAllowedImage(file))
+            return BadRequest(new { error = "Only JPEG, PNG or WebP images are accepted." });
+
+        var existingCount = await db.ListingPhotos.CountAsync(p => p.ListingId == id, ct);
+        if (existingCount >= MaxPhotosPerListing)
+            return BadRequest(new { error = $"A listing can hold up to {MaxPhotosPerListing} photos." });
+
+        // content wins over filename — never trust the declared extension
+        var ext = SniffExtension(file);
+        if (ext.Length == 0)
+            return BadRequest(new { error = "That file does not look like a valid JPEG, PNG or WebP image." });
+
+        await using var stream = file.OpenReadStream();
+        var key = await storage.PutAsync(stream, $"{id}/{Guid.NewGuid():N}{ext}", file.ContentType, ct);
+        var url = storage.GetUrl(key);
+
+        db.ListingPhotos.Add(new ListingPhoto
+        {
+            Id = Guid.NewGuid(),
+            ListingId = id,
+            StorageKey = key,
+            Url = url,
+            SortOrder = existingCount,
+        });
+
+        // first photo becomes the tile image
+        listing.ImageUrl ??= url;
+        listing.UpdatedAt = DateTime.UtcNow;
+        await db.SaveChangesAsync(ct);
+
+        return Ok(new { data = new { key, url } });
+    }
+
+    private static ListingType ParseListingType(string value) => value switch
+    {
+        "lot" => ListingType.Lot,
+        "hobby_box" => ListingType.HobbyBox,
+        "accessory" => ListingType.Accessory,
+        _ => ListingType.SingleCard,
+    };
+
+    private static string ToApiType(ListingType type) => type switch
+    {
+        ListingType.Lot => "lot",
+        ListingType.HobbyBox => "hobby_box",
+        ListingType.Accessory => "accessory",
+        _ => "single_card",
+    };
+
+    private static string ToApiStatus(ListingStatus status) => status switch
+    {
+        ListingStatus.Sold => "sold",
+        ListingStatus.Ended => "ended",
+        ListingStatus.Cancelled => "cancelled",
+        ListingStatus.Draft => "draft",
+        _ => "active",
+    };
+
+    private static string ToApiFormat(ListingFormat format) =>
+        format == ListingFormat.Auction ? "auction" : "fixed";
+
+    private const long MaxPhotoBytes = 5 * 1024 * 1024;
+    private const int MaxPhotosPerListing = 6;
+
+    private static bool IsAllowedImage(IFormFile file) =>
+        file.ContentType is "image/jpeg" or "image/png" or "image/webp";
+
+    private static string SniffExtension(IFormFile file)
+    {
+        Span<byte> header = stackalloc byte[12];
+        using var s = file.OpenReadStream();
+        var read = s.Read(header);
+        file.OpenReadStream().Position = 0;
+
+        if (read >= 3 && header[0] == 0xFF && header[1] == 0xD8 && header[2] == 0xFF) return ".jpg";
+        if (read >= 8 && header[0] == 0x89 && header[1] == 0x50 && header[2] == 0x4E && header[3] == 0x47) return ".png";
+        if (read >= 12 && header[0] == 0x52 && header[1] == 0x49 && header[2] == 0x46 && header[3] == 0x46
+            && header[8] == 0x57 && header[9] == 0x45 && header[10] == 0x42 && header[11] == 0x50) return ".webp";
+        return "";
+    }
+
+    private Guid? CurrentUserId() =>
+        Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub"), out var id) ? id : null;
+
+    [HttpGet("sold/recent")]
+    public async Task<IActionResult> RecentlySold([FromQuery] int limit = 6, CancellationToken ct = default)
+    {
+        limit = Math.Clamp(limit, 1, 12);
+        var items = await db.Listings.AsNoTracking()
+            .Where(l => l.Status == ListingStatus.Sold)
+            .OrderByDescending(l => l.UpdatedAt)
+            .Take(limit)
+            .ToListAsync(ct);
+        return Ok(new { data = items.Select(l => new
+        {
+            id = l.Id,
+            title = l.Title,
+            player = l.Player,
+            category = l.Sport,
+            price = l.Price,
+            imageUrl = l.ImageUrl,
+            soldAt = l.UpdatedAt,
+        }) });
+    }
+
+    [Authorize]
+    [HttpPost("{id:guid}/sold")]
+    public async Task<IActionResult> MarkSold(Guid id, CancellationToken ct)
+    {
+        var userId = CurrentUserId();
+        if (userId is null) return Unauthorized();
+
+        var listing = await db.Listings.FirstOrDefaultAsync(l => l.Id == id, ct);
+        if (listing is null) return NotFound(new { error = "Listing not found." });
+        if (listing.SellerId != userId.Value) return Forbid();
+        if (listing.Status != ListingStatus.Active)
+            return BadRequest(new { error = "Only active listings can be marked as sold." });
+
+        listing.Status = ListingStatus.Sold;
+        listing.UpdatedAt = DateTime.UtcNow;
+        await db.SaveChangesAsync(ct);
+        return Ok(new { data = ToDto(listing, null, 0, null, includeDescription: true) });
+    }
+
     private async Task<Dictionary<Guid, int>> BidCountsFor(IEnumerable<Guid> listingIds, CancellationToken ct)
     {
         var ids = listingIds.ToList();
@@ -232,14 +448,17 @@ public class ListingsController(AtlasDbContext db) : ControllerBase
             l.GradeValue,
             l.Condition,
             includeDescription ? l.Description : null,
+            l.ImageUrl,
             l.SellerId,
             l.Price,
             null, // previous sale price arrives from market ingestion later
             auction?.CurrentBid,
             auction is null ? null : bidCount,
             auction?.EndTime,
-            l.Type.ToString().ToLowerInvariant(),
-            l.ListingFormat.ToString().ToLowerInvariant(),
+            ToApiType(l.Type),
+            ToApiFormat(l.ListingFormat),
+            ToApiStatus(l.Status),
             l.CreatedAt,
+            l.UpdatedAt,
             score);
 }

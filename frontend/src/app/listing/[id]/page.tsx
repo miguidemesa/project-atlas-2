@@ -7,14 +7,24 @@ import { BidBox } from "@/components/listing/bid-box";
 import { SellerTrust } from "@/components/listing/seller-trust";
 import { PriceChart } from "@/components/charts/price-chart";
 import { DealBadge } from "@/components/cards/deal-badge";
+import { ViewTracker } from "@/components/listing/view-tracker";
 import { ListingCard } from "@/components/cards/listing-card";
 import { fetchListing, fetchFeed } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
-  const { listing } = (await fetchListing((await params).id)) ?? {};
-  return { title: listing?.title ?? "Listing not found" };
+  const data = await fetchListing((await params).id);
+  if (!data?.listing) return { title: "Listing not found" };
+  return {
+    title: data.listing.title,
+    description: `${data.listing.title} — ${data.seller.displayName} on Atlas.`,
+    openGraph: {
+      title: `${data.listing.title} · Atlas`,
+      description: `₱${(data.listing.currentBid ?? data.listing.price).toLocaleString("en-PH")} · ${data.seller.displayName}`,
+      images: data.listing.imageUrl ? [{ url: data.listing.imageUrl }] : undefined,
+    },
+  };
 }
 
 export default async function ListingPage({ params }: { params: Promise<{ id: string }> }) {
@@ -36,6 +46,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-8">
+      <ViewTracker category={listing.category} />
       <Link href="/browse" className="mb-6 inline-flex items-center gap-1.5 text-sm text-ink-dim transition-colors hover:text-gold">
         <ArrowLeft size={14} /> Back to browse
       </Link>
@@ -57,6 +68,15 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
             </p>
           </div>
 
+          {listing.status === "sold" ? (
+            <div className="rounded-xl border border-gold/50 bg-elevated p-5 text-center shadow-card">
+              <p className="font-display text-2xl tracking-wider text-gold">SOLD</p>
+              <p className="mt-1.5 text-sm text-ink-dim">This card found its home.</p>
+              <Link href="/browse" className="mt-4 inline-block rounded-lg border border-line px-5 py-2 text-sm font-medium text-ink transition-colors hover:border-gold hover:text-gold">
+                Find a similar card
+              </Link>
+            </div>
+          ) : (
           <div className="rounded-xl border border-line bg-elevated p-5 shadow-card">
             {listing.dealScore && (
               <div className="mb-4 flex items-center justify-between gap-3 rounded-lg bg-raised px-3.5 py-2.5">
@@ -67,6 +87,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
               </div>
             )}
             <BidBox
+              listingId={listing.id}
               price={listing.currentBid ?? listing.price}
               previousPrice={listing.previousPrice}
               format={listing.format}
@@ -75,6 +96,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
               watchers={listing.watchers ?? 0}
             />
           </div>
+          )}
 
           <SellerTrust seller={seller} />
 
@@ -97,6 +119,13 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
                 ))}
               </dl>
               <p className="border-t border-line pt-4 text-sm leading-relaxed text-ink-dim">{listing.description}</p>
+              {!listing.graded && (
+                <p className="text-xs">
+                  <Link href="/condition-guide" className="text-gold hover:underline">
+                    What does {listing.condition ?? "Near Mint"} mean? →
+                  </Link>
+                </p>
+              )}
             </div>
           </details>
         </div>

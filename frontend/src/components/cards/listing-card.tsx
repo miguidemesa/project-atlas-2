@@ -5,6 +5,7 @@ import { Heart } from "lucide-react";
 import { CardImage } from "./card-image";
 import { TiltCard, tierFor } from "./tilt-card";
 import { Countdown } from "@/components/ui/countdown";
+import { recordAffinityEvent } from "@/lib/affinity";
 import { DealBadge } from "./deal-badge";
 import { formatPeso, pctChange } from "@/lib/format";
 import { cn } from "@/lib/cn";
@@ -37,6 +38,20 @@ export function ListingCard({ listing }: { listing: Listing }) {
             <CardImage listing={listing} />
           </div>
 
+          {listing.status === "sold" && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-base/55">
+              <span className="rotate-[-8deg] rounded-lg border-2 border-gold px-4 py-1 font-display text-2xl tracking-wider text-gold">
+                SOLD
+              </span>
+            </div>
+          )}
+
+          {listing.graded && listing.gradingCompany && (
+            <span className="absolute bottom-2 left-2 z-[5] rounded border border-line-hv bg-base/80 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-gold backdrop-blur-sm">
+              {listing.gradingCompany} {listing.gradeValue}
+            </span>
+          )}
+
           <div className="absolute left-2 top-2 flex gap-1.5">
             {listing.format === "auction" ? (
               <span className="rounded bg-gold px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink">Auction</span>
@@ -51,8 +66,11 @@ export function ListingCard({ listing }: { listing: Listing }) {
             aria-label={listing.watchers ? `Watch listing (${listing.watchers} watchers)` : "Watch listing"}
             onClick={(e) => {
               e.preventDefault();
-              e.currentTarget.querySelector("svg")?.classList.toggle("fill-gold");
-              e.currentTarget.querySelector("svg")?.classList.toggle("text-gold");
+              const svg = e.currentTarget.querySelector("svg");
+              const nowWatching = !svg?.classList.contains("fill-gold");
+              svg?.classList.toggle("fill-gold", nowWatching);
+              svg?.classList.toggle("text-gold", nowWatching);
+              if (nowWatching) recordAffinityEvent(listing.category, "watch");
             }}
             className="absolute right-2 top-2 rounded-full bg-base/70 p-1.5 text-ink-dim backdrop-blur-sm transition-colors hover:text-gold"
           >

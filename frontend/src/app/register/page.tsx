@@ -1,14 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AuthShell, inputCls, btnCls } from "@/components/auth/auth-shell";
+import { useAuth } from "@/lib/auth";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const { register: registerUser } = useAuth();
+  const router = useRouter();
 
   return (
     <AuthShell
@@ -25,9 +30,14 @@ export default function RegisterPage() {
     >
       <form
         className="space-y-4"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
-          setError("Registration opens with the accounts launch — browse freely in the meantime.");
+          setBusy(true);
+          setError("");
+          const result = await registerUser(email, name, password);
+          setBusy(false);
+          if (result.ok) router.push("/");
+          else setError(result.error ?? "Registration failed.");
         }}
       >
         <div>
@@ -58,7 +68,7 @@ export default function RegisterPage() {
 
         {error && <p role="alert" className="rounded-lg bg-warn/10 px-3.5 py-2.5 text-xs text-warn">{error}</p>}
 
-        <button type="submit" className={btnCls}>Create account</button>
+        <button type="submit" disabled={busy} className={btnCls}>{busy ? "Creating…" : "Create account"}</button>
 
         <button
           type="button"

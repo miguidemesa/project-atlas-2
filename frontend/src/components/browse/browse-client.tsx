@@ -1,12 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SlidersHorizontal, X } from "lucide-react";
 import { ListingCard } from "@/components/cards/listing-card";
-import { fetchFeed, type BrowseFilters } from "@/lib/api";
-import type { Listing } from "@/lib/types";
+import { fetchFeed, parseSearchQuery, type BrowseFilters } from "@/lib/api";
+import { Sparkles } from "lucide-react";
+import { recordAffinityEvent } from "@/lib/affinity";
+import type { Category, Listing } from "@/lib/types";
 import { cn } from "@/lib/cn";
+
+const CATEGORY_LABELS: Record<string, string> = {
+  nba: "NBA",
+  pokemon: "Pokémon",
+  one_piece: "One Piece",
+  disney: "Disney & Lorcana",
+};
 
 const SORTS = [
   ["newest", "Newest"],
@@ -31,6 +40,34 @@ export function BrowseClient({ initial }: { initial: BrowseFilters & { q?: strin
   const [maxPrice, setMaxPrice] = useState(initial.maxPrice ? String(initial.maxPrice) : "");
   const [sort, setSort] = useState<BrowseFilters["sort"]>(initial.sort ?? "newest");
   const [sheetOpen, setSheetOpen] = useState(false);
+
+  const [aiApplied, setAiApplied] = useState(false);
+  const [aiChips, setAiChips] = useState<string[]>([]);
+
+  // NL search: interpret free-text q into structured filters once per mount
+  useEffect(() => {
+    const q = initial.q?.trim();
+    if (!q || aiApplied) return;
+    let cancelled = false;
+    parseSearchQuery(q).then((parsed) => {
+      if (cancelled || !parsed) return;
+      const chips: string[] = [];
+      if (parsed.category && !category) {
+        setCategory(parsed.category as BrowseFilters["category"]);
+        chips.push(CATEGORY_LABELS[parsed.category] ?? parsed.category);
+      }
+      if (parsed.format && !format) setFormat(parsed.format);
+      if (parsed.graded && !graded) { setGraded(true); chips.push("Graded"); }
+      if (parsed.maxPrice && !maxPrice) {
+        setMaxPrice(String(parsed.maxPrice));
+        chips.push(`under ₱${parsed.maxPrice.toLocaleString("en-PH")}`);
+      }
+      setAiApplied(true);
+      if (chips.length) setAiChips(chips);
+    });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aiApplied, initial.q]);
 
   const filters: BrowseFilters = {
     category,
@@ -139,7 +176,10 @@ export function BrowseClient({ initial }: { initial: BrowseFilters & { q?: strin
               key={v}
               type="button"
               aria-pressed={category === (v || undefined)}
-              onClick={() => setCategory((v || undefined) as BrowseFilters["category"])}
+              onClick={() => {
+                setCategory((v || undefined) as BrowseFilters["category"]);
+                if (v) recordAffinityEvent(v as Category, "browse");
+              }}
               className={cn(
                 "shrink-0 rounded-full border px-4 py-1.5 text-sm transition-colors",
                 category === (v || undefined)
@@ -153,6 +193,14 @@ export function BrowseClient({ initial }: { initial: BrowseFilters & { q?: strin
         </div>
 
         <div className="mb-6 flex items-center justify-between gap-3">
+          {aiChips.length > 0 && (
+            <div className="flex items-center gap-1.5 text-xs text-gold" title="Parsed from your search using AI">
+              <Sparkles size={12} />
+              {aiChips.map((c) => (
+                <span key={c} className="rounded border border-gold/40 px-1.5 py-0.5">{c}</span>
+              ))}
+            </div>
+          )}
           <p className="text-sm text-ink-dim" aria-live="polite">
             <span className="font-mono tabular-nums text-ink">{results.length}</span> result{results.length === 1 ? "" : "s"}
             {initial.q && <> for “{initial.q}”</>}

@@ -10,7 +10,7 @@ const items = [
   { href: "/browse", label: "Search", icon: Search },
   { href: "/sell", label: "Sell", icon: PlusCircle, primary: true },
   { href: "/browse?format=auction", label: "Auctions", icon: Gavel },
-  { href: "/sellers/s1", label: "Orders", icon: Package },
+  { href: "/orders", label: "Orders", icon: Package },
 ];
 
 export function BottomNav() {

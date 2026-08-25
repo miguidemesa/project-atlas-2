@@ -16,7 +16,7 @@ export function Footer() {
         {[
           { title: "Marketplace", links: [["Browse cards", "/browse"], ["Live auctions", "/browse?format=auction"], ["Sealed boxes", "/browse?type=hobby_box"], ["Start selling", "/sell"]] },
           { title: "Account", links: [["Sign in", "/login"], ["Create account", "/register"], ["Seller profiles", "/sellers/s1"]] },
-          { title: "Trust & Safety", links: [["Buyer protection", "/"], ["Authentication guide", "/"], ["Community rules", "/"], ["Report a listing", "/"]] },
+          { title: "Trust & Safety", links: [["Card condition guide", "/condition-guide"], ["Buyer protection", "/"], ["Escrow, how it works", "/"], ["Report a listing", "/"]] },
         ].map((col) => (
           <nav key={col.title} aria-label={col.title}>
             <p className="text-sm font-semibold text-ink">{col.title}</p>

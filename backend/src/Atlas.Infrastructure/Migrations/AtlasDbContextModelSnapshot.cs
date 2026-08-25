@@ -138,6 +138,11 @@ namespace Atlas.Infrastructure.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("grading_company");
 
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("image_url");
+
                     b.Property<string>("ListingFormat")
                         .IsRequired()
                         .HasColumnType("text")
@@ -286,8 +291,8 @@ namespace Atlas.Infrastructure.Migrations
 
                     b.Property<string>("Content")
                         .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
                         .HasColumnName("content");
 
                     b.Property<DateTime>("CreatedAt")
@@ -296,6 +301,14 @@ namespace Atlas.Infrastructure.Migrations
 
                     b.Property<bool>("IsRead")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("user")
+                        .HasColumnName("kind");
 
                     b.Property<Guid?>("ListingId")
                         .HasColumnType("uuid")
@@ -327,6 +340,70 @@ namespace Atlas.Infrastructure.Migrations
                     b.ToTable("messages", (string)null);
                 });
 
+            modelBuilder.Entity("Atlas.Domain.Offers.Offer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<Guid>("BuyerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("buyer_id");
+
+                    b.Property<Guid?>("CounterToId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("counter_to_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedById")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_id");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<Guid>("ListingId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("listing_id");
+
+                    b.Property<DateTime?>("RespondedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("responded_at");
+
+                    b.Property<Guid>("SellerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("seller_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ListingId");
+
+                    b.HasIndex("BuyerId", "Status")
+                        .HasDatabaseName("idx_offers_buyer");
+
+                    b.HasIndex("SellerId", "Status")
+                        .HasDatabaseName("idx_offers_seller");
+
+                    b.ToTable("offers", null, t =>
+                        {
+                            t.HasCheckConstraint("chk_offer_amount_positive", "amount > 0");
+                        });
+                });
+
             modelBuilder.Entity("Atlas.Domain.Orders.Order", b =>
                 {
                     b.Property<Guid>("Id")
@@ -353,6 +430,11 @@ namespace Atlas.Infrastructure.Migrations
                     b.Property<DateTime?>("PaidAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("paid_at");
+
+                    b.Property<string>("PaymentSessionId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("payment_session_id");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("numeric(18,2)")
@@ -858,6 +940,30 @@ namespace Atlas.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_messages_sender");
+                });
+
+            modelBuilder.Entity("Atlas.Domain.Offers.Offer", b =>
+                {
+                    b.HasOne("Atlas.Infrastructure.Authentication.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("BuyerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_offers_buyer");
+
+                    b.HasOne("Atlas.Domain.Listings.Listing", null)
+                        .WithMany()
+                        .HasForeignKey("ListingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_offers_listings");
+
+                    b.HasOne("Atlas.Infrastructure.Authentication.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("SellerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_offers_seller");
                 });
 
             modelBuilder.Entity("Atlas.Domain.Orders.Order", b =>
