@@ -146,6 +146,14 @@ public sealed class OrderService(AtlasDbContext db, IConfiguration config) : IOr
         order.DeliveredAt = DateTime.UtcNow;
         order.UpdatedAt = DateTime.UtcNow;
 
+        // escrow releases to the seller wallet (credit-only, no cash-out)
+        db.WalletEntries.Add(new Domain.Wallet.WalletEntry
+        {
+            Id = Guid.NewGuid(), UserId = order.SellerId,
+            Delta = order.Price, Kind = "sale", OrderId = order.Id,
+            CreatedAt = DateTime.UtcNow,
+        });
+
         // loyalty: reward both sides for a completed, escrow-verified trade
         var expiry = DateTime.UtcNow.AddDays(365);
         db.PointsLedger.AddRange(

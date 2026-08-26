@@ -4,7 +4,9 @@ using Atlas.Domain.Messages;
 using Atlas.Domain.Offers;
 using Atlas.Domain.Orders;
 using Atlas.Domain.Pricing;
+using Atlas.Domain.Disputes;
 using Atlas.Domain.Reviews;
+using Atlas.Domain.Wallet;
 using Atlas.Domain.Sellers;
 using Atlas.Domain.Rewards;
 using Atlas.Infrastructure.Authentication;
@@ -29,6 +31,9 @@ public class AtlasDbContext(DbContextOptions<AtlasDbContext> options)
     public DbSet<RefreshTokenEntity> RefreshTokens => Set<RefreshTokenEntity>();
     public DbSet<Offer> Offers => Set<Offer>();
     public DbSet<PointsLedger> PointsLedger => Set<PointsLedger>();
+    public DbSet<WalletEntry> WalletEntries => Set<WalletEntry>();
+    public DbSet<PayoutRequest> PayoutRequests => Set<PayoutRequest>();
+    public DbSet<Dispute> Disputes => Set<Dispute>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

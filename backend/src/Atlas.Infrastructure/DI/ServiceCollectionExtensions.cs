@@ -5,10 +5,13 @@ using Atlas.Application.MarketData;
 using Atlas.Infrastructure.Ai;
 using Atlas.Infrastructure.Authentication;
 using Atlas.Infrastructure.Bids;
+using Atlas.Infrastructure.Disputes;
 using Atlas.Infrastructure.MarketData;
 using Atlas.Infrastructure.MarketData.PriceCharting;
+using Atlas.Infrastructure.Ops;
 using Atlas.Infrastructure.Offers;
 using Atlas.Infrastructure.Orders;
+using Atlas.Infrastructure.Payouts;
 using Atlas.Infrastructure.Payments;
 using Atlas.Infrastructure.Persistence;
 using Atlas.Infrastructure.Reviews;
@@ -58,6 +61,7 @@ public static class ServiceCollectionExtensions
                     ValidAudience = jwt["Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(jwt["SecretKey"] ?? throw new InvalidOperationException("Jwt:SecretKey is not configured."))),
+                    RoleClaimType = "role",
                     ClockSkew = TimeSpan.FromSeconds(30),
                 };
             });
@@ -86,7 +90,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IBidService, BidService>();
         services.AddScoped<IOfferService, OfferService>();
         services.AddScoped<IReviewService, ReviewService>();
-        services.AddScoped<IRewardsService, RewardsService>();
+        services.AddScoped<IWalletService, WalletService>();
+        services.AddScoped<IPayoutService, PayoutService>();
+        services.AddScoped<IDisputeService, DisputeService>();
     }
 
     private static void AddObjectStorage(IServiceCollection services, IConfiguration config)
