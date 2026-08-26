@@ -1,14 +1,17 @@
 using System.Security.Claims;
+using Atlas.Application.Rewards;
+using Atlas.Domain.Rewards;
 using Atlas.Infrastructure.Orders;
 using Atlas.Infrastructure.Persistence;
 using Atlas.Infrastructure.Payments;
+using Atlas.Infrastructure.Reviews;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Atlas.Web.Api.Controllers;
 
-public sealed record PayRequest(string? ShippingAddress);
+public sealed record PayRequest(string? ShippingAddress, bool UsePoints = false);
 
 /// <summary>
 /// Payment orchestration. PayMongo → hosted checkout URL; state advances
@@ -32,22 +35,44 @@ public class PaymentsController(AtlasDbContext db, IPaymentProvider payments, IO
         if (order is null) return NotFound(new { error = "Order not found." });
         if (order.BuyerId != userId) return Forbid();
 
+        // loyalty redemption: cap 20% of order, debited only after capture succeeds
+        var balance = await db.PointsLedger
+            .Where(p => p.UserId == userId && (p.ExpiresAt == null || p.ExpiresAt > DateTime.UtcNow))
+            .SumAsync(p => p.Delta, ct);
+        var discount = request?.UsePoints == true
+            ? RewardsMath.MaxRedeemableDiscount(Math.Max(0, balance), order.Price)
+            : 0;
+        var charge = order.Price - discount;
+
         try
         {
-            var checkout = await payments.StartCheckoutAsync(order.Id, order.Price, ct);
+            var checkout = await payments.StartCheckoutAsync(order.Id, charge, ct);
 
             // stamps session id + collects address for accepted-offer orders
             await orders.BeginPaymentAsync(id, userId.Value, request?.ShippingAddress,
                 checkout?.SessionId ?? $"mock_{id:N}", ct);
 
+            if (discount > 0)
+            {
+                db.PointsLedger.Add(new PointsLedger
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = userId.Value,
+                    Delta = -RewardsMath.PointsForDiscount(discount),
+                    Kind = "redeem",
+                    OrderId = id,
+                });
+                await db.SaveChangesAsync(ct);
+            }
+
             if (checkout is null)
             {
                 await orders.MarkPaidAsync(id, ct); // dev mock capture
                 var mine = (await orders.MineAsync(userId.Value, ct)).First(o => o.Id == id);
-                return Ok(new { data = new { order = mine } });
+                return Ok(new { data = new { order = mine, discountApplied = discount } });
             }
 
-            return Ok(new { data = new { checkoutUrl = checkout.Url } });
+            return Ok(new { data = new { checkoutUrl = checkout.Url, discountApplied = discount } });
         }
         catch (KeyNotFoundException e) { return NotFound(new { error = e.Message }); }
         catch (OrderForbiddenException) { return Forbid(); }

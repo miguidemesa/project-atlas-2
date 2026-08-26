@@ -1,4 +1,6 @@
+using Atlas.Application.Rewards;
 using Atlas.Domain.Listings;
+using Microsoft.Extensions.Configuration;
 using Atlas.Domain.Orders;
 using Atlas.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -46,7 +48,7 @@ public interface IOrderService
     Task<IReadOnlyList<OrderDto>> MineAsync(Guid userId, CancellationToken ct = default);
 }
 
-public sealed class OrderService(AtlasDbContext db) : IOrderService
+public sealed class OrderService(AtlasDbContext db, IConfiguration config) : IOrderService
 {
     public async Task<OrderDto> CreateAsync(Guid buyerId, CreateOrderRequest request, CancellationToken ct = default)
     {
@@ -143,6 +145,16 @@ public sealed class OrderService(AtlasDbContext db) : IOrderService
         order.Status = OrderStatus.FundsReleased; // escrow releases to the seller
         order.DeliveredAt = DateTime.UtcNow;
         order.UpdatedAt = DateTime.UtcNow;
+
+        // loyalty: reward both sides for a completed, escrow-verified trade
+        var expiry = DateTime.UtcNow.AddDays(365);
+        db.PointsLedger.AddRange(
+            new Domain.Rewards.PointsLedger { Id = Guid.NewGuid(), UserId = order.SellerId,
+                Delta = RewardsMath.AwardForSale(order.Price), Kind = "earn_sale",
+                OrderId = order.Id, ExpiresAt = expiry },
+            new Domain.Rewards.PointsLedger { Id = Guid.NewGuid(), UserId = order.BuyerId,
+                Delta = RewardsMath.AwardForPurchase(order.Price), Kind = "earn_purchase",
+                OrderId = order.Id, ExpiresAt = expiry });
         await db.SaveChangesAsync(ct);
         return await ToDtoAsync(order, "buyer", actorId, ct);
     }

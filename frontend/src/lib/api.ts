@@ -243,19 +243,23 @@ export interface PayResult {
 export const payOrder = async (
   id: string,
   shippingAddress: string | undefined,
+  usePoints: boolean,
   authFetch: (p: string, i?: RequestInit) => Promise<Response>,
 ): Promise<PayResult> => {
   try {
+    const body: Record<string, unknown> = {};
+    if (shippingAddress) body.shippingAddress = shippingAddress;
+    if (usePoints) body.usePoints = true;
     const res = await authFetch(`/api/orders/${id}/pay`, {
       method: "POST",
-      headers: shippingAddress ? { "Content-Type": "application/json" } : undefined,
-      body: shippingAddress ? JSON.stringify({ shippingAddress }) : undefined,
+      headers: Object.keys(body).length ? { "Content-Type": "application/json" } : undefined,
+      body: Object.keys(body).length ? JSON.stringify(body) : undefined,
     });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) return { ok: false, error: json.error ?? `Payment failed (${res.status}).` };
-    const data = json.data;
-    if (data?.checkoutUrl) return { ok: true, checkoutUrl: data.checkoutUrl };
-    if (data?.order) return { ok: true, order: data.order };
+    const data = json.data ?? {};
+    if (data.checkoutUrl) return { ok: true, checkoutUrl: data.checkoutUrl as string };
+    if (data.order) return { ok: true, order: data.order as Order, discountApplied: data.discountApplied as number | undefined };
     return { ok: false, error: "Unexpected payment response." };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Payment failed." };
@@ -481,4 +485,30 @@ export async function competingPriceCheck(
   } catch {
     return null;
   }
+}
+
+export interface RewardHistory { id: string; delta: number; kind: string; createdAt: string; }
+
+export async function fetchMyRewards(
+  authFetch: (path: string, init?: RequestInit) => Promise<Response>,
+): Promise<{ balance: number; history: RewardHistory[] }> {
+  try {
+    const res = await authFetch("/api/rewards/mine");
+    if (!res.ok) return { balance: 0, history: [] };
+    return (await res.json()).data ?? { balance: 0, history: [] };
+  } catch {
+    return { balance: 0, history: [] };
+  }
+}
+
+export function maxRedeemable(balance: number, orderPrice: number): number {
+  return Math.min(Math.floor(balance * 0.25), Math.floor(orderPrice * 0.2));
+}
+
+export interface PayResult {
+  ok: boolean;
+  error?: string;
+  order?: Order;
+  checkoutUrl?: string;
+  discountApplied?: number;
 }

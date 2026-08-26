@@ -17,6 +17,7 @@ import {
   fetchMyOrders,
   postReview,
   payOrder as payOrderApi,
+  fetchMyRewards,
   shipOrder,
   type Offer,
   type Order,
@@ -221,10 +222,13 @@ function PayNow({ orderId, hasAddress, onPaid }: { orderId: string; hasAddress: 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
+  const [usePoints, setUsePoints] = useState(false);
+  const rw = useQuery({ queryKey: ["rewards"], queryFn: () => fetchMyRewards(authFetch) });
+
   async function go() {
     setBusy(true);
     setError("");
-    const r = await payOrderApi(orderId, hasAddress ? undefined : address, authFetch);
+    const r = await payOrderApi(orderId, hasAddress ? undefined : address, usePoints, authFetch);
     setBusy(false);
     if (!r.ok) {
       setError(r.error ?? "Payment failed.");
@@ -239,6 +243,13 @@ function PayNow({ orderId, hasAddress, onPaid }: { orderId: string; hasAddress: 
 
   return (
     <div className="mt-3 space-y-2 border-t border-line pt-3">
+      {rw.data && rw.data.balance >= 100 && (
+        <label className="flex cursor-pointer items-center gap-2 text-xs text-ink-dim">
+          <input type="checkbox" checked={usePoints} onChange={(e) => setUsePoints(e.target.checked)} className="h-3.5 w-3.5 accent-[#b08d3e]" />
+          Use ⭐ {rw.data.balance} pts
+        </label>
+      )}
+
       {!hasAddress && (
         <textarea
           required

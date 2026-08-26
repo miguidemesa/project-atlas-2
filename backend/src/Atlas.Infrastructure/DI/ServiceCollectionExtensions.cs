@@ -12,6 +12,7 @@ using Atlas.Infrastructure.Orders;
 using Atlas.Infrastructure.Payments;
 using Atlas.Infrastructure.Persistence;
 using Atlas.Infrastructure.Reviews;
+using Atlas.Infrastructure.Rewards;
 using Atlas.Infrastructure.Storage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -85,6 +86,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IBidService, BidService>();
         services.AddScoped<IOfferService, OfferService>();
         services.AddScoped<IReviewService, ReviewService>();
+        services.AddScoped<IRewardsService, RewardsService>();
     }
 
     private static void AddObjectStorage(IServiceCollection services, IConfiguration config)

@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Gavel, Heart, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import { createOrder, makeOffer, payOrder as payOrderApi, placeBid } from "@/lib/api";
+import { createOrder, makeOffer, maxRedeemable, payOrder as payOrderApi, placeBid, fetchMyRewards } from "@/lib/api";
 import { formatPeso } from "@/lib/format";
 import { cn } from "@/lib/cn";
 
@@ -32,8 +32,17 @@ export function BidBox({ listingId, price, previousPrice, format, bidCount, ends
   const [amount, setAmount] = useState(() =>
     format === "auction" ? String((price ?? 0) + 500) : "",
   );
+  const [usePts, setUsePts] = useState(false);
+  const [ptsBalance, setPtsBalance] = useState(0);
   const { user, authFetch } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!user || format !== "fixed") return;
+    let live = true;
+    fetchMyRewards(authFetch).then((r) => { if (live) setPtsBalance(r.balance); });
+    return () => { live = false; };
+  }, [user, format, authFetch]);
 
   function quick(step: number | "pct5") {
     const base = Number(amount) || price;
@@ -71,7 +80,7 @@ export function BidBox({ listingId, price, previousPrice, format, bidCount, ends
       setCheckoutStage("idle");
       return;
     }
-    const paid = await payOrderApi(created.order.id, undefined, authFetch);
+    const paid = await payOrderApi(created.order.id, undefined, usePts, authFetch);
     if (!paid.ok) {
       setBuyError(`Order reserved but payment failed: ${paid.error}`);
       setDone(true);
@@ -196,6 +205,12 @@ export function BidBox({ listingId, price, previousPrice, format, bidCount, ends
             className="w-full rounded-lg border border-line bg-base px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:border-gold focus:outline-none"
           />
           {buyError && <p role="alert" className="mt-2 text-xs text-urgent">{buyError}</p>}
+          {ptsBalance >= 100 && (
+            <label className="mt-2 flex cursor-pointer items-center gap-2 text-xs text-ink-dim">
+              <input type="checkbox" checked={usePts} onChange={(e) => setUsePts(e.target.checked)} className="h-3.5 w-3.5 accent-[#b08d3e]" />
+              Use ⭐ points — save {formatPeso(maxRedeemable(ptsBalance, price))}
+            </label>
+          )}
           <div className="mt-3 flex gap-2">
             <button type="button" onClick={() => setCheckoutStage("idle")} className="rounded-lg border border-line px-4 py-2.5 text-sm text-ink-dim hover:text-ink">
               Cancel

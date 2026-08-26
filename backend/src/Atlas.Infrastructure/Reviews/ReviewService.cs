@@ -1,6 +1,9 @@
 using Atlas.Domain.Orders;
 using Atlas.Domain.Reviews;
+using Atlas.Application.Rewards;
+using Atlas.Domain.Rewards;
 using Atlas.Infrastructure.Persistence;
+using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 
 namespace Atlas.Infrastructure.Reviews;
@@ -15,7 +18,7 @@ public interface IReviewService
     Task<SellerReviewsDto> ForSellerAsync(Guid sellerId, CancellationToken ct = default);
 }
 
-public sealed class ReviewService(AtlasDbContext db) : IReviewService
+public sealed class ReviewService(AtlasDbContext db, IConfiguration config) : IReviewService
 {
     public async Task<ReviewDto> PostAsync(Guid orderId, Guid actorId, int rating, string? content, CancellationToken ct = default)
     {
@@ -64,6 +67,15 @@ public sealed class ReviewService(AtlasDbContext db) : IReviewService
             profile.VerificationBadge |= false;
         }
 
+        db.PointsLedger.Add(new PointsLedger
+        {
+            Id = Guid.NewGuid(),
+            UserId = actorId,
+            Delta = Application.Rewards.RewardsMath.ReviewBonus,
+            Kind = "earn_review",
+            OrderId = orderId,
+            ExpiresAt = DateTime.UtcNow.AddDays(365),
+        });
         await db.SaveChangesAsync(ct);
 
         var reviewer = await db.Users.AsNoTracking().FirstAsync(u => u.Id == actorId, ct);
