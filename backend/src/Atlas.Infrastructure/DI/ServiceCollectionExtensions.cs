@@ -13,6 +13,7 @@ using Atlas.Infrastructure.Offers;
 using Atlas.Infrastructure.Orders;
 using Atlas.Infrastructure.Payouts;
 using Atlas.Infrastructure.Payments;
+using Atlas.Infrastructure.Notifications;
 using Atlas.Infrastructure.Persistence;
 using Atlas.Infrastructure.Reviews;
 using Atlas.Infrastructure.Rewards;
@@ -23,6 +24,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Atlas.Application.Common.Interfaces;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Atlas.Infrastructure.DI;
@@ -74,6 +76,12 @@ public static class ServiceCollectionExtensions
         AddObjectStorage(services, config);
         AddMarketData(services, config);
         AddPayments(services, config);
+
+        // email notifications: Resend when keyed, console otherwise
+        if (!string.IsNullOrWhiteSpace(config["Notifications:Resend:ApiKey"]))
+            services.AddHttpClient<IEmailSender, ResendEmailSender>();
+        else
+            services.AddSingleton<IEmailSender, ConsoleEmailSender>();
 
         return services;
     }
