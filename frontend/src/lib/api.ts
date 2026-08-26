@@ -456,3 +456,29 @@ export async function parseSearchQuery(q: string): Promise<ParsedSearch | null> 
     return null;
   }
 }
+
+export interface CompetingResult {
+  count: number;
+  min: number;
+  median: number;
+  max: number;
+}
+
+export async function competingPriceCheck(
+  params: { player: string; year: number; set: string; parallel?: string },
+  authFetch: (path: string, init?: RequestInit) => Promise<Response>,
+): Promise<CompetingResult | null> {
+  try {
+    const qs = new URLSearchParams({
+      player: params.player,
+      year: String(params.year),
+      set: params.set,
+      ...(params.parallel ? { parallel: params.parallel } : {}),
+    });
+    const res = await authFetch(`/api/listings/competing?${qs.toString()}`);
+    if (!res.ok) return null;
+    return (await res.json()).data as CompetingResult;
+  } catch {
+    return null;
+  }
+}

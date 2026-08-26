@@ -8,7 +8,7 @@ import { z } from "zod";
 import { CheckCircle2, ChevronLeft, ChevronRight, ImagePlus, LogIn, Sparkles } from "lucide-react";
 import { CardArt } from "@/components/cards/card-art";
 import { useAuth } from "@/lib/auth";
-import { createListing, scanCard, uploadListingPhoto } from "@/lib/api";
+import { competingPriceCheck, createListing, scanCard, uploadListingPhoto } from "@/lib/api";
 import { cn } from "@/lib/cn";
 
 const STEPS = ["The card", "Condition", "Photos", "Format & price"] as const;
@@ -62,6 +62,7 @@ export function SellForm() {
   const [uploading, setUploading] = useState(false);
   const [photos, setPhotos] = useState<Partial<Record<PhotoSlotKey, File>>>({});
   const [scanBusy, setScanBusy] = useState(false);
+  const [competing, setCompeting] = useState<{ count: number; min: number; median: number; max: number } | null>(null);
   const [scanResult, setScanResult] = useState<string>("");
   const previewUrls = useRef<string[]>([]);
 
@@ -103,6 +104,21 @@ export function SellForm() {
 
   // clean up object URLs
   useEffect(() => () => previewUrls.current.forEach(URL.revokeObjectURL), []);
+
+  // live competition check once card identity is filled
+  useEffect(() => {
+    if (!watched.player.trim() || !watched.set.trim()) return;
+    const t = setTimeout(async () => {
+      const r = await competingPriceCheck(
+        { player: watched.player.trim(), year: Number(watched.year), set: watched.set.trim(),
+          parallel: watched.parallel?.trim() || undefined },
+        authFetch,
+      );
+      setCompeting(r && r.count > 0 ? r : null);
+    }, 700);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watched.player, watched.year, watched.set, watched.parallel]);
 
   function setPhoto(slot: PhotoSlotKey, file: File | undefined) {
     if (!file) return;
@@ -423,6 +439,34 @@ export function SellForm() {
               </label>
             ))}
           </div>
+          {competing && (
+            <div className="mb-5 rounded-xl border border-gold/40 bg-gold/5 p-4">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-medium text-ink">
+                  {competing.count} {competing.count === 1 ? "seller" : "sellers"} already list this card
+                </p>
+                <span className="font-mono text-xs text-ink-faint">
+                  ₱{competing.min.toLocaleString("en-PH")} – ₱{competing.max.toLocaleString("en-PH")}
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-ink-dim">
+                Market median <span className="font-semibold text-gold">₱{competing.median.toLocaleString("en-PH")}</span> — priced smart beats priced high.
+              </p>
+              <div className="mt-2.5 flex flex-wrap gap-2">
+                <button type="button"
+                  onClick={() => setValue("price", competing.median, { shouldValidate: true })}
+                  className="rounded-lg border border-line bg-base px-3 py-1.5 font-mono text-xs text-ink transition-colors hover:border-gold hover:text-gold">
+                  Match median · ₱{competing.median.toLocaleString("en-PH")}
+                </button>
+                <button type="button"
+                  onClick={() => setValue("price", Math.max(100, competing.min - 100), { shouldValidate: true })}
+                  className="rounded-lg border border-line bg-base px-3 py-1.5 font-mono text-xs text-ink transition-colors hover:border-gold hover:text-gold">
+                  Undercut lowest · ₱{Math.max(100, competing.min - 100).toLocaleString("en-PH")}
+                </button>
+              </div>
+            </div>
+          )}
+
           <Field label={watch("format") === "auction" ? "Starting bid (₱)" : "Your price (₱)"} error={errors.price?.message}>
             <input {...register("price", { valueAsNumber: true })} inputMode="numeric" className={cn(inputCls, "font-mono tabular-nums")} />
           </Field>

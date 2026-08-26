@@ -386,6 +386,53 @@ public class ListingsController(AtlasDbContext db, IObjectStorage storage, IVali
             .ToDictionaryAsync(g => g.Key, g => g.Count(), ct);
     }
 
+public sealed record CompetingResult(int Count, decimal Min, decimal Median, decimal Max);
+
+    /// <summary>
+    /// Price-intelligence at listing time: how many ACTIVE listings share this
+    /// exact card identity, and their price spread. Excludes the caller.
+    /// </summary>
+    [Authorize]
+    [HttpGet("competing")]
+    public async Task<IActionResult> Competing(
+        [FromQuery] string player,
+        [FromQuery] int year,
+        [FromQuery] string set,
+        [FromQuery] string? parallel,
+        CancellationToken ct)
+    {
+        var userId = CurrentUserId();
+        if (userId is null) return Unauthorized();
+
+        var norm = (string v) => v.Trim().ToLowerInvariant();
+        var par = string.IsNullOrWhiteSpace(parallel) ? null : parallel!.Trim().ToLowerInvariant();
+
+        var candidates = await db.Listings.AsNoTracking()
+            .Where(l => l.Status == ListingStatus.Active
+                && l.SellerId != userId
+                && l.Player.ToLower() == norm(player)
+                && l.Year == year
+                && l.Set.ToLower() == norm(set))
+            .Select(l => new { l.Price, l.Parallel })
+            .ToListAsync(ct);
+
+        var prices = candidates
+            .Where(c => string.IsNullOrWhiteSpace(c.Parallel)
+                ? string.IsNullOrWhiteSpace(parallel)
+                : !string.IsNullOrWhiteSpace(parallel) && c.Parallel!.ToLower() == par)
+            .Select(c => c.Price)
+            .OrderBy(p => p)
+            .ToList();
+
+        if (prices.Count == 0)
+            return Ok(new { data = new CompetingResult(0, 0, 0, 0) });
+
+        var mid = prices.Count / 2;
+        var median = prices.Count % 2 == 1 ? prices[mid] : (prices[mid - 1] + prices[mid]) / 2m;
+
+        return Ok(new { data = new CompetingResult(prices.Count, prices.First(), median, prices.Last()) });
+    }
+
     private async Task<Dictionary<Guid, Domain.Auctions.Auction>> AuctionsFor(IReadOnlyList<Domain.Listings.Listing> listings, CancellationToken ct)
     {
         var ids = listings.Select(l => l.Id).ToList();
