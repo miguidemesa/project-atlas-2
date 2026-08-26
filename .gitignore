@@ -32,3 +32,15 @@ backend/**/bin/
 backend/**/obj/
 frontend/.next/
 **/node_modules/
+
+# AI agent files — local only, never commit
+CLAUDE.md
+AGENTS.md
+PRODUCT.md
+.claude/
+.agents/
+.ai/
+.codex/
+.impeccable/
+.superpowers/
+docs/superpowers/
