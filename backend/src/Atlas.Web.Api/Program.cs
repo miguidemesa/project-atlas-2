@@ -20,10 +20,22 @@ builder.Services.AddControllers();
 builder.Services.AddHealthChecks();
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
-        policy.WithOrigins(corsOrigins)
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials()));
+    {
+        if (corsOrigins.Any(o => o == "*"))
+        {
+            policy.SetIsOriginAllowed(_ => true)
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        }
+        else
+        {
+            policy.WithOrigins(corsOrigins)
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        }
+    }));
 
 var app = builder.Build();
 
