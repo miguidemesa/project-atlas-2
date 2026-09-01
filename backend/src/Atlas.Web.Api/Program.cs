@@ -35,10 +35,15 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/uploads",
 });
 
-if (app.Environment.IsDevelopment() && builder.Configuration.GetValue("SeedData", true))
+using (var scope = app.Services.CreateScope())
 {
-    using var seedScope = app.Services.CreateScope();
-    await DbSeeder.SeedAsync(seedScope.ServiceProvider);
+    var db = scope.ServiceProvider.GetRequiredService<AtlasDbContext>();
+    await db.Database.MigrateAsync();
+
+    if (app.Environment.IsDevelopment() || builder.Configuration.GetValue("SeedData", false))
+    {
+        await DbSeeder.SeedAsync(scope.ServiceProvider);
+    }
 }
 
 app.UseMiddleware<CorrelationIdMiddleware>();
