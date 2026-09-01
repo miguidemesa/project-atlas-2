@@ -2,6 +2,7 @@ using Atlas.Application;
 using Atlas.Infrastructure.DI;
 using Atlas.Infrastructure.Persistence;
 using Atlas.Web.Api.Middleware;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);

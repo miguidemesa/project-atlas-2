@@ -50,7 +50,7 @@ public class PayoutsController(IPayoutService payouts) : ControllerBase
     public sealed record RequestBody(decimal Amount, string Method, string Destination);
 
     [HttpPost]
-    public async Task<IActionResult> Request([FromBody] RequestBody body, CancellationToken ct)
+    public async Task<IActionResult> RequestPayout([FromBody] RequestBody body, CancellationToken ct)
     {
         var uid = Uid();
         if (uid is null) return Unauthorized();
