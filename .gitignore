@@ -1,0 +1,46 @@
+# Backend
+backend/**/bin/
+backend/**/obj/
+backend/**/node_modules/
+backend/**/App_Data/uploads/
+*.user
+*.suo
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Superpowers
+.superpowers/
+
+# OS
+.DS_Store
+Thumbs.db
+node_modules/
+backend/**/bin/
+backend/**/obj/
+frontend/.next/
+**/node_modules/
+
+# AI agent files — local only, never commit
+CLAUDE.md
+AGENTS.md
+PRODUCT.md
+.claude/
+.agents/
+.ai/
+.codex/
+.impeccable/
+.superpowers/
+docs/superpowers/

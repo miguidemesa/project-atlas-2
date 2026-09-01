@@ -1,0 +1,21 @@
+[
+  {
+    "name": "Pikachu ex",
+    "set": "Surging Sparks",
+    "number": "238",
+    "rarity": "Special Illustration Rare",
+    "source": "pokemontcg.io",
+    "sourceId": "sv8-238",
+    "localImage": "/seed-images/pikachu-ex-ssp.png"
+  },
+  {
+    "name": "Giratina",
+    "set": "Platinum",
+    "number": "9",
+    "rarity": "Rare Holo",
+    "artist": "Kouki Saitou",
+    "source": "pokemontcg.io",
+    "sourceId": "pl1-9",
+    "localImage": "/seed-images/giratina-v-crz.png"
+  }
+]

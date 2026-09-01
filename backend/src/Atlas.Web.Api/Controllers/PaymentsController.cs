@@ -1,0 +1,115 @@
+using System.Security.Claims;
+using Atlas.Application.Rewards;
+using Atlas.Domain.Rewards;
+using Atlas.Infrastructure.Orders;
+using Atlas.Infrastructure.Persistence;
+using Atlas.Infrastructure.Payments;
+using Atlas.Infrastructure.Reviews;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace Atlas.Web.Api.Controllers;
+
+public sealed record PayRequest(string? ShippingAddress, bool UsePoints = false);
+
+/// <summary>
+/// Payment orchestration. PayMongo → hosted checkout URL; state advances
+/// only from PSP-verified sources (status poll below or signed webhook).
+/// </summary>
+[ApiController]
+[Authorize]
+[Route("api/orders")]
+public class PaymentsController(AtlasDbContext db, IPaymentProvider payments, IOrderService orders) : ControllerBase
+{
+    private Guid? CurrentUserId() =>
+        Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub"), out var id) ? id : null;
+
+    [HttpPost("{id:guid}/pay")]
+    public async Task<IActionResult> Pay(Guid id, [FromBody] PayRequest? request, CancellationToken ct)
+    {
+        var userId = CurrentUserId();
+        if (userId is null) return Unauthorized();
+
+        var order = await db.Orders.AsNoTracking().FirstOrDefaultAsync(o => o.Id == id, ct);
+        if (order is null) return NotFound(new { error = "Order not found." });
+        if (order.BuyerId != userId) return Forbid();
+
+        // loyalty redemption: cap 20% of order, debited only after capture succeeds
+        var balance = await db.PointsLedger
+            .Where(p => p.UserId == userId && (p.ExpiresAt == null || p.ExpiresAt > DateTime.UtcNow))
+            .SumAsync(p => p.Delta, ct);
+        var discount = request?.UsePoints == true
+            ? RewardsMath.MaxRedeemableDiscount(Math.Max(0, balance), order.Price)
+            : 0;
+        var charge = order.Price - discount;
+
+        try
+        {
+            var checkout = await payments.StartCheckoutAsync(order.Id, charge, ct);
+
+            // stamps session id + collects address for accepted-offer orders
+            await orders.BeginPaymentAsync(id, userId.Value, request?.ShippingAddress,
+                checkout?.SessionId ?? $"mock_{id:N}", ct);
+
+            if (discount > 0)
+            {
+                db.PointsLedger.Add(new PointsLedger
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = userId.Value,
+                    Delta = -RewardsMath.PointsForDiscount(discount),
+                    Kind = "redeem",
+                    OrderId = id,
+                });
+                await db.SaveChangesAsync(ct);
+            }
+
+            if (checkout is null)
+            {
+                await orders.MarkPaidAsync(id, ct); // dev mock capture
+                var mine = (await orders.MineAsync(userId.Value, ct)).First(o => o.Id == id);
+                return Ok(new { data = new { order = mine, discountApplied = discount } });
+            }
+
+            return Ok(new { data = new { checkoutUrl = checkout.Url, discountApplied = discount } });
+        }
+        catch (KeyNotFoundException e) { return NotFound(new { error = e.Message }); }
+        catch (OrderForbiddenException) { return Forbid(); }
+        catch (ArgumentException e) { return BadRequest(new { error = e.Message }); }
+        catch (OrderConflictException e) { return Conflict(new { error = e.Message }); }
+        catch (InvalidOperationException e) { return BadRequest(new { error = e.Message }); }
+    }
+
+    /// <summary>PSP-verified status poll — the no-domain alternative to webhooks.</summary>
+    [HttpGet("{id:guid}/payment-status")]
+    public async Task<IActionResult> PaymentStatus(Guid id, CancellationToken ct)
+    {
+        var userId = CurrentUserId();
+        if (userId is null) return Unauthorized();
+
+        async Task<OrderDto?> snapshot() =>
+            (await orders.MineAsync(userId.Value, ct)).FirstOrDefault(o => o.Id == id);
+
+        var mine = await snapshot();
+        if (mine is null) return NotFound(new { error = "Order not found." });
+
+        if (mine.Status == "pending_payment")
+        {
+            var sessionId = await db.Orders.AsNoTracking()
+                .Where(o => o.Id == id)
+                .Select(o => o.PaymentSessionId)
+                .FirstOrDefaultAsync(ct);
+
+            if (!string.IsNullOrWhiteSpace(sessionId) && !sessionId.StartsWith("mock_"))
+            {
+                var status = await payments.GetCheckoutStatusAsync(sessionId, ct);
+                if (status == "paid")
+                    await orders.MarkPaidAsync(id, ct);
+                mine = await snapshot();
+            }
+        }
+
+        return Ok(new { data = new { status = mine!.Status, trackingNumber = mine.TrackingNumber } });
+    }
+}

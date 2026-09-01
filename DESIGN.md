@@ -1,3 +1,20 @@
+> **Amendment (2026-08-24):** Scope now spans NBA, Pokémon, One Piece and Disney
+> (Lorcana) categories. Surface theme flipped dark-first → light-first: warm paper
+> base (#F6F4EF), white elevated cards, ink text; champagne gold deepened one step
+> (#C6A24B → #B08D3E) to hold AA contrast on light surfaces. Card artwork stays
+> rich/dark so the physical-card identity is unchanged.
+>
+> **Typography amendment (2026-08-24):** DM Serif Display / DM Sans retired as
+> model-default tells. New voice: **Bricolage Grotesque** (display + body —
+> characterful ink-trap grotesque, prices remain the loudest type on any
+> screen) with **JetBrains Mono** retained for countdowns and market data.
+>
+> **Motion additions (2026-08-24):** three authored moments only — (1) hero
+> parallax card stack at per-layer depths with idle float, (2) scroll-scrubbed
+> "grail showcase" where the card settles to true while trust steps crossfade,
+> (3) IntersectionObserver reveals with sibling stagger. All transform/opacity
+> GPU-only, all disabled under prefers-reduced-motion.
+
 # NBA Card Marketplace — Design System
 
 > A premium digital card exchange for Philippine collectors.
