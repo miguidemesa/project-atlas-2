@@ -7,6 +7,7 @@ import { GrailShowcase } from "@/components/home/grail-showcase";
 import { ForYou } from "@/components/home/for-you";
 import { SoldStrip } from "@/components/home/sold-strip";
 import { RecentlyViewed } from "@/components/home/recently-viewed";
+import { CategoryDoors } from "@/components/home/category-doors";
 import { Reveal } from "@/components/motion/reveal";
 import { ListingCard } from "@/components/cards/listing-card";
 import { fetchFeed, fetchMovers } from "@/lib/api";
@@ -43,6 +44,10 @@ export default async function HomePage() {
     (l): l is NonNullable<typeof l> => Boolean(l),
   );
   const grail = all.find((l) => l.id === "l06")!;
+  const categoryCounts = all.reduce<Record<string, number>>((acc, l) => {
+    acc[l.category] = (acc[l.category] ?? 0) + 1;
+    return acc;
+  }, {});
 
   return (
     <div>
@@ -51,6 +56,10 @@ export default async function HomePage() {
       <section className="mx-auto grid max-w-7xl items-center gap-10 px-4 pb-14 pt-16 sm:pt-20 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:px-8">
         <HeroSearch listingCount={all.length} />
         <HeroShowcase listings={featured} />
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 pb-14 lg:px-8" aria-label="Shop by category">
+        <CategoryDoors counts={categoryCounts} />
       </section>
 
       <ForYou />
@@ -156,6 +165,25 @@ export default async function HomePage() {
               {p}
             </a>
           ))}
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 pb-20 lg:px-8" aria-labelledby="sell-cta">
+        <div className="flex flex-col items-start gap-6 rounded-xl border border-[#34d399]/25 bg-[#0c1a15] px-8 py-10 sm:flex-row sm:items-center sm:justify-between">
+          <div className="max-w-xl">
+            <h2 id="sell-cta" className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+              Have cards to sell?
+            </h2>
+            <p className="mt-3 text-[15px] leading-6 text-[#b9c7c0]">
+              Photograph the front and back. Atlas suggests the name, set and a price from recent sales. You set the final price.
+            </p>
+          </div>
+          <Link
+            href="/sell"
+            className="flex-shrink-0 rounded-lg bg-[#34d399] px-7 py-3 text-[15px] font-semibold text-[#04231a] transition-colors hover:bg-[#5fe0b0]"
+          >
+            Sell a card
+          </Link>
         </div>
       </section>
     </div>
