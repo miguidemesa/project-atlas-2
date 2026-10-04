@@ -36,10 +36,6 @@ interface OfferCardPayload {
   actorRole: "buyer" | "seller";
 }
 
-function authedFetchFactory(authFetch: (p: string, i?: RequestInit) => Promise<Response>) {
-  return (path: string, init?: RequestInit) => authFetch(path, init);
-}
-
 function MessagesInner() {
   const { user, authFetch } = useAuth();
   const queryClient = useQueryClient();

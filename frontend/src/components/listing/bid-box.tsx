@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Gavel, Heart, ShieldCheck } from "lucide-react";
+import { Countdown } from "@/components/ui/countdown";
 import { useAuth } from "@/lib/auth";
 import { createOrder, makeOffer, maxRedeemable, payOrder as payOrderApi, placeBid, fetchMyRewards } from "@/lib/api";
 import { formatPeso } from "@/lib/format";
@@ -106,6 +107,7 @@ export function BidBox({ listingId, price, previousPrice, format, bidCount, ends
             <p className="font-display text-4xl text-gold">{formatPeso(price)}</p>
           </div>
           <div className="text-right">
+            {endsAt && <Countdown endsAt={endsAt} />}
             <p className="font-mono text-sm text-ink-dim">{liveBidCount} bids</p>
           </div>
         </div>

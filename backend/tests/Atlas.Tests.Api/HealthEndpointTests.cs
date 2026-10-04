@@ -1,15 +1,12 @@
 using System.Net;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Atlas.Tests.Api;
 
-public class HealthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
+[Collection(ApiCollection.Name)]
+public class HealthEndpointTests(ApiFactory factory)
 {
-    private readonly HttpClient _client;
-
-    public HealthEndpointTests(WebApplicationFactory<Program> factory)
-        => _client = factory.CreateClient();
+    private readonly HttpClient _client = factory.CreateClient();
 
     [Fact]
     public async Task Health_ReturnsOk()
@@ -24,8 +21,7 @@ public class HealthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
     {
         var response = await _client.GetAsync("/api/health");
 
-        var hasHeader = response.Headers.TryGetValues("X-Request-Id", out var values);
-        hasHeader.Should().BeTrue();
+        response.Headers.TryGetValues("X-Request-Id", out var values).Should().BeTrue();
         values!.Should().NotBeEmpty();
     }
 }
