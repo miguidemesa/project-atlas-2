@@ -33,7 +33,10 @@ public class CategoryListTests
     [InlineData("american football rookies", "american_football")]
     [InlineData("football world cup stickers", "soccer")]
     [InlineData("lorcana enchanted", "lorcana")]
-    public void MatchAlias_Finds_The_Category(string text, string expected) =>
+    [InlineData("NFL Football Patrick Mahomes", "american_football")]
+    [InlineData("nba mtg", null)]
+    [InlineData("fiba world cup", null)]
+    public void MatchAlias_Finds_The_Category(string text, string? expected) =>
         CategoryList.MatchAlias(text).Should().Be(expected);
 
     [Theory]

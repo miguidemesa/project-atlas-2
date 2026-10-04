@@ -34,7 +34,7 @@ public static class CategoryList
         new("other_tcg", "Other TCG", Tcg, 160, []),
         new("basketball", "Basketball", Sports, 45, ["basketball", "nba", "pba", "wnba", "fiba"]),
         new("baseball", "Baseball", Sports, 140, ["baseball", "mlb", "npb"]),
-        new("american_football", "American Football", Sports, 120, ["american football", "nfl"]),
+        new("american_football", "American Football", Sports, 120, ["american football", "nfl", "nfl football"]),
         new("soccer", "Soccer", Sports, 150, ["soccer", "football", "premier league", "world cup"]),
         new("hockey", "Hockey", Sports, 240, ["hockey", "nhl"]),
         new("racing", "Racing", Sports, 10, ["formula 1", "formula one", "f1", "racing", "nascar"]),
@@ -48,10 +48,8 @@ public static class CategoryList
 
     private static readonly Dictionary<string, CategoryInfo> BySlug = All.ToDictionary(c => c.Slug);
 
-    // longest first, so "american football" wins over "football"
     private static readonly (string Alias, string Slug)[] AliasIndex = All
         .SelectMany(c => c.Aliases.Select(a => (Alias: Normalize(a), c.Slug)))
-        .OrderByDescending(x => x.Alias.Length)
         .ToArray();
 
     public static bool IsValid(string? slug) => slug is not null && BySlug.ContainsKey(slug);
@@ -61,14 +59,39 @@ public static class CategoryList
 
     public static bool IsSports(string? slug) => Find(slug)?.Group == Sports;
 
-    /// <summary>Slug of the category whose alias appears in the text as whole words, else null.</summary>
+    /// <summary>
+    /// Slug of the category whose alias appears in the text as whole words.
+    /// Returns null if no alias is found, or if multiple categories have matching aliases.
+    /// Longer aliases suppress shorter ones (nested hit filtering).
+    /// </summary>
     public static string? MatchAlias(string text)
     {
         var padded = $" {Normalize(text)} ";
+        var hits = new List<(string Alias, string Slug)>();
+
+        // Collect all matching aliases
         foreach (var (alias, slug) in AliasIndex)
-            if (padded.Contains($" {alias} ", StringComparison.Ordinal))
-                return slug;
-        return null;
+        {
+            var needle = $" {alias} ";
+            if (padded.Contains(needle, StringComparison.Ordinal))
+                hits.Add((alias, slug));
+        }
+
+        if (hits.Count == 0)
+            return null;
+
+        // Remove hits whose needle is nested inside another hit's needle
+        var filtered = hits.Where(hit =>
+        {
+            var hitNeedle = $" {hit.Alias} ";
+            return !hits.Any(other =>
+                other.Alias != hit.Alias &&
+                $" {other.Alias} ".Contains(hitNeedle, StringComparison.Ordinal));
+        }).ToList();
+
+        // If all remaining hits belong to the same category, return that slug
+        var uniqueSlugs = filtered.Select(h => h.Slug).Distinct().ToList();
+        return uniqueSlugs.Count == 1 ? uniqueSlugs[0] : null;
     }
 
     private static string Normalize(string s) =>
