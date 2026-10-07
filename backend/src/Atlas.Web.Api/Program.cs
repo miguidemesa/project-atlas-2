@@ -17,6 +17,7 @@ var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>
     ?? ["http://localhost:3000", "http://localhost:3001"];
 
 builder.Services.AddControllers();
+builder.Services.AddScoped<Atlas.Web.Api.Listings.ListingDtoBuilder>();
 builder.Services.AddHealthChecks();
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>

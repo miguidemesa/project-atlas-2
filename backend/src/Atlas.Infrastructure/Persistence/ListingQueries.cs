@@ -1,4 +1,5 @@
 using Atlas.Domain.Listings;
+using Atlas.Domain.Pricing;
 using Microsoft.EntityFrameworkCore;
 
 namespace Atlas.Infrastructure.Persistence;
@@ -21,4 +22,12 @@ public static class ListingQueries
             .GroupBy(l => l.Category)
             .Select(g => new { Slug = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.Slug, x => x.Count, ct);
+
+    /// <summary>Soonest-ending auction first, in SQL, so the order holds across every page.</summary>
+    public static IQueryable<Listing> OrderByEndingSoonest(this IQueryable<Listing> listings, AtlasDbContext db) =>
+        listings.OrderBy(l => db.Auctions.Where(a => a.ListingId == l.Id).Select(a => a.EndTime).First());
+
+    /// <summary>Market data only: seeded demo history is never evidence of a price.</summary>
+    public static IQueryable<PriceHistory> RealSales(this IQueryable<PriceHistory> history) =>
+        history.Where(h => h.Source != "seed");
 }

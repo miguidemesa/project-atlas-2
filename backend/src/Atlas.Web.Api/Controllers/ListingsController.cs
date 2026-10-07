@@ -1,10 +1,9 @@
 using System.Security.Claims;
 using Atlas.Application.Common.Interfaces;
 using Atlas.Application.Listings;
-using Atlas.Application.Pricing;
 using Atlas.Domain.Listings;
-using Atlas.Infrastructure.Authentication;
 using Atlas.Infrastructure.Persistence;
+using Atlas.Web.Api.Listings;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,126 +11,64 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Atlas.Web.Api.Controllers;
 
-public sealed record DealScoreDto(string Rating, decimal MedianPhp, double DeltaPct, int Samples);
-
-public sealed record ListingDto(
-    Guid Id,
-    string Category,
-    string Title,
-    string Player,
-    string? Team,
-    int? Year,
-    string Set,
-    string? Parallel,
-    bool Numbered,
-    string? SerialNumber,
-    bool Graded,
-    string? GradingCompany,
-    string? GradeValue,
-    string? Condition,
-    string? Description,
-    string? ImageUrl,
-    Guid SellerId,
-    decimal Price,
-    decimal? PreviousPrice,
-    decimal? CurrentBid,
-    int? BidCount,
-    DateTime? EndsAt,
-    string Type,
-    string Format,
-    string Status,
-    DateTime CreatedAt,
-    DateTime UpdatedAt,
-    DealScoreDto? DealScore);
-
-public sealed record SellerDto(
-    Guid UserId,
-    string DisplayName,
-    string Handle,
-    decimal RatingAvg,
-    int RatingCount,
-    int SoldCount,
-    int JoinedYear,
-    bool Verified);
-
-public sealed record PricePointDto(string Date, decimal Price);
-
-public sealed record PagedResult<T>(IReadOnlyList<T> Items, int Total, int Page, int PageSize);
-
 [ApiController]
 [Route("api/listings")]
-public class ListingsController(AtlasDbContext db, IObjectStorage storage, IValidator<CreateListingRequest> createValidator) : ControllerBase
+public class ListingsController(
+    AtlasDbContext db,
+    IObjectStorage storage,
+    IValidator<CreateListingRequest> createValidator,
+    ListingDtoBuilder dtos) : ControllerBase
 {
+    private const int MaxPageSize = 60;
+
     [HttpGet]
-    public async Task<IActionResult> Feed(
-        [FromQuery] string? category,
-        [FromQuery] string? format,
-        [FromQuery] string? type,
-        [FromQuery] bool? graded,
-        [FromQuery] decimal? maxPrice,
-        [FromQuery] string? player,
-        [FromQuery] string? q,
-        [FromQuery] string? sort,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 24,
-        CancellationToken ct = default)
+    public async Task<IActionResult> Feed([FromQuery] FeedQuery f, CancellationToken ct)
     {
-        page = Math.Max(1, page);
-        pageSize = Math.Clamp(pageSize, 1, 60);
-
-        var query = db.Listings.AsNoTracking().Where(l => l.Status == Domain.Listings.ListingStatus.Active);
-
-        if (!string.IsNullOrWhiteSpace(category))
-            query = query.Where(l => l.Category == category);
-        if (format == "fixed" || format == "auction")
-            query = query.Where(l => l.ListingFormat == (format == "auction"
-                ? Domain.Listings.ListingFormat.Auction
-                : Domain.Listings.ListingFormat.FixedPrice));
-        if (Enum.TryParse<Domain.Listings.ListingType>(type, ignoreCase: true, out var listingType))
-            query = query.Where(l => l.Type == listingType);
-        if (graded == true)
-            query = query.Where(l => l.Graded);
-        if (maxPrice is { } cap)
-            query = query.Where(l => l.Price <= cap);
-        if (!string.IsNullOrWhiteSpace(player))
-            query = query.Where(l => l.Player == player);
-        if (!string.IsNullOrWhiteSpace(q))
-            query = query.Where(l =>
-                EF.Functions.ILike(l.Title, $"%{q}%") ||
-                EF.Functions.ILike(l.Player, $"%{q}%") ||
-                EF.Functions.ILike(l.Set, $"%{q}%") ||
-                EF.Functions.ILike(l.Category, $"%{q}%"));
-
-        query = sort switch
+        if (f.Category is not null && !CategoryList.IsValid(f.Category))
+            return BadRequest(new { error = $"Unknown category '{f.Category}'." });
+        ListingType? listingType = null;
+        if (!string.IsNullOrWhiteSpace(f.Type))
         {
-            "price_asc" => query.OrderBy(l => l.Price),
-            "price_desc" => query.OrderByDescending(l => l.Price),
+            if (!ListingTypes.TryParse(f.Type, out var parsed))
+                return BadRequest(new { error = $"Unknown type '{f.Type}'." });
+            listingType = parsed;
+        }
+
+        var page = Math.Max(1, f.Page);
+        var pageSize = Math.Clamp(f.PageSize, 1, MaxPageSize);
+        var query = db.LiveListings(DateTime.UtcNow);
+
+        if (f.Category is not null) query = query.Where(l => l.Category == f.Category);
+        if (f.Format == "fixed") query = query.Where(l => l.ListingFormat == ListingFormat.FixedPrice);
+        if (f.Format == "auction" || f.Sort == "ending") query = query.Where(l => l.ListingFormat == ListingFormat.Auction);
+        if (listingType is { } type) query = query.Where(l => l.Type == type);
+        if (f.Graded == true) query = query.Where(l => l.Graded);
+        if (f.MinPrice is { } floor) query = query.Where(l => l.Price >= floor);
+        if (f.MaxPrice is { } cap) query = query.Where(l => l.Price <= cap);
+        if (!string.IsNullOrWhiteSpace(f.Language)) query = query.Where(l => l.Language == f.Language);
+        if (!string.IsNullOrWhiteSpace(f.Player)) query = query.Where(l => l.Player == f.Player);
+        if (!string.IsNullOrWhiteSpace(f.Q))
+        {
+            var pattern = $"%{EscapeLike(f.Q.Trim())}%";
+            query = query.Where(l =>
+                EF.Functions.ILike(l.Title, pattern, "\\")
+                || EF.Functions.ILike(l.Player, pattern, "\\")
+                || EF.Functions.ILike(l.Set, pattern, "\\")
+                || (l.CardNumber != null && EF.Functions.ILike(l.CardNumber, pattern, "\\")));
+        }
+
+        query = f.Sort switch
+        {
+            "price_asc" => query.OrderBy(l => l.Price).ThenByDescending(l => l.CreatedAt),
+            "price_desc" => query.OrderByDescending(l => l.Price).ThenByDescending(l => l.CreatedAt),
+            "popular" => query.OrderByDescending(l => l.ViewCount).ThenByDescending(l => l.CreatedAt),
+            "ending" => query.OrderByEndingSoonest(db),
             _ => query.OrderByDescending(l => l.CreatedAt),
         };
 
         var total = await query.CountAsync(ct);
-        var items = await query
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(ct);
-
-        var auctions = await AuctionsFor(items, ct);
-        var bidCounts = await BidCountsFor(items.Select(l => l.Id), ct);
-        var scores = await DealScoresFor(items, ct);
-
-        var dtos = items
-            .Select(l =>
-            {
-                auctions.TryGetValue(l.Id, out var auction);
-                return ToDto(l, auction, bidCounts.GetValueOrDefault(l.Id), ToScoreDto(scores.GetValueOrDefault(l.Id)));
-            })
-            .ToList();
-
-        // ending-soon sort happens in memory once auction end times are known
-        if (sort == "ending")
-            dtos = dtos.OrderBy(d => d.EndsAt ?? DateTime.MaxValue).ToList();
-
-        return Ok(new { data = new PagedResult<ListingDto>(dtos, total, page, pageSize) });
+        var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
+        return Ok(new { data = new PagedResult<ListingDto>(await dtos.BuildAsync(items, ct), total, page, pageSize) });
     }
 
     [HttpGet("{id:guid}")]
@@ -141,34 +78,16 @@ public class ListingsController(AtlasDbContext db, IObjectStorage storage, IVali
         if (listing is null)
             return NotFound(new { error = "Listing not found." });
 
-        var sellerProfile = await db.SellerProfiles.AsNoTracking()
-            .FirstOrDefaultAsync(s => s.UserId == listing.SellerId, ct);
-        var historyRows = await db.PriceHistory.AsNoTracking()
-            .Where(h => h.CardIdentityKey == id.ToString())
-            .OrderBy(h => h.SaleDate)
-            .ToListAsync(ct);
-        var auctions = await AuctionsFor([listing], ct);
-        var bidCounts = await BidCountsFor([listing.Id], ct);
+        // atomic increment: no lost updates under concurrent views
+        // ponytail: counts every GET (refreshes, bots); dedupe per visitor if "Trending" gets gamed
+        await db.Listings.Where(l => l.Id == id)
+            .ExecuteUpdateAsync(s => s.SetProperty(l => l.ViewCount, l => l.ViewCount + 1), ct);
+        listing.ViewCount++;
 
-        var dealScore = listing.ListingFormat == Domain.Listings.ListingFormat.FixedPrice
-            ? DealScoreService.Evaluate(listing.Price, historyRows.Select(h => h.SalePrice).ToList())
-            : null;
-
-        var dto = new
-        {
-            listing = ToDto(listing, auctions.GetValueOrDefault(id), bidCounts.GetValueOrDefault(id), ToScoreDto(dealScore), includeDescription: true),
-            seller = sellerProfile is null ? null : new SellerDto(
-                sellerProfile.UserId,
-                sellerProfile.DisplayName,
-                sellerProfile.DisplayName.ToLowerInvariant().Replace(" ", "").Replace("&", ""),
-                sellerProfile.RatingAvg,
-                sellerProfile.RatingCount,
-                sellerProfile.SoldCount,
-                sellerProfile.JoinedDate.Year,
-                sellerProfile.VerificationBadge),
-            history = historyRows.Select(h => new PricePointDto(h.SaleDate.ToString("yyyy-MM-dd"), h.SalePrice)).ToList(),
-        };
-        return Ok(new { data = dto });
+        var dto = (await dtos.BuildAsync([listing], ct, withDetail: true))[0];
+        var seller = await dtos.SellerAsync(listing.SellerId, ct);
+        var history = await dtos.HistoryAsync(id, ct);
+        return Ok(new { data = new ListingDetailDto(dto, seller, history) });
     }
 
     [Authorize]
@@ -182,7 +101,7 @@ public class ListingsController(AtlasDbContext db, IObjectStorage storage, IVali
             .Where(l => l.SellerId == userId)
             .OrderByDescending(l => l.CreatedAt)
             .ToListAsync(ct);
-        return Ok(new { data = items.Select(l => ToDto(l, null, 0, null, includeDescription: true)).ToList() });
+        return Ok(new { data = await dtos.BuildAsync(items, ct, withDetail: true) });
     }
 
     [Authorize]
@@ -239,7 +158,7 @@ public class ListingsController(AtlasDbContext db, IObjectStorage storage, IVali
         }
 
         await db.SaveChangesAsync(ct);
-        return CreatedAtAction(nameof(Detail), new { id = listing.Id }, new { data = ToDto(listing, null, 0, null, includeDescription: true) });
+        return CreatedAtAction(nameof(Detail), new { id = listing.Id }, new { data = (await dtos.BuildAsync([listing], ct, withDetail: true))[0] });
     }
 
     [Authorize]
@@ -289,18 +208,6 @@ public class ListingsController(AtlasDbContext db, IObjectStorage storage, IVali
 
         return Ok(new { data = new { key, url } });
     }
-
-    private static string ToApiStatus(ListingStatus status) => status switch
-    {
-        ListingStatus.Sold => "sold",
-        ListingStatus.Ended => "ended",
-        ListingStatus.Cancelled => "cancelled",
-        ListingStatus.Draft => "draft",
-        _ => "active",
-    };
-
-    private static string ToApiFormat(ListingFormat format) =>
-        format == ListingFormat.Auction ? "auction" : "fixed";
 
     private const long MaxPhotoBytes = 5 * 1024 * 1024;
     private const int MaxPhotosPerListing = 6;
@@ -362,19 +269,8 @@ public class ListingsController(AtlasDbContext db, IObjectStorage storage, IVali
         listing.Status = ListingStatus.Sold;
         listing.UpdatedAt = DateTime.UtcNow;
         await db.SaveChangesAsync(ct);
-        return Ok(new { data = ToDto(listing, null, 0, null, includeDescription: true) });
+        return Ok(new { data = (await dtos.BuildAsync([listing], ct, withDetail: true))[0] });
     }
-
-    private async Task<Dictionary<Guid, int>> BidCountsFor(IEnumerable<Guid> listingIds, CancellationToken ct)
-    {
-        var ids = listingIds.ToList();
-        return await db.Bids.AsNoTracking()
-            .Where(b => ids.Contains(b.ListingId))
-            .GroupBy(b => b.ListingId)
-            .ToDictionaryAsync(g => g.Key, g => g.Count(), ct);
-    }
-
-public sealed record CompetingResult(int Count, decimal Min, decimal Median, decimal Max);
 
     /// <summary>
     /// Price-intelligence at listing time: how many ACTIVE listings share this
@@ -421,80 +317,7 @@ public sealed record CompetingResult(int Count, decimal Min, decimal Median, dec
         return Ok(new { data = new CompetingResult(prices.Count, prices.First(), median, prices.Last()) });
     }
 
-    private async Task<Dictionary<Guid, Domain.Auctions.Auction>> AuctionsFor(IReadOnlyList<Domain.Listings.Listing> listings, CancellationToken ct)
-    {
-        var ids = listings.Select(l => l.Id).ToList();
-        return await db.Auctions.AsNoTracking()
-            .Where(a => ids.Contains(a.ListingId))
-            .ToDictionaryAsync(a => a.ListingId, ct);
-    }
-
-    private async Task<Dictionary<Guid, DealScoreResult?>> DealScoresFor(List<Domain.Listings.Listing> listings, CancellationToken ct)
-    {
-        var fixedIds = listings
-            .Where(l => l.ListingFormat == Domain.Listings.ListingFormat.FixedPrice)
-            .Select(l => l.Id.ToString())
-            .ToList();
-        if (fixedIds.Count == 0)
-            return [];
-
-        var histories = await db.PriceHistory.AsNoTracking()
-            .Where(h => fixedIds.Contains(h.CardIdentityKey))
-            .GroupBy(h => h.CardIdentityKey)
-            .ToDictionaryAsync(g => g.Key, g => g.Select(x => x.SalePrice).ToList(), ct);
-
-        return listings.ToDictionary(
-            l => l.Id,
-            l => histories.TryGetValue(l.Id.ToString(), out var prices)
-                ? DealScoreService.Evaluate(l.Price, prices)
-                : null);
-    }
-
-    private static DealScoreDto? ToScoreDto(DealScoreResult? score) =>
-        score is null ? null : new DealScoreDto(
-            score.Rating switch
-            {
-                DealRating.GreatDeal => "great",
-                DealRating.Fair => "fair",
-                _ => "above",
-            },
-            score.MedianPricePhp,
-            (double)score.DeltaPct,
-            score.SampleCount);
-
-    private static ListingDto ToDto(
-        Domain.Listings.Listing l,
-        Domain.Auctions.Auction? auction,
-        int bidCount,
-        DealScoreDto? score = null,
-        bool includeDescription = false) =>
-        new(
-            l.Id,
-            l.Category,
-            l.Title,
-            l.Player,
-            l.Team,
-            l.Year,
-            l.Set,
-            l.Parallel,
-            l.Numbered,
-            l.SerialNumber,
-            l.Graded,
-            l.GradingCompany,
-            l.GradeValue,
-            l.Condition,
-            includeDescription ? l.Description : null,
-            l.ImageUrl,
-            l.SellerId,
-            l.Price,
-            null, // previous sale price arrives from market ingestion later
-            auction?.CurrentBid,
-            auction is null ? null : bidCount,
-            auction?.EndTime,
-            ListingTypes.ToName(l.Type),
-            ToApiFormat(l.ListingFormat),
-            ToApiStatus(l.Status),
-            l.CreatedAt,
-            l.UpdatedAt,
-            score);
+    /// <summary>A user's % or _ is a literal character in search, never a wildcard.</summary>
+    private static string EscapeLike(string s) =>
+        s.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
 }
