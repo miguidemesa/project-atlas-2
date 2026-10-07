@@ -1,64 +1,58 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
-import { CardImage } from "@/components/cards/card-image";
-import { TiltCard, tierFor } from "@/components/cards/tilt-card";
+import { CardArt } from "@/components/cards/card-art";
 import type { Listing } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
-const ALL_VIEWS = [
-  { key: "front", label: "Front" },
-  { key: "reverse", label: "Reverse" },
-  { key: "foil", label: "Foil detail" },
-] as const;
+const LABELS = ["Front photo", "Back photo", "Surface photo"];
+const labelFor = (i: number) => LABELS[i] ?? `Photo ${i + 1}`;
 
+/** The seller's own photos, front first. Synthetic art only when a listing has none. */
 export function Gallery({ listing }: { listing: Listing }) {
-  const views = listing.imageUrl ? ALL_VIEWS.filter((v) => v.key !== "reverse") : ALL_VIEWS;
-  const [view, setView] = useState<(typeof ALL_VIEWS)[number]["key"]>("front");
-  const tier = tierFor(listing);
+  const [active, setActive] = useState(0);
+  const photos = listing.photos ?? [];
+
+  if (photos.length === 0) {
+    return (
+      <div className="aspect-[3/4] overflow-hidden rounded-xl border border-line bg-elevated">
+        <CardArt listing={listing} large />
+      </div>
+    );
+  }
 
   return (
     <div>
-      <TiltCard tier={tier}>
-        <button
-          type="button"
-          aria-label="Inspect card artwork"
-          className="block aspect-[3/4] w-full overflow-hidden rounded-xl border border-line bg-elevated shadow-lifted focus-visible:outline-gold"
-        >
-          <div
-            className={cn(
-              "relative h-full w-full transition-transform duration-500 ease-out",
-              view === "foil" && listing.imageUrl && "scale-[1.75] origin-top-right",
-              view === "foil" && !listing.imageUrl && "scale-[1.75]",
-              view === "reverse" && "scale-x-[-1]",
-            )}
-          >
-            <CardImage listing={listing} large eager />
-          </div>
-        </button>
-      </TiltCard>
-
-      <div className="mt-3 flex gap-2" role="tablist" aria-label="Card views">
-        {views.map((v) => (
-          <button
-            key={v.key}
-            role="tab"
-            aria-selected={view === v.key}
-            onClick={() => setView(v.key)}
-            className={cn(
-              "rounded-lg px-4 py-1.5 text-xs font-medium transition-colors",
-              view === v.key ? "bg-raised text-ink" : "text-ink-dim hover:bg-elevated hover:text-ink",
-            )}
-          >
-            {v.label}
-          </button>
-        ))}
+      <div className="relative aspect-[3/4] overflow-hidden rounded-xl border border-line bg-elevated">
+        <Image
+          src={photos[active]}
+          alt={`${listing.title}, ${labelFor(active).toLowerCase()}`}
+          fill
+          priority
+          sizes="(min-width: 1024px) 40vw, 100vw"
+          className="object-contain"
+        />
       </div>
-      <p className="mt-2 font-mono text-[11px] text-ink-faint">
-        {listing.imageUrl
-          ? "Placeholder seed photo — replaced by the seller's own upload at listing time."
-          : "Synthetic render — real photos ship with seller uploads."}
-      </p>
+      {photos.length > 1 && (
+        <div className="mt-3 flex gap-2" role="group" aria-label="Listing photos">
+          {photos.map((src, i) => (
+            <button
+              key={src}
+              type="button"
+              aria-label={labelFor(i)}
+              aria-pressed={i === active}
+              onClick={() => setActive(i)}
+              className={cn(
+                "relative h-20 w-16 min-h-11 min-w-11 overflow-hidden rounded-lg border bg-elevated transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold",
+                i === active ? "border-gold" : "border-line hover:border-line-hv",
+              )}
+            >
+              <Image src={src} alt="" fill sizes="64px" className="object-contain" />
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

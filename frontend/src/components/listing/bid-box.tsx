@@ -9,6 +9,8 @@ import { createOrder, makeOffer, maxRedeemable, payOrder as payOrderApi, placeBi
 import { formatPeso } from "@/lib/format";
 import { cn } from "@/lib/cn";
 
+const PAID_STATES: readonly string[] = ["paid_awaiting_shipment", "shipped", "delivered_confirmed", "funds_released"];
+
 interface Props {
   listingId: string;
   price: number;
@@ -22,6 +24,8 @@ export function BidBox({ listingId, price, format, bidCount, endsAt }: Props) {
   const [checkoutStage, setCheckoutStage] = useState<"idle" | "address" | "paying">("idle");
   const [address, setAddress] = useState("");
   const [buyError, setBuyError] = useState("");
+  const [pendingNote, setPendingNote] = useState(false);
+  const [orderId, setOrderId] = useState<string | null>(null);
   const [offerStage, setOfferStage] = useState<"idle" | "form" | "sent">("idle");
   const [offerAmount, setOfferAmount] = useState(() => String(Math.round((price * 0.9) / 100) * 100));
   const [liveBidCount, setLiveBidCount] = useState(bidCount ?? 0);
@@ -72,24 +76,39 @@ export function BidBox({ listingId, price, format, bidCount, endsAt }: Props) {
     setBuyError("");
     if (!user) return;
     setCheckoutStage("paying");
-    const created = await createOrder(listingId, address, authFetch);
-    if (!created.ok) {
-      setBuyError(created.error);
-      setCheckoutStage("idle");
-      return;
+    let id = orderId;
+    if (!id) {
+      const created = await createOrder(listingId, address, authFetch);
+      if (!created.ok) {
+        setBuyError(created.error);
+        setCheckoutStage("idle");
+        return;
+      }
+      id = created.order.id;
+      setOrderId(id);
     }
-    const paid = await payOrderApi(created.order.id, undefined, usePts, authFetch);
+    const paid = await payOrderApi(id, undefined, usePts, authFetch);
     if (!paid.ok) {
-      setBuyError(`Order reserved but payment failed: ${paid.error}`);
-      setDone(true);
-      setCheckoutStage("idle");
+      // Order stays reserved; the form stays open so the buyer can retry.
+      setBuyError(`Payment didn’t go through: ${paid.error || "please try again."} Your order is reserved, so you can try again or finish from Orders.`);
+      setCheckoutStage("address");
       return;
     }
     if (paid.checkoutUrl) {
-      window.location.href = paid.checkoutUrl; // PayMongo hosted page
+      window.location.href = paid.checkoutUrl; // PayMongo hosted page; stays "paying" until we leave
       return;
     }
-    setDone(true);
+    // Only the server's order status says whether money moved (domain rule 11).
+    const status = paid.order?.status;
+    if (!status || status === "pending_payment") {
+      setPendingNote(true);
+    } else if (PAID_STATES.includes(status)) {
+      setDone(true);
+    } else {
+      setBuyError("Payment didn’t go through. You can try again or check Orders.");
+      setCheckoutStage("address");
+      return;
+    }
     setCheckoutStage("idle");
   }
 
@@ -164,6 +183,10 @@ export function BidBox({ listingId, price, format, bidCount, endsAt }: Props) {
         <p role="status" className="flex items-center gap-2 rounded-lg border border-confirmed/40 bg-confirmed/10 px-4 py-3 text-sm font-medium text-confirmed">
           <Check size={16} /> Paid — the seller will ship within 3 days.
         </p>
+      ) : pendingNote ? (
+        <p role="status" className="rounded-lg border border-line bg-elevated px-4 py-3 text-sm text-ink-dim">
+          Payment pending — we haven’t had confirmation yet. Check Orders for the latest status.
+        </p>
       ) : checkoutStage === "address" ? (
         <form
           onSubmit={submitBuy}
@@ -193,7 +216,7 @@ export function BidBox({ listingId, price, format, bidCount, endsAt }: Props) {
               Cancel
             </button>
             <button type="submit" className="flex-1 rounded-lg bg-gold py-2.5 text-sm font-semibold text-base hover:bg-gold-dim disabled:opacity-50">
-              Confirm & pay {formatPeso(price)}
+              {orderId ? "Try payment again" : "Confirm & pay"} {formatPeso(price - (usePts ? maxRedeemable(ptsBalance, price) : 0))}
             </button>
           </div>
         </form>
@@ -211,6 +234,12 @@ export function BidBox({ listingId, price, format, bidCount, endsAt }: Props) {
         >
           Buy now
         </button>
+      )}
+
+      {buyError && checkoutStage === "idle" && offerStage !== "form" && (
+        <p role="alert" className="text-xs text-urgent">
+          {buyError}
+        </p>
       )}
 
       {format === "fixed" && !done && offerStage !== "sent" && checkoutStage === "idle" && (
