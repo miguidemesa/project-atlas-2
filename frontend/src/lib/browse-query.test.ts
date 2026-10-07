@@ -29,4 +29,22 @@ describe("browseQuery", () => {
   it("drops unknown types and formats", () => {
     expect(browseQuery({ type: "bogus", format: "x" }, categories)).toMatchObject({ type: undefined, format: undefined });
   });
+
+  it("keeps known languages only", () => {
+    expect(browseQuery({ language: "ja" }, categories).language).toBe("ja");
+    expect(browseQuery({ language: "xx" }, categories).language).toBeUndefined();
+  });
+
+  it("rejects negative, infinite and non-numeric prices", () => {
+    expect(browseQuery({ minPrice: "-5", maxPrice: "Infinity" }, categories)).toMatchObject({
+      minPrice: undefined,
+      maxPrice: undefined,
+    });
+    expect(browseQuery({ minPrice: "100" }, categories).minPrice).toBe(100);
+  });
+
+  it("trims q and drops it when blank", () => {
+    expect(browseQuery({ q: "  wemby " }, categories).q).toBe("wemby");
+    expect(browseQuery({ q: "   " }, categories).q).toBeUndefined();
+  });
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { SlidersHorizontal, Sparkles, X } from "lucide-react";
 import { ListingCard } from "@/components/cards/listing-card";
@@ -28,6 +28,17 @@ const TYPES = [
 ] as const;
 
 const PAGE_SIZE = 24;
+const PRICE_DEBOUNCE_MS = 300;
+
+/** The value, but only after it has stopped changing for `ms`. */
+function useDebounced<T>(value: T, ms: number): T {
+  const [settled, setSettled] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setSettled(value), ms);
+    return () => clearTimeout(t);
+  }, [value, ms]);
+  return settled;
+}
 
 const focusCls = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold";
 const fieldCls = cn(
@@ -50,6 +61,12 @@ export function BrowseClient({ initial, categories }: { initial: ListingQuery; c
   const [q, setQ] = useState(initial.q);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [aiChips, setAiChips] = useState<string[]>([]);
+  // a free-text phrase is held back until the natural-language parse has settled
+  const [parseSettled, setParseSettled] = useState(!initial.q);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const debouncedMin = useDebounced(minPrice, PRICE_DEBOUNCE_MS);
+  const debouncedMax = useDebounced(maxPrice, PRICE_DEBOUNCE_MS);
 
   // Free text: when the phrase parses into filters ("graded wemby under 30k"), apply them
   // and stop matching the raw phrase as text; otherwise the API searches the text.
@@ -58,7 +75,9 @@ export function BrowseClient({ initial, categories }: { initial: ListingQuery; c
     if (!phrase) return;
     let cancelled = false;
     parseSearchQuery(phrase).then((parsed) => {
-      if (cancelled || !parsed) return;
+      if (cancelled) return;
+      setParseSettled(true);
+      if (!parsed) return; // parse failed: the plain text goes to the API as q
       const chips: string[] = [];
       if (parsed.category && !initial.category && categories.some((c) => c.slug === parsed.category)) {
         setCategory(parsed.category);
@@ -89,8 +108,8 @@ export function BrowseClient({ initial, categories }: { initial: ListingQuery; c
     type: type || undefined,
     graded: graded || undefined,
     language: language || undefined,
-    minPrice: Number(minPrice) || undefined,
-    maxPrice: Number(maxPrice) || undefined,
+    minPrice: Number(debouncedMin) > 0 ? Number(debouncedMin) : undefined,
+    maxPrice: Number(debouncedMax) > 0 ? Number(debouncedMax) : undefined,
     sort,
     q,
     player: initial.player,
@@ -102,6 +121,7 @@ export function BrowseClient({ initial, categories }: { initial: ListingQuery; c
     queryFn: ({ pageParam }) => loadFeed({ ...query, page: pageParam }),
     initialPageParam: 1,
     getNextPageParam: nextPage,
+    enabled: parseSettled,
   });
 
   const results = feed.data?.pages.flatMap((p) => p.items) ?? [];
@@ -114,6 +134,19 @@ export function BrowseClient({ initial, categories }: { initial: ListingQuery; c
     const selected = categories.find((c) => c.slug === category);
     return selected && !top.includes(selected) ? [...top, selected] : top;
   }, [categories, category]);
+
+  // sheet: Escape closes, focus moves in on open and back to the trigger on close
+  useEffect(() => {
+    if (!sheetOpen) return;
+    const trigger = triggerRef.current;
+    sheetRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setSheetOpen(false);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      trigger?.focus();
+    };
+  }, [sheetOpen]);
 
   const controls = (id: string) => (
     <div className="space-y-5">
@@ -250,6 +283,7 @@ export function BrowseClient({ initial, categories }: { initial: ListingQuery; c
 
           <div className="flex items-center gap-2">
             <button
+              ref={triggerRef}
               type="button"
               onClick={() => setSheetOpen(true)}
               className={cn(
@@ -275,13 +309,13 @@ export function BrowseClient({ initial, categories }: { initial: ListingQuery; c
           </div>
         </div>
 
-        {feed.isPending ? (
+        {feed.isPending || !parseSettled ? (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4" aria-busy="true">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="aspect-[3/5.4] animate-pulse rounded-xl bg-elevated" />
             ))}
           </div>
-        ) : feed.isError ? (
+        ) : feed.isError && results.length === 0 ? (
           <div role="alert" className="rounded-xl border border-dashed border-line-hv py-20 text-center">
             <p className="font-display text-xl text-ink">Couldn’t load listings</p>
             <p className="mt-2 text-sm text-ink-dim">Check your connection and try again.</p>
@@ -305,7 +339,19 @@ export function BrowseClient({ initial, categories }: { initial: ListingQuery; c
                 <ListingCard key={l.id} listing={l} />
               ))}
             </div>
-            {feed.hasNextPage && (
+            {feed.isFetchNextPageError && (
+              <div role="alert" className="mt-6 flex flex-col items-center gap-3 text-center">
+                <p className="text-sm text-ink-dim">Couldn’t load more listings.</p>
+                <button
+                  type="button"
+                  onClick={() => feed.fetchNextPage()}
+                  className={cn("min-h-11 rounded-lg bg-gold px-5 py-2 text-sm font-semibold text-ink hover:bg-gold-dim", focusCls)}
+                >
+                  Try again
+                </button>
+              </div>
+            )}
+            {feed.hasNextPage && !feed.isFetchNextPageError && (
               <div className="mt-8 flex justify-center">
                 <button
                   type="button"
@@ -327,7 +373,7 @@ export function BrowseClient({ initial, categories }: { initial: ListingQuery; c
       {sheetOpen && (
         <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Filters">
           <button type="button" aria-label="Close filters" className="absolute inset-0 bg-black/60" onClick={() => setSheetOpen(false)} />
-          <div className="absolute inset-x-0 bottom-0 max-h-[90vh] overflow-y-auto rounded-t-2xl border-t border-line bg-base p-6 pb-10 shadow-lifted">
+          <div ref={sheetRef} tabIndex={-1} className="absolute inset-x-0 bottom-0 outline-none max-h-[90vh] overflow-y-auto rounded-t-2xl border-t border-line bg-base p-6 pb-10 shadow-lifted">
             <div className="mb-5 flex items-center justify-between">
               <p className="font-display text-lg text-ink">Filters</p>
               <button
