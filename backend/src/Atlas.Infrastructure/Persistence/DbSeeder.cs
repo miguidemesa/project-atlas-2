@@ -187,14 +187,16 @@ public static class DbSeeder
                     Status = AuctionStatus.Active,
                 });
 
-                // bid-count rows so counts are real (amounts below current bid)
+                // bid-count rows so counts are real (amounts below current bid);
+                // bidders exclude the listing's own seller (domain rule 1)
+                var bidders = sellerSeeds.Where(s => s.Id != t.SellerId).ToArray();
                 for (var b = 0; b < t.BidCount; b++)
                 {
                     db.Bids.Add(new Bid
                     {
                         Id = Guid.NewGuid(),
                         ListingId = id,
-                        BidderId = sellerSeeds[b % sellerSeeds.Length].Id,
+                        BidderId = bidders[b % bidders.Length].Id,
                         Amount = (t.CurrentBid ?? t.Price) - ((t.BidCount - b) * 500m),
                         CreatedAt = daysAgo(t.CreatedDaysAgo).AddHours(b),
                     });
