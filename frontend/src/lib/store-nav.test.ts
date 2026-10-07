@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { gamesMenuSections, isStorePage, STORE_LINKS } from "./store-nav";
+import { BUDGETS, gamesMenuSections, isStorePage, STORE_LINKS } from "./store-nav";
 
 describe("isStorePage", () => {
   it.each(["/", "/browse", "/categories", "/c/pokemon", "/listing/abc", "/sellers/xyz"])("%s is a store page", (p) => {
@@ -34,5 +34,17 @@ describe("gamesMenuSections", () => {
 
   it("is empty when the API is down, so the menu shows only All games", () => {
     expect(gamesMenuSections([])).toEqual([]);
+  });
+});
+
+describe("BUDGETS", () => {
+  it("are contiguous peso brackets that open filtered browse pages", () => {
+    expect(BUDGETS.map((b) => b.label)).toEqual(["Under ₱1,000", "₱1,000–5,000", "₱5,000–20,000", "₱20,000 and up"]);
+    expect(BUDGETS.map((b) => b.href)).toEqual([
+      "/browse?maxPrice=999.99",
+      "/browse?minPrice=1000&maxPrice=4999.99",
+      "/browse?minPrice=5000&maxPrice=19999.99",
+      "/browse?minPrice=20000",
+    ]);
   });
 });

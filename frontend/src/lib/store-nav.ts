@@ -27,3 +27,11 @@ export function gamesMenuSections(categories: CategoryInfo[]): GamesMenuSection[
     items: g.categories.map((c) => ({ slug: c.slug, href: `/c/${c.slug}`, count: c.activeListings > 0 ? c.activeListings : null })),
   }));
 }
+
+/** Price brackets for the home rail; each opens browse with the peso range filled in (centavos included). */
+export const BUDGETS = [
+  { label: "Under ₱1,000", href: "/browse?maxPrice=999.99" },
+  { label: "₱1,000–5,000", href: "/browse?minPrice=1000&maxPrice=4999.99" },
+  { label: "₱5,000–20,000", href: "/browse?minPrice=5000&maxPrice=19999.99" },
+  { label: "₱20,000 and up", href: "/browse?minPrice=20000" },
+] as const;
