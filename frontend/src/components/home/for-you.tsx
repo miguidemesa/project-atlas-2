@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Reveal } from "@/components/motion/reveal";
 import { ListingCard } from "@/components/cards/listing-card";
+import { SectionTitle } from "@/components/ui/section-title";
 import { loadFeed } from "@/lib/api";
 import { categoryName } from "@/lib/categories";
 import type { CategoryInfo, Listing } from "@/lib/types";
@@ -47,31 +47,20 @@ export function ForYou({ categories }: { categories: CategoryInfo[] }) {
   const sharePct = Math.round(interest.share * 100);
 
   return (
-    <section className="mx-auto max-w-7xl px-4 pb-16 lg:px-8" aria-labelledby="for-you">
-      <Reveal>
-        <div className="mb-5 flex items-end justify-between">
-          <div>
-            <h2 id="for-you" className="font-display text-2xl text-ink sm:text-3xl">
-              More {label} for you
-            </h2>
-            <p
-              className="mt-1 text-xs text-ink-faint"
-              title="Atlas ranks this rail by what you view, watch and search — stored only on your device."
-            >
-              Tuned to your browsing · ~{sharePct}% of recent activity
-            </p>
-          </div>
-          <a href={`/browse?category=${interest.category}`} className="text-sm text-ink-dim transition-colors hover:text-accent">
-            Browse all {label}
-          </a>
-        </div>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-          {ranked.map((l) => (
-            <ListingCard key={l.id} listing={l} />
-          ))}
-        </div>
-      </Reveal>
+    <section aria-labelledby="for-you">
+      <SectionTitle id="for-you" action={{ href: `/c/${interest.category}`, label: `All ${label}` }}>
+        More {label} for you
+      </SectionTitle>
+      <p className="-mt-2 mb-4 text-xs text-ink-faint" title="Atlas ranks this row by what you view, watch and search, stored only on your device.">
+        Tuned to your browsing · about {sharePct}% of recent activity
+      </p>
+      <ul className="grid grid-cols-2 gap-4 md:grid-cols-[repeat(auto-fill,minmax(172px,1fr))]">
+        {ranked.map((l) => (
+          <li key={l.id}>
+            <ListingCard listing={l} />
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
-

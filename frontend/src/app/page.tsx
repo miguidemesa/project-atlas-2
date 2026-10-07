@@ -1,57 +1,20 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { HeroSearch } from "@/components/home/hero-search";
-import { HeroShowcase } from "@/components/home/hero-showcase";
-import { GrailShowcase } from "@/components/home/grail-showcase";
+import { FeaturedCarousel } from "@/components/home/featured-carousel";
 import { ForYou } from "@/components/home/for-you";
-import { SoldStrip } from "@/components/home/sold-strip";
+import { GameCapsule } from "@/components/home/game-capsule";
 import { RecentlyViewed } from "@/components/home/recently-viewed";
-import { CategoryDoors } from "@/components/home/category-doors";
-import { Reveal } from "@/components/motion/reveal";
-import { ListingCard } from "@/components/cards/listing-card";
+import { Shelf } from "@/components/home/shelf";
+import { SoldStrip } from "@/components/home/sold-strip";
+import { StoreRail } from "@/components/home/store-rail";
+import { StoreTabs } from "@/components/home/store-tabs";
+import { buttonGhost } from "@/components/ui/button-styles";
+import { SectionTitle } from "@/components/ui/section-title";
 import { loadCategories, loadStorefront } from "@/lib/api";
 import { busiest } from "@/lib/categories";
-import type { CategoryInfo, Listing, Storefront } from "@/lib/types";
+import { storeTabs } from "@/lib/store-tabs";
+import type { CategoryInfo, Storefront } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
-
-function SectionHead({ title, href }: { title: string; href?: string }) {
-  return (
-    <div className="mb-5 flex items-end justify-between">
-      <h2 className="font-display text-2xl text-ink sm:text-3xl">{title}</h2>
-      {href && (
-        <Link href={href} className="group flex min-h-11 items-center gap-1 text-sm text-ink-dim transition-colors hover:text-accent">
-          View all
-          <ArrowRight size={14} aria-hidden className="transition-transform group-hover:translate-x-0.5" />
-        </Link>
-      )}
-    </div>
-  );
-}
-
-/** A titled row of listings. Renders nothing when the shelf is empty. */
-function Shelf({ title, href, listings, band = false }: { title: string; href: string; listings: Listing[]; band?: boolean }) {
-  if (listings.length === 0) return null;
-  const content = (
-    <Reveal>
-      <SectionHead title={title} href={href} />
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-        {listings.map((l, i) => (
-          <Reveal key={l.id} delay={(i % 5) * 60}>
-            <ListingCard listing={l} />
-          </Reveal>
-        ))}
-      </div>
-    </Reveal>
-  );
-  return band ? (
-    <section className="border-y border-line bg-elevated/50 py-16">
-      <div className="mx-auto max-w-7xl px-4 lg:px-8">{content}</div>
-    </section>
-  ) : (
-    <section className="mx-auto max-w-7xl px-4 pb-16 lg:px-8">{content}</section>
-  );
-}
 
 /** One failed read hides its sections instead of taking the whole page down. */
 async function orNull<T>(read: Promise<T>): Promise<T | null> {
@@ -65,58 +28,50 @@ async function orNull<T>(read: Promise<T>): Promise<T | null> {
 export default async function HomePage() {
   const [store, categoryList] = await Promise.all([orNull<Storefront>(loadStorefront()), orNull<CategoryInfo[]>(loadCategories())]);
   const categories = categoryList ?? [];
-  const topCategories = busiest(categories, 8);
+  const games = busiest(categories, 8);
+  const tabs = store ? storeTabs(store) : [];
 
   return (
-    <div>
-      <section className="mx-auto grid max-w-7xl items-center gap-10 px-4 pb-14 pt-16 sm:pt-20 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:px-8">
-        <HeroSearch listingCount={store?.activeListings} categories={topCategories} />
-        {store && store.spotlight.length > 0 && <HeroShowcase listings={store.spotlight} />}
-      </section>
-
-      {!store && (
-        <p role="status" className="mx-auto mb-14 max-w-7xl px-4 text-sm text-ink-dim lg:px-8">
-          The market is unavailable right now. Reload in a moment, or search above.
-        </p>
-      )}
-
-      {topCategories.length > 0 && (
-        <section className="mx-auto max-w-7xl px-4 pb-14 lg:px-8" aria-label="Shop by game">
-          <CategoryDoors categories={topCategories} />
-        </section>
-      )}
-
-      <ForYou categories={categories} />
-      <RecentlyViewed />
-
-      {store && (
-        <>
-          <Shelf title="Ending soon" href="/browse?format=auction&sort=ending" listings={store.endingSoon.slice(0, 5)} />
-          <Shelf title="Trending" href="/browse?sort=popular" listings={store.trending.slice(0, 5)} />
-          <Shelf title="Freshly listed" href="/browse" listings={store.newArrivals.slice(0, 10)} band />
-          <SoldStrip sales={store.recentlySold} />
-          {store.grails[0] && <GrailShowcase listing={store.grails[0]} />}
-        </>
-      )}
-
-      <section className="mx-auto max-w-7xl px-4 pb-20 pt-16 lg:px-8" aria-labelledby="sell-cta">
-        <div className="flex flex-col items-start gap-6 rounded-xl border border-accent/25 bg-elevated px-8 py-10 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mx-auto max-w-[1440px] px-4 pb-16 pt-6 md:px-8 min-[1100px]:grid min-[1100px]:grid-cols-[220px_minmax(0,1fr)] min-[1100px]:gap-10 xl:px-20">
+      <StoreRail categories={categories} className="hidden min-[1100px]:block" />
+      <div className="flex min-w-0 flex-col gap-8 md:gap-14">
+        <h1 className="sr-only">Atlas trading card store</h1>
+        {!store && (
+          <p role="status" className="rounded-[16px] border border-line bg-elevated p-5 text-sm text-ink-dim">
+            The store is unavailable right now. Reload in a moment, or search above.
+          </p>
+        )}
+        {store && <FeaturedCarousel listings={store.spotlight} />}
+        {tabs.length > 0 && <StoreTabs tabs={tabs} />}
+        {games.length > 0 && (
+          <section aria-labelledby="browse-by-game">
+            <SectionTitle id="browse-by-game" action={{ href: "/categories", label: "All games" }}>
+              Browse by game
+            </SectionTitle>
+            <ul className="grid grid-cols-2 gap-3 md:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] md:gap-4">
+              {games.map((c) => (
+                <li key={c.slug}>
+                  <GameCapsule category={c} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+        {store && <SoldStrip sales={store.recentlySold} />}
+        {store && <Shelf id="grails" title="Grails" href="/browse?sort=price_desc" listings={store.grails} />}
+        <ForYou categories={categories} />
+        <RecentlyViewed />
+        <section
+          aria-labelledby="sell-cta"
+          className="flex flex-col items-start gap-5 rounded-[16px] border border-line bg-elevated p-6 md:flex-row md:items-center md:justify-between md:p-8"
+        >
           <div className="max-w-xl">
-            <h2 id="sell-cta" className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">
-              Have cards to sell?
-            </h2>
-            <p className="mt-3 text-[15px] leading-6 text-ink-dim">
-              Any game, any sport. Photograph the front and back, and Atlas helps fill in the details. You set the price.
-            </p>
+            <h2 id="sell-cta" className="t-title-1-phone text-ink md:t-title-1">Have cards to sell?</h2>
+            <p className="mt-2 text-[15px] leading-[22px] text-ink-dim">Any game, any sport. Photograph the front and back, and set your price in pesos.</p>
           </div>
-          <Link
-            href="/sell"
-            className="inline-flex min-h-11 flex-shrink-0 items-center rounded-lg bg-accent px-7 py-3 text-[15px] font-semibold text-on-accent transition-colors hover:bg-accent-hover"
-          >
-            Sell a card
-          </Link>
-        </div>
-      </section>
+          <Link href="/sell" className={buttonGhost}>Sell a card</Link>
+        </section>
+      </div>
     </div>
   );
 }

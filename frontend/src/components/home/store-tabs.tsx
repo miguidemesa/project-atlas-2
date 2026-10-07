@@ -38,7 +38,7 @@ export function StoreTabs({ tabs }: { tabs: StoreTab[] }) {
         ))}
       </TabsList>
       {tabs.map((t) => (
-        <TabsContent key={t.id} value={t.id} className="grid gap-4 md:grid-cols-[minmax(0,1fr)_380px]">
+        <TabsContent key={t.id} value={t.id} className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_380px]">
           <ol className="flex flex-col gap-1">
             {"listings" in t
               ? t.listings.map((l, i) => (
