@@ -1,5 +1,11 @@
 import type { Listing } from "@/lib/types";
 
+/** The listing fields card art reads, so previews (the sell form) can render it too. */
+export type CardArtListing = Pick<
+  Listing,
+  "id" | "category" | "team" | "player" | "graded" | "set" | "type" | "title" | "numbered" | "serialNumber" | "gradingCompany" | "gradeValue" | "year" | "parallel"
+>;
+
 const TEAM_COLORS: Record<string, [string, string]> = {
   "San Antonio Spurs": ["#3d4046", "#0c0c0e"],
   "Los Angeles Lakers": ["#4b2a72", "#1a1030"],
@@ -26,7 +32,7 @@ const CATEGORY_PALETTES: Record<string, [string, string][]> = {
     ["#8f2d38", "#2b0c11"],
     ["#1f6f8b", "#0a2530"],
   ],
-  disney: [
+  lorcana: [
     ["#274b8f", "#0c1631"],
     ["#155a70", "#06202b"],
   ],
@@ -44,12 +50,12 @@ function initials(name: string): string {
   return name.slice(0, 2).toUpperCase();
 }
 
-function isFoil(l: Listing): boolean {
+function isFoil(l: CardArtListing): boolean {
   const p = l.parallel?.toLowerCase() ?? "";
   return p.includes("silver") || p.includes("holo") || p.includes("ice") || p.includes("gold") || p.includes("crusade");
 }
 
-function isPremiumFoil(l: Listing): boolean {
+function isPremiumFoil(l: CardArtListing): boolean {
   const p = l.parallel?.toLowerCase() ?? "";
   return p.includes("gold") || Boolean(l.numbered);
 }
@@ -58,11 +64,11 @@ function isPremiumFoil(l: Listing): boolean {
  * Authored card artwork — synthetic by design (Phase 0-3 seed data has no
  * licensed photography). Deterministic per listing id.
  */
-export function CardArt({ listing, large = false }: { listing: Listing; large?: boolean }) {
+export function CardArt({ listing, large = false }: { listing: CardArtListing; large?: boolean }) {
   const seed = hash(listing.id);
   const palettes = CATEGORY_PALETTES[listing.category] ?? [];
   const [c1, c2] =
-    TEAM_COLORS[listing.team] ??
+    TEAM_COLORS[listing.team ?? ""] ??
     palettes[hash(listing.player) % (palettes.length || 1)] ??
     ["#33363b", "#101114"];
   const angle = 20 + (seed % 5) * 14;
@@ -143,7 +149,7 @@ export function CardArt({ listing, large = false }: { listing: Listing; large?: 
       )}
       {!listing.numbered && !listing.graded && (
         <text x="150" y="352" textAnchor="middle" fontFamily="var(--font-bricolage)" fontSize="12" fill="#ffffff" fillOpacity="0.55" letterSpacing="3">
-          {listing.year} · {listing.set.toUpperCase()}
+          {[listing.year, listing.set.toUpperCase()].filter(Boolean).join(" · ")}
         </text>
       )}
 

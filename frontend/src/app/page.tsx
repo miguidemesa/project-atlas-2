@@ -10,7 +10,8 @@ import { RecentlyViewed } from "@/components/home/recently-viewed";
 import { CategoryDoors } from "@/components/home/category-doors";
 import { Reveal } from "@/components/motion/reveal";
 import { ListingCard } from "@/components/cards/listing-card";
-import { fetchFeed, fetchMovers } from "@/lib/api";
+import { fetchFeed, fetchMovers, loadCategories } from "@/lib/api";
+import { busiest } from "@/lib/categories";
 import { formatPeso } from "@/lib/format";
 import { cn } from "@/lib/cn";
 
@@ -31,12 +32,14 @@ function SectionHead({ title, href }: { title: string; href?: string }) {
 }
 
 export default async function HomePage() {
-  const [all, auctions, movers, pokemon] = await Promise.all([
+  const [all, auctions, movers, pokemon, categories] = await Promise.all([
     fetchFeed(),
     fetchFeed({ format: "auction", sort: "ending" }),
     fetchMovers(),
     fetchFeed({ category: "pokemon" }),
+    loadCategories(),
   ]);
+  const topCategories = busiest(categories, 8);
   const recent = all.slice(0, 10);
   const ending = auctions.slice(0, 4);
   const gainers = [...movers].sort((a, b) => b.changePct - a.changePct);
@@ -44,25 +47,21 @@ export default async function HomePage() {
     (l): l is NonNullable<typeof l> => Boolean(l),
   );
   const grail = all.find((l) => l.id === "l06")!;
-  const categoryCounts = all.reduce<Record<string, number>>((acc, l) => {
-    acc[l.category] = (acc[l.category] ?? 0) + 1;
-    return acc;
-  }, {});
 
   return (
     <div>
       <MarketTicker movers={movers} />
 
       <section className="mx-auto grid max-w-7xl items-center gap-10 px-4 pb-14 pt-16 sm:pt-20 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:px-8">
-        <HeroSearch listingCount={all.length} />
+        <HeroSearch listingCount={all.length} categories={topCategories} />
         <HeroShowcase listings={featured} />
       </section>
 
       <section className="mx-auto max-w-7xl px-4 pb-14 lg:px-8" aria-label="Shop by category">
-        <CategoryDoors counts={categoryCounts} />
+        <CategoryDoors categories={topCategories} />
       </section>
 
-      <ForYou />
+      <ForYou categories={categories} />
       <RecentlyViewed />
 
       <section className="mx-auto max-w-7xl px-4 pb-16 lg:px-8" aria-labelledby="ending-soon">

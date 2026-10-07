@@ -4,20 +4,17 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Search } from "lucide-react";
 import { CountUp } from "@/components/ui/count-up";
+import type { CategoryInfo } from "@/lib/types";
 
-const CATEGORIES = [
-  ["All", ""],
-  ["NBA", "category=nba"],
-  ["Pokémon", "category=pokemon"],
-  ["One Piece", "category=one_piece"],
-  ["Disney", "category=disney"],
-  ["Graded", "graded=true"],
-  ["Auctions", "format=auction"],
-] as const;
-
-export function HeroSearch({ listingCount }: { listingCount: number }) {
+export function HeroSearch({ listingCount, categories }: { listingCount: number; categories: CategoryInfo[] }) {
   const [q, setQ] = useState("");
   const router = useRouter();
+  const chips: [string, string][] = [
+    ["All", ""],
+    ...categories.map((c): [string, string] => [c.name, `category=${c.slug}`]),
+    ["Graded", "graded=true"],
+    ["Auctions", "format=auction"],
+  ];
 
   return (
     <div className="mx-auto max-w-2xl text-center lg:mx-0 lg:text-left">
@@ -40,7 +37,7 @@ export function HeroSearch({ listingCount }: { listingCount: number }) {
           type="search"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Try “Wembanyama rookie” or “PSA 10”…"
+          placeholder="Try “Charizard 151”, “PSA 10” or “Wembanyama rookie”…"
           aria-label="Search the marketplace"
           className="w-full rounded-xl border border-line-hv bg-elevated py-3.5 pl-12 pr-28 text-base text-ink shadow-card placeholder:text-ink-faint focus:border-gold focus:outline-none"
         />
@@ -53,11 +50,11 @@ export function HeroSearch({ listingCount }: { listingCount: number }) {
       </form>
 
       <div className="mt-5 flex flex-wrap items-center justify-center gap-2 lg:justify-start">
-        {CATEGORIES.map(([label, params]) => (
+        {chips.map(([label, params]) => (
           <a
             key={label}
             href={`/browse${params ? `?${params}` : ""}`}
-            className="rounded-full border border-line px-4 py-1.5 text-sm text-ink-dim transition-colors hover:border-gold hover:text-gold"
+            className="inline-flex min-h-11 items-center rounded-full border border-line px-4 text-sm text-ink-dim transition-colors hover:border-gold hover:text-gold"
           >
             {label}
           </a>
@@ -65,8 +62,7 @@ export function HeroSearch({ listingCount }: { listingCount: number }) {
       </div>
 
       <p className="mt-6 font-mono text-xs text-ink-faint">
-        <CountUp value={listingCount} /> live listings ·{" "}
-        <CountUp value={1247} /> collectors · <CountUp value={38} /> sellers nationwide
+        <CountUp value={listingCount} /> live listings
       </p>
     </div>
   );

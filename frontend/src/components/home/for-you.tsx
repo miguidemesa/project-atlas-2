@@ -5,22 +5,16 @@ import { useQuery } from "@tanstack/react-query";
 import { Reveal } from "@/components/motion/reveal";
 import { ListingCard } from "@/components/cards/listing-card";
 import { fetchFeed } from "@/lib/api";
-import type { Listing } from "@/lib/types";
+import { categoryName } from "@/lib/categories";
+import type { CategoryInfo, Listing } from "@/lib/types";
 import { emptyScores, getAffinity, personalRelevance, topCategory } from "@/lib/affinity";
-
-const CATEGORY_LABELS: Record<string, string> = {
-  nba: "NBA",
-  pokemon: "Pokémon",
-  one_piece: "One Piece",
-  disney: "Disney & Lorcana",
-};
 
 /**
  * "For you" rail — re-ranks the live feed by the visitor's affinity profile
  * blended with freshness. Hidden entirely for cold-start visitors (no
  * clear interest signal yet) so the homepage stays editorial by default.
  */
-export function ForYou() {
+export function ForYou({ categories }: { categories: CategoryInfo[] }) {
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
 
@@ -49,7 +43,7 @@ export function ForYou() {
 
   if (!interest || ranked.length === 0) return null;
 
-  const label = CATEGORY_LABELS[interest.category] ?? interest.category;
+  const label = categoryName(categories, interest.category) ?? interest.category;
   const sharePct = Math.round(interest.share * 100);
 
   return (
