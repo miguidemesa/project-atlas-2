@@ -109,6 +109,7 @@
 html {
   color-scheme: dark;
   scroll-behavior: smooth;
+  scroll-padding-top: 128px; /* the sticky two-tier header */
 }
 
 body {
