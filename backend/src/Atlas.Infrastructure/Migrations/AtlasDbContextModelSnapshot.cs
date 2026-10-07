@@ -17,7 +17,7 @@ namespace Atlas.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.11")
+                .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -156,6 +156,17 @@ namespace Atlas.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<string>("CardNumber")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("card_number");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("category");
+
                     b.Property<string>("Condition")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
@@ -190,6 +201,14 @@ namespace Atlas.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
                         .HasColumnName("image_url");
+
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasDefaultValue("en")
+                        .HasColumnName("language");
 
                     b.Property<string>("ListingFormat")
                         .IsRequired()
@@ -232,21 +251,12 @@ namespace Atlas.Infrastructure.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("card_set");
 
-                    b.Property<string>("Sport")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasDefaultValue("basketball")
-                        .HasColumnName("sport");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("status");
 
                     b.Property<string>("Team")
-                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("team");
@@ -266,7 +276,13 @@ namespace Atlas.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
-                    b.Property<int>("Year")
+                    b.Property<int>("ViewCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("view_count");
+
+                    b.Property<int?>("Year")
                         .HasColumnType("integer")
                         .HasColumnName("year");
 
@@ -280,6 +296,9 @@ namespace Atlas.Infrastructure.Migrations
 
                     b.HasIndex("Status")
                         .HasDatabaseName("idx_listings_status");
+
+                    b.HasIndex("Category", "Status")
+                        .HasDatabaseName("idx_listings_category_status");
 
                     b.HasIndex("ListingFormat", "Status")
                         .HasDatabaseName("idx_listings_format_status");

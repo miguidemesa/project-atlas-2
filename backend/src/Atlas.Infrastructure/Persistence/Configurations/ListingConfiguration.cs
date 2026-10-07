@@ -16,11 +16,14 @@ public class ListingConfiguration : IEntityTypeConfiguration<Listing>
         b.Property(x => x.Title).HasColumnName("title").HasMaxLength(200).IsRequired();
         b.Property(x => x.Description).HasColumnName("description").HasMaxLength(2000);
         b.Property(x => x.ImageUrl).HasColumnName("image_url").HasMaxLength(500);
-        b.Property(x => x.Sport).HasColumnName("sport").HasMaxLength(50).HasDefaultValue("basketball");
+        b.Property(x => x.Category).HasColumnName("category").HasMaxLength(50).IsRequired();
         b.Property(x => x.Player).HasColumnName("player").HasMaxLength(200).IsRequired();
-        b.Property(x => x.Team).HasColumnName("team").HasMaxLength(200).IsRequired();
-        b.Property(x => x.Year).HasColumnName("year").IsRequired();
+        b.Property(x => x.Team).HasColumnName("team").HasMaxLength(200);
+        b.Property(x => x.Year).HasColumnName("year");
         b.Property(x => x.Set).HasColumnName("card_set").HasMaxLength(200).IsRequired();
+        b.Property(x => x.CardNumber).HasColumnName("card_number").HasMaxLength(30);
+        b.Property(x => x.Language).HasColumnName("language").HasMaxLength(10).HasDefaultValue("en").IsRequired();
+        b.Property(x => x.ViewCount).HasColumnName("view_count").HasDefaultValue(0);
         b.Property(x => x.Parallel).HasColumnName("parallel").HasMaxLength(100);
         b.Property(x => x.Numbered).HasColumnName("numbered").HasDefaultValue(false);
         b.Property(x => x.SerialNumber).HasColumnName("serial_number").HasMaxLength(50);
@@ -40,5 +43,6 @@ public class ListingConfiguration : IEntityTypeConfiguration<Listing>
         b.HasIndex(x => x.Price).HasDatabaseName("idx_listings_price");
         b.HasIndex(x => new { x.ListingFormat, x.Status }).HasDatabaseName("idx_listings_format_status");
         b.HasIndex(x => new { x.Status, x.ListingFormat, x.Player }).HasDatabaseName("idx_listings_composite");
+        b.HasIndex(x => new { x.Category, x.Status }).HasDatabaseName("idx_listings_category_status");
     }
 }

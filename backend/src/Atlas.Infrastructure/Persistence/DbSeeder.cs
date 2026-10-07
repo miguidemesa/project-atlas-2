@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using Atlas.Application.Listings;
 using Atlas.Domain.Auctions;
 using Atlas.Domain.Listings;
 using Atlas.Domain.Pricing;
@@ -91,32 +92,32 @@ public static class DbSeeder
 
         var listingSeeds = new (string Id, string Category, string Title, string Player, string Team, int Year, string Set, string? Parallel, bool Numbered, string? Serial, bool Graded, string? GradingCompany, string? GradeValue, string? Condition, ListingType Type, ListingFormat Format, decimal Price, decimal? CurrentBid, int BidCount, double EndsInHours, int CreatedDaysAgo, Guid SellerId, string Description)[]
         {
-            ("l01","nba","Victor Wembanyama 2023-24 Prizm Silver RC","Victor Wembanyama","San Antonio Spurs",2023,"Prizm","Silver",false,null,false,null,null,null,ListingType.SingleCard,ListingFormat.Auction,28000,26500,14,2.4,4,s4,"Fresh from a hobby case. Centered with strong corners — looks gem out of the pack."),
-            ("l02","nba","LeBron James 2019 Contenders Cracked Ice /23","LeBron James","Los Angeles Lakers",2019,"Contenders","Cracked Ice",true,"11/23",true,"PSA","9",null,ListingType.SingleCard,ListingFormat.FixedPrice,42000,null,0,0,2,s2,"Numbered cracked ice of the GOAT, slabbed PSA 9. Serial 11/23."),
-            ("l03","nba","Stephen Curry 2016 Select Courtside Gold /10","Stephen Curry","Golden State Warriors",2016,"Select","Courtside Gold",true,"07/10",false,null,null,null,ListingType.SingleCard,ListingFormat.FixedPrice,38500,null,0,0,6,s1,"Gold parallel from the title-season sets. Sharp corners, minor back edge wear — priced accordingly."),
-            ("l04","nba","Paolo Banchero Rookie Lot (5)","Paolo Banchero","Orlando Magic",2022,"Crown Royale",null,false,null,false,null,null,null,ListingType.Lot,ListingFormat.FixedPrice,8500,null,0,0,1,s3,"Five-card rookie lot: base, silver, two retail parallels and an insert."),
-            ("l05","nba","2023-24 NBA Hoops Hobby Box (Sealed)","Multi-player","Various",2023,"NBA Hoops",null,false,null,false,null,null,null,ListingType.HobbyBox,ListingFormat.FixedPrice,6500,null,0,0,3,s5,"Sealed hobby box, Winter release. Two autos or relics per box on average."),
-            ("l06","nba","Anthony Edwards 2020 Prizm RC PSA 10","Anthony Edwards","Minnesota Timberwolves",2020,"Prizm",null,false,null,true,"PSA","10",null,ListingType.SingleCard,ListingFormat.Auction,55000,48000,22,0.8,7,s1,"The Ant rookie in a gem-mint slab. Clean surfaces, perfect centering."),
-            ("l07","nba","Luka Dončić 2018 Optic Holo /99","Luka Dončić","Dallas Mavericks",2018,"Donruss Optic","Holo",true,"52/99",false,null,null,null,ListingType.SingleCard,ListingFormat.FixedPrice,18500,null,0,0,5,s2,"Holo parallel of the 2018 ROY. Numbered /99 with vivid refraction."),
-            ("l08","nba","Jordan Clarkson Rise N Grade Crusade","Jordan Clarkson","Utah Jazz",2023,"Rise N Grade","Crusade",false,null,false,null,null,null,ListingType.SingleCard,ListingFormat.FixedPrice,3200,null,0,0,1,s3,"Clarkson Crusade from his Sixth Man of the Year run."),
-            ("l09","nba","Giannis Antetokounmpo 2013 Prizm RC BGS 9.5","Giannis Antetokounmpo","Milwaukee Bucks",2013,"Prizm",null,false,null,true,"BGS","9.5",null,ListingType.SingleCard,ListingFormat.Auction,120000,98000,31,9,9,s4,"The Greek Freak's true rookie, BGS 9.5 with two 9.5 subgrades."),
-            ("l10","nba","Kobe Bryant UD First Edition LOT of 12","Kobe Bryant","Los Angeles Lakers",2007,"Upper Deck First Edition",null,false,null,false,null,null,null,ListingType.Lot,ListingFormat.FixedPrice,12500,null,0,0,8,s1,"Twelve Kobe base cards across 2007-09 Upper Deck releases."),
-            ("l11","nba","Card Storage Bundle: 500 Sleeves + 25 Toploaders","Supplies","—",2024,"—",null,false,null,false,null,null,null,ListingType.Accessory,ListingFormat.FixedPrice,850,null,0,0,2,s5,"Penny sleeves plus premium toploaders. Standard 2.5x3.5 fit."),
-            ("l12","nba","Chet Holmgren Mosaic Reactive Orange","Chet Holmgren","Oklahoma City Thunder",2023,"Mosaic","Reactive Orange",false,null,false,null,null,null,ListingType.SingleCard,ListingFormat.FixedPrice,4200,null,0,0,3,s3,"Reactive orange of OKC's unicorn. Eye appeal for days at this price point."),
-            ("l13","nba","Scottie Barnes Court Kings Fresh Paint RC","Scottie Barnes","Toronto Raptors",2021,"Court Kings","Fresh Paint",false,null,false,null,null,null,ListingType.SingleCard,ListingFormat.Auction,6000,5400,9,26,4,s2,"Painterly Fresh Paint rookie of the 2022 ROY."),
-            ("l14","nba","Tyrese Haliburton Illusions Rookie Auto","Tyrese Haliburton","Indiana Pacers",2020,"Illusions",null,false,null,false,null,null,"Near Mint",ListingType.SingleCard,ListingFormat.FixedPrice,9800,null,0,0,5,s1,"On-card auto from Hali's rookie year in Indiana."),
+            ("l01","basketball","Victor Wembanyama 2023-24 Prizm Silver RC","Victor Wembanyama","San Antonio Spurs",2023,"Prizm","Silver",false,null,false,null,null,null,ListingType.SingleCard,ListingFormat.Auction,28000,26500,14,2.4,4,s4,"Fresh from a hobby case. Centered with strong corners — looks gem out of the pack."),
+            ("l02","basketball","LeBron James 2019 Contenders Cracked Ice /23","LeBron James","Los Angeles Lakers",2019,"Contenders","Cracked Ice",true,"11/23",true,"PSA","9",null,ListingType.SingleCard,ListingFormat.FixedPrice,42000,null,0,0,2,s2,"Numbered cracked ice of the GOAT, slabbed PSA 9. Serial 11/23."),
+            ("l03","basketball","Stephen Curry 2016 Select Courtside Gold /10","Stephen Curry","Golden State Warriors",2016,"Select","Courtside Gold",true,"07/10",false,null,null,null,ListingType.SingleCard,ListingFormat.FixedPrice,38500,null,0,0,6,s1,"Gold parallel from the title-season sets. Sharp corners, minor back edge wear — priced accordingly."),
+            ("l04","basketball","Paolo Banchero Rookie Lot (5)","Paolo Banchero","Orlando Magic",2022,"Crown Royale",null,false,null,false,null,null,null,ListingType.Lot,ListingFormat.FixedPrice,8500,null,0,0,1,s3,"Five-card rookie lot: base, silver, two retail parallels and an insert."),
+            ("l05","basketball","2023-24 NBA Hoops Hobby Box (Sealed)","Multi-player","Various",2023,"NBA Hoops",null,false,null,false,null,null,null,ListingType.HobbyBox,ListingFormat.FixedPrice,6500,null,0,0,3,s5,"Sealed hobby box, Winter release. Two autos or relics per box on average."),
+            ("l06","basketball","Anthony Edwards 2020 Prizm RC PSA 10","Anthony Edwards","Minnesota Timberwolves",2020,"Prizm",null,false,null,true,"PSA","10",null,ListingType.SingleCard,ListingFormat.Auction,55000,48000,22,0.8,7,s1,"The Ant rookie in a gem-mint slab. Clean surfaces, perfect centering."),
+            ("l07","basketball","Luka Dončić 2018 Optic Holo /99","Luka Dončić","Dallas Mavericks",2018,"Donruss Optic","Holo",true,"52/99",false,null,null,null,ListingType.SingleCard,ListingFormat.FixedPrice,18500,null,0,0,5,s2,"Holo parallel of the 2018 ROY. Numbered /99 with vivid refraction."),
+            ("l08","basketball","Jordan Clarkson Rise N Grade Crusade","Jordan Clarkson","Utah Jazz",2023,"Rise N Grade","Crusade",false,null,false,null,null,null,ListingType.SingleCard,ListingFormat.FixedPrice,3200,null,0,0,1,s3,"Clarkson Crusade from his Sixth Man of the Year run."),
+            ("l09","basketball","Giannis Antetokounmpo 2013 Prizm RC BGS 9.5","Giannis Antetokounmpo","Milwaukee Bucks",2013,"Prizm",null,false,null,true,"BGS","9.5",null,ListingType.SingleCard,ListingFormat.Auction,120000,98000,31,9,9,s4,"The Greek Freak's true rookie, BGS 9.5 with two 9.5 subgrades."),
+            ("l10","basketball","Kobe Bryant UD First Edition LOT of 12","Kobe Bryant","Los Angeles Lakers",2007,"Upper Deck First Edition",null,false,null,false,null,null,null,ListingType.Lot,ListingFormat.FixedPrice,12500,null,0,0,8,s1,"Twelve Kobe base cards across 2007-09 Upper Deck releases."),
+            ("l11","basketball","Card Storage Bundle: 500 Sleeves + 25 Toploaders","Supplies","—",2024,"—",null,false,null,false,null,null,null,ListingType.Accessory,ListingFormat.FixedPrice,850,null,0,0,2,s5,"Penny sleeves plus premium toploaders. Standard 2.5x3.5 fit."),
+            ("l12","basketball","Chet Holmgren Mosaic Reactive Orange","Chet Holmgren","Oklahoma City Thunder",2023,"Mosaic","Reactive Orange",false,null,false,null,null,null,ListingType.SingleCard,ListingFormat.FixedPrice,4200,null,0,0,3,s3,"Reactive orange of OKC's unicorn. Eye appeal for days at this price point."),
+            ("l13","basketball","Scottie Barnes Court Kings Fresh Paint RC","Scottie Barnes","Toronto Raptors",2021,"Court Kings","Fresh Paint",false,null,false,null,null,null,ListingType.SingleCard,ListingFormat.Auction,6000,5400,9,26,4,s2,"Painterly Fresh Paint rookie of the 2022 ROY."),
+            ("l14","basketball","Tyrese Haliburton Illusions Rookie Auto","Tyrese Haliburton","Indiana Pacers",2020,"Illusions",null,false,null,false,null,null,"Near Mint",ListingType.SingleCard,ListingFormat.FixedPrice,9800,null,0,0,5,s1,"On-card auto from Hali's rookie year in Indiana."),
             ("l15","pokemon","Charizard Base Set PSA 9","Charizard","Kanto",1999,"Base Set",null,false,null,true,"PSA","9",null,ListingType.SingleCard,ListingFormat.Auction,185000,168000,38,31,10,s4,"The king of vintage Pokémon. Strong gloss for the grade."),
             ("l16","pokemon","Pikachu ex Surging Sparks SIR","Pikachu ex","Paldea",2024,"Surging Sparks","Special Illustration Rare",false,null,false,null,null,null,ListingType.SingleCard,ListingFormat.FixedPrice,4200,null,0,0,1,s3,"The chase card of the set, pulled fresh from an ETB."),
             ("l17","pokemon","Giratina Platinum Holo Rare","Giratina","Sinnoh",2009,"Platinum","Holo",false,null,false,null,null,null,ListingType.SingleCard,ListingFormat.FixedPrice,2600,null,0,0,6,s2,"Original Sinnoh-era holo with vivid pattern; light scratching under direct light."),
             ("l18","one_piece","Shanks OP-02 Paramount War SEC","Shanks","Red Hair Pirates",2023,"Paramount War","Special Commander",false,null,false,null,null,null,ListingType.SingleCard,ListingFormat.FixedPrice,22000,null,0,0,3,s1,"SEC alt-art of the Emperor himself. Japanese print."),
             ("l19","one_piece","Monkey D. Luffy ST-08 Alternate Art","Monkey D. Luffy","Straw Hat Crew",2023,"Ultra Deck","Alt Art",false,null,false,null,null,null,ListingType.SingleCard,ListingFormat.FixedPrice,5800,null,0,0,2,s5,"Gear-powered Luffy alt art from the starter decks."),
             ("l20","one_piece","Nami OP-05 Manga Rare","Nami","Straw Hat Crew",2024,"Awakening","Manga Rare",false,null,false,null,null,null,ListingType.SingleCard,ListingFormat.FixedPrice,3200,null,0,0,4,s3,"Manga-texture rare from OP-05."),
-            ("l21","disney","Mickey Mouse Lorcana Enchanted","Mickey Mouse","Inklands",2023,"The First Chapter","Enchanted",false,null,false,null,null,null,ListingType.SingleCard,ListingFormat.Auction,28000,24500,17,6,8,s2,"Brave Little Tailor enchanted — pulled first-hand, sleeved immediately."),
-            ("l22","disney","Elsa Lorcana Super Rare","Elsa","Arendelle",2024,"Into the Inklands","Foil",false,null,false,null,null,null,ListingType.SingleCard,ListingFormat.FixedPrice,12500,null,0,0,5,s1,"Snow Queen foil with full-art treatment."),
-            ("l23","disney","Lorcana Stitch Playmat (Official)","Stitch","—",2024,"Accessories",null,false,null,false,null,null,null,ListingType.Accessory,ListingFormat.FixedPrice,750,null,0,0,1,s5,"Official rubber-backed playmat. Tournament legal, stitched edges."),
+            ("l21","lorcana","Mickey Mouse Lorcana Enchanted","Mickey Mouse","Inklands",2023,"The First Chapter","Enchanted",false,null,false,null,null,null,ListingType.SingleCard,ListingFormat.Auction,28000,24500,17,6,8,s2,"Brave Little Tailor enchanted — pulled first-hand, sleeved immediately."),
+            ("l22","lorcana","Elsa Lorcana Super Rare","Elsa","Arendelle",2024,"Into the Inklands","Foil",false,null,false,null,null,null,ListingType.SingleCard,ListingFormat.FixedPrice,12500,null,0,0,5,s1,"Snow Queen foil with full-art treatment."),
+            ("l23","lorcana","Lorcana Stitch Playmat (Official)","Stitch","—",2024,"Accessories",null,false,null,false,null,null,null,ListingType.Accessory,ListingFormat.FixedPrice,750,null,0,0,1,s5,"Official rubber-backed playmat. Tournament legal, stitched edges."),
             ("l24","pokemon","Umbreon VMAX Alt Art — Evolving Skies","Umbreon VMAX","Johto",2021,"Evolving Skies","Alt Art",false,null,false,null,null,null,ListingType.SingleCard,ListingFormat.Auction,38000,32000,19,20,6,s2,"The moonbreon. Centering is exceptional; one faint whitening on the back edge."),
             ("l25","pokemon","Mew ex SIR — Pokémon 151","Mew ex","Kanto",2023,"151","Special Illustration Rare",false,null,false,null,null,null,ListingType.SingleCard,ListingFormat.FixedPrice,6800,null,0,0,2,s1,"151's chase card, pack-fresh from a booster bundle."),
-            ("l26","nba","Zion Williamson Prizm RC — SOLD","Zion Williamson","New Orleans Pelicans",2019,"Prizm",null,false,null,true,"PSA","9",null,ListingType.SingleCard,ListingFormat.FixedPrice,21500,null,0,0,14,s4,"Delivered to a collector in Quezon City."),
+            ("l26","basketball","Zion Williamson Prizm RC — SOLD","Zion Williamson","New Orleans Pelicans",2019,"Prizm",null,false,null,true,"PSA","9",null,ListingType.SingleCard,ListingFormat.FixedPrice,21500,null,0,0,14,s4,"Delivered to a collector in Quezon City."),
             ("l28","pokemon","Blastoise Base Set Holo","Blastoise","Kanto",1999,"Base Set",null,false,null,false,null,null,null,ListingType.SingleCard,ListingFormat.FixedPrice,15000,null,0,0,5,s2,"Original water artillery holo. Vivid pattern, light whitening on two corners."),
             ("l29","pokemon","Latias ex SIR — Surging Sparks","Latias ex","Hoenn",2024,"Surging Sparks","Special Illustration Rare",false,null,false,null,null,null,ListingType.SingleCard,ListingFormat.Auction,11000,9800,11,30,3,s1,"Stunning alt-art from the newest set. Pulled first-hand."),
         };
@@ -132,28 +133,41 @@ public static class DbSeeder
             ["l29"] = "/seed-images/latias-ex-ssp.png",
         };
 
+        // card numbers only where we're sure of them; everything else stays blank
+        var cardDetails = new Dictionary<string, (string? Number, string Language)>
+        {
+            ["l15"] = ("4/102", "en"),
+            ["l16"] = ("238/191", "en"),
+            ["l18"] = (null, "ja"),
+            ["l24"] = ("215/203", "en"),
+            ["l28"] = ("2/102", "en"),
+        };
+
         foreach (var t in listingSeeds)
         {
             var id = DeterministicGuid(t.Id);
+            var (cardNumber, language) = cardDetails.GetValueOrDefault(t.Id, (null, "en"));
             db.Listings.Add(new Listing
             {
                 Id = id,
                 SellerId = t.SellerId,
-                Sport = t.Category,
+                Category = t.Category,
                 Type = t.Type,
                 Title = t.Title,
                 Description = t.Description + " Ships bubble-wrapped with tracking anywhere in PH.",
                 Player = t.Player,
-                Team = t.Team,
+                Team = CategoryList.IsSports(t.Category) && t.Team is not ("—" or "Various") ? t.Team : null,
                 Year = t.Year,
                 Set = t.Set,
+                CardNumber = cardNumber,
+                Language = language,
                 Parallel = t.Parallel,
                 Numbered = t.Numbered,
                 SerialNumber = t.Serial,
                 Graded = t.Graded,
                 GradingCompany = t.GradingCompany,
                 GradeValue = t.GradeValue,
-                Condition = t.Condition,
+                Condition = t.Graded || t.Type != ListingType.SingleCard ? null : "NM",
                 Price = t.Price,
                 ImageUrl = imageBySeed.GetValueOrDefault(t.Id),
                 ListingFormat = t.Format,

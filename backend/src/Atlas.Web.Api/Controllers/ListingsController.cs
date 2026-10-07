@@ -19,8 +19,8 @@ public sealed record ListingDto(
     string Category,
     string Title,
     string Player,
-    string Team,
-    int Year,
+    string? Team,
+    int? Year,
     string Set,
     string? Parallel,
     bool Numbered,
@@ -82,7 +82,7 @@ public class ListingsController(AtlasDbContext db, IObjectStorage storage, IVali
         var query = db.Listings.AsNoTracking().Where(l => l.Status == Domain.Listings.ListingStatus.Active);
 
         if (!string.IsNullOrWhiteSpace(category))
-            query = query.Where(l => l.Sport == category); // sport column carries category until the rename migration
+            query = query.Where(l => l.Category == category);
         if (format == "fixed" || format == "auction")
             query = query.Where(l => l.ListingFormat == (format == "auction"
                 ? Domain.Listings.ListingFormat.Auction
@@ -100,7 +100,7 @@ public class ListingsController(AtlasDbContext db, IObjectStorage storage, IVali
                 EF.Functions.ILike(l.Title, $"%{q}%") ||
                 EF.Functions.ILike(l.Player, $"%{q}%") ||
                 EF.Functions.ILike(l.Set, $"%{q}%") ||
-                EF.Functions.ILike(l.Sport, $"%{q}%"));
+                EF.Functions.ILike(l.Category, $"%{q}%"));
 
         query = sort switch
         {
@@ -200,12 +200,12 @@ public class ListingsController(AtlasDbContext db, IObjectStorage storage, IVali
         {
             Id = Guid.NewGuid(),
             SellerId = userId.Value,
-            Sport = request.Category,
+            Category = request.Category,
             Type = ParseListingType(request.Type),
             Title = $"{request.Player} {request.Year} {request.Set}{(string.IsNullOrEmpty(request.Parallel) ? "" : $" {request.Parallel}")}".Trim(),
             Description = $"Listed by an Atlas seller. Ships bubble-wrapped with tracking anywhere in PH.",
             Player = request.Player.Trim(),
-            Team = string.IsNullOrWhiteSpace(request.Team) ? "—" : request.Team.Trim(),
+            Team = string.IsNullOrWhiteSpace(request.Team) ? null : request.Team.Trim(),
             Year = request.Year,
             Set = request.Set.Trim(),
             Parallel = string.IsNullOrWhiteSpace(request.Parallel) ? null : request.Parallel!.Trim(),
@@ -351,7 +351,7 @@ public class ListingsController(AtlasDbContext db, IObjectStorage storage, IVali
             id = l.Id,
             title = l.Title,
             player = l.Player,
-            category = l.Sport,
+            category = l.Category,
             price = l.Price,
             imageUrl = l.ImageUrl,
             soldAt = l.UpdatedAt,
@@ -482,7 +482,7 @@ public sealed record CompetingResult(int Count, decimal Min, decimal Median, dec
         bool includeDescription = false) =>
         new(
             l.Id,
-            l.Sport,
+            l.Category,
             l.Title,
             l.Player,
             l.Team,
