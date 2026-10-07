@@ -39,9 +39,15 @@ public class PaymentsController(AtlasDbContext db, IPaymentProvider payments, IO
         var balance = await db.PointsLedger
             .Where(p => p.UserId == userId && (p.ExpiresAt == null || p.ExpiresAt > DateTime.UtcNow))
             .SumAsync(p => p.Delta, ct);
-        var discount = request?.UsePoints == true
-            ? RewardsMath.MaxRedeemableDiscount(Math.Max(0, balance), order.Price)
-            : 0;
+        // Points are redeemed at most once per order: a retry reuses the first redemption's discount.
+        // P5: refund the redeemed points when a PayMongo checkout is abandoned.
+        var existingRedeem = await db.PointsLedger.AsNoTracking()
+            .FirstOrDefaultAsync(p => p.OrderId == id && p.Kind == "redeem", ct);
+        var discount = existingRedeem is not null
+            ? (int)(-existingRedeem.Delta * RewardsMath.PesosPerPoint)
+            : request?.UsePoints == true
+                ? RewardsMath.MaxRedeemableDiscount(Math.Max(0, balance), order.Price)
+                : 0;
         var charge = order.Price - discount;
 
         try
@@ -52,7 +58,7 @@ public class PaymentsController(AtlasDbContext db, IPaymentProvider payments, IO
             await orders.BeginPaymentAsync(id, userId.Value, request?.ShippingAddress,
                 checkout?.SessionId ?? $"mock_{id:N}", ct);
 
-            if (discount > 0)
+            if (discount > 0 && existingRedeem is null)
             {
                 db.PointsLedger.Add(new PointsLedger
                 {
