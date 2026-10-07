@@ -1,36 +1,49 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { cloneElement, useEffect, useId, useMemo, useState, type ReactElement } from "react";
 import Link from "next/link";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { CheckCircle2, ChevronLeft, ChevronRight, ImagePlus, LogIn, Sparkles } from "lucide-react";
-import { CardArt } from "@/components/cards/card-art";
+import { CheckCircle2, ChevronLeft, ChevronRight, ImagePlus, Loader2, LogIn, Sparkles } from "lucide-react";
+import { CardArt, type CardArtListing } from "@/components/cards/card-art";
 import { useAuth } from "@/lib/auth";
 import { competingPriceCheck, createListing, scanCard, uploadListingPhoto } from "@/lib/api";
+import { GROUP_LABELS } from "@/lib/categories";
+import { LANGUAGE_OPTIONS } from "@/lib/format";
 import { cn } from "@/lib/cn";
+import type { CategoryInfo } from "@/lib/types";
+import { AUCTION_HOURS, CONDITIONS, GRADERS, GRADES, sellSchema, toListingPayload, type SellValues } from "./sell-schema";
 
 const STEPS = ["The card", "Condition", "Photos", "Format & price"] as const;
 
-const schema = z.object({
-  category: z.enum(["nba", "pokemon", "one_piece", "disney"]),
-  player: z.string().min(2, "Who is on the card?"),
-  year: z.number({ message: "Enter a 4-digit year" }).min(1996).max(new Date().getFullYear()),
-  set: z.string().min(2, "Which set is it from?"),
-  parallel: z.string().optional(),
-  condition: z.string().optional(),
-  graded: z.boolean(),
-  gradingCompany: z.string().optional(),
-  gradeValue: z.string().optional(),
-  format: z.enum(["fixed", "auction"]),
-  price: z.number({ message: "Set a price of at least ₱100" }).min(100, "Minimum ₱100"),
-});
+/** Which step shows each field, so a failed submit jumps to the first problem. */
+const STEP_OF: Partial<Record<keyof SellValues, number>> = {
+  graded: 1,
+  gradingCompany: 1,
+  gradeValue: 1,
+  condition: 1,
+  format: 3,
+  endsInHours: 3,
+  price: 3,
+};
 
-type FormValues = z.infer<typeof schema>;
+const TYPES = [
+  ["single_card", "Single card"],
+  ["lot", "Lot of cards"],
+  ["hobby_box", "Sealed product"],
+  ["accessory", "Supplies"],
+] as const;
+
+const GROUPS = ["tcg", "sports", "nonsport"] as const;
+
+const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const COMPETING_DEBOUNCE_MS = 700;
 
 const inputCls =
-  "w-full rounded-lg border border-line bg-elevated px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:border-gold focus:outline-none";
+  "min-h-11 w-full rounded-lg border border-line bg-elevated px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:border-gold";
+const btnPrimary =
+  "flex min-h-11 items-center justify-center gap-1.5 rounded-lg bg-gold px-6 py-2.5 text-sm font-semibold text-base transition-colors hover:bg-gold-dim disabled:opacity-60";
 
 type PhotoSlotKey = "front" | "back" | "surface";
 
@@ -40,13 +53,26 @@ const PHOTO_SLOTS: { key: PhotoSlotKey; label: string; hint: string; required?: 
   { key: "surface", label: "Surface", hint: "Tilted close-up catching the light" },
 ];
 
-function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+const optional = (v: unknown) => (v === "" || v === undefined || v === null ? undefined : v);
+
+type ControlProps = { id?: string; "aria-invalid"?: boolean; "aria-describedby"?: string };
+
+/** Label above the control; the error sits below it and is announced and linked to the control. */
+function Field({ label, error, children }: { label: string; error?: string; children: ReactElement<ControlProps> }) {
+  const id = useId();
+  const errorId = `${id}-error`;
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-ink">{label}</label>
-      {children}
+      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-ink">
+        {label}
+      </label>
+      {cloneElement(children, {
+        id,
+        "aria-invalid": error ? true : undefined,
+        "aria-describedby": error ? errorId : undefined,
+      })}
       {error && (
-        <p role="alert" className="mt-1.5 text-xs text-urgent">
+        <p id={errorId} role="alert" className="mt-1.5 text-xs text-urgent">
           {error}
         </p>
       )}
@@ -54,7 +80,24 @@ function Field({ label, error, children }: { label: string; error?: string; chil
   );
 }
 
-export function SellForm() {
+function buildDefaults(categories: CategoryInfo[]): SellValues {
+  const first = categories[0];
+  return {
+    category: first?.slug ?? "",
+    isSports: first?.group === "sports",
+    player: "",
+    set: "",
+    language: "en",
+    type: "single_card",
+    graded: false,
+    condition: "NM",
+    format: "fixed",
+    endsInHours: 72,
+    price: 2500,
+  };
+}
+
+export function SellForm({ categories }: { categories: CategoryInfo[] }) {
   const [step, setStep] = useState(0);
   const [submittedId, setSubmittedId] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState("");
@@ -63,70 +106,59 @@ export function SellForm() {
   const [photos, setPhotos] = useState<Partial<Record<PhotoSlotKey, File>>>({});
   const [scanBusy, setScanBusy] = useState(false);
   const [competing, setCompeting] = useState<{ count: number; min: number; median: number; max: number } | null>(null);
-  const [scanResult, setScanResult] = useState<string>("");
-  const previewUrls = useRef<string[]>([]);
-
+  const [scanResult, setScanResult] = useState("");
+  const [focusField, setFocusField] = useState<keyof SellValues | null>(null);
   const { user, authFetch } = useAuth();
 
-  const [watched, setWatched] = useState<FormValues>({
-    category: "nba",
-    player: "",
-    year: new Date().getFullYear() - 1,
-    set: "",
-    parallel: "",
-    graded: false,
-    gradingCompany: undefined,
-    gradeValue: undefined,
-    format: "fixed",
-    price: 2500,
-  });
-
+  const defaults = useMemo(() => buildDefaults(categories), [categories]);
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setValue,
+    setFocus,
     formState: { errors },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: watched,
-    mode: "onTouched",
-  });
+  } = useForm<SellValues>({ resolver: zodResolver(sellSchema), defaultValues: defaults, mode: "onTouched" });
+  const values = useWatch({ control }) as SellValues;
 
-  watch((v) =>
-    setWatched((prev) => ({
-      ...prev,
-      ...v,
-      year: Number(v.year) || prev.year,
-      price: Number(v.price) || prev.price,
-    })),
-  );
-
-  // clean up object URLs
-  useEffect(() => () => previewUrls.current.forEach(URL.revokeObjectURL), []);
-
-  // live competition check once card identity is filled
+  // once a failed submit has switched the step, focus the first invalid field
   useEffect(() => {
-    if (!watched.player.trim() || !watched.set.trim()) return;
-    const t = setTimeout(async () => {
-      const r = await competingPriceCheck(
-        { player: watched.player.trim(), year: Number(watched.year), set: watched.set.trim(),
-          parallel: watched.parallel?.trim() || undefined },
+    if (!focusField) return;
+    setFocus(focusField);
+    setFocusField(null);
+  }, [focusField, step, setFocus]);
+
+  // one object URL per chosen file, revoked when it's replaced
+  const photoUrls = useMemo(
+    () =>
+      Object.fromEntries(Object.entries(photos).map(([slot, file]) => [slot, URL.createObjectURL(file!)])) as Partial<
+        Record<PhotoSlotKey, string>
+      >,
+    [photos],
+  );
+  useEffect(() => () => Object.values(photoUrls).forEach((url) => url && URL.revokeObjectURL(url)), [photoUrls]);
+
+  // live competition check once the card is identified (needs a year until the catalog ships in P3)
+  const { player, set, year, parallel } = values;
+  useEffect(() => {
+    if (!user || !player?.trim() || !set?.trim() || !year) return;
+    const timer = setTimeout(async () => {
+      const result = await competingPriceCheck(
+        { player: player.trim(), year, set: set.trim(), parallel: parallel?.trim() || undefined },
         authFetch,
       );
-      setCompeting(r && r.count > 0 ? r : null);
-    }, 700);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watched.player, watched.year, watched.set, watched.parallel]);
+      setCompeting(result && result.count > 0 ? result : null);
+    }, COMPETING_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [user, authFetch, player, set, year, parallel]);
 
   function setPhoto(slot: PhotoSlotKey, file: File | undefined) {
     if (!file) return;
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+    if (!PHOTO_TYPES.includes(file.type)) {
       setStepError("Only JPEG, PNG or WebP images are accepted.");
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > MAX_PHOTO_BYTES) {
       setStepError("Photos must be 5 MB or smaller.");
       return;
     }
@@ -135,8 +167,8 @@ export function SellForm() {
   }
 
   function goNext() {
-    if (step === 0 && (!watched.player.trim() || !watched.set.trim())) {
-      setStepError("Fill in the player and set before continuing.");
+    if (step === 0 && (!values.player?.trim() || !values.set?.trim())) {
+      setStepError("Fill in the card name and set before continuing.");
       return;
     }
     if (step === 2 && !photos.front) {
@@ -147,32 +179,29 @@ export function SellForm() {
     setStep((s) => s + 1);
   }
 
-  async function onSubmit(values: FormValues) {
+  function onInvalid(fieldErrors: FieldErrors<SellValues>) {
+    const fields = Object.keys(fieldErrors) as (keyof SellValues)[];
+    if (fields.length === 0) return;
+    const stepOf = (f: keyof SellValues) => STEP_OF[f] ?? 0;
+    const first = fields.reduce((a, b) => (stepOf(b) < stepOf(a) ? b : a));
+    setStepError("");
+    setStep(stepOf(first));
+    setFocusField(first);
+  }
+
+  async function onSubmit(form: SellValues) {
     setSubmitError("");
     if (!user) {
       setSubmitError("Please sign in first so the listing belongs to your account.");
       return;
     }
+    if (!photos.front) {
+      setStep(2);
+      setStepError("A front photo is required — buyers buy with their eyes.");
+      return;
+    }
     setUploading(true);
-    const result = await createListing(
-      {
-        category: values.category,
-        player: values.player,
-        team: values.category === "nba" ? "—" : values.category,
-        year: values.year,
-        set: values.set,
-        parallel: values.parallel || undefined,
-        graded: values.graded,
-        gradingCompany: values.gradingCompany,
-        gradeValue: values.gradeValue,
-        type: "single_card",
-        format: values.format,
-        price: values.price,
-        endsInHours: values.format === "auction" ? 72 : undefined,
-      },
-      authFetch,
-    );
-
+    const result = await createListing(toListingPayload(form), authFetch);
     if (!result.ok) {
       setSubmitError(result.error);
       setUploading(false);
@@ -182,9 +211,9 @@ export function SellForm() {
     for (const slot of PHOTO_SLOTS) {
       const file = photos[slot.key];
       if (!file) continue;
-      const up = await uploadListingPhoto(result.id, file, authFetch);
-      if (!up.ok) {
-        setSubmitError(`Listing created, but ${slot.label} photo failed: ${up.error}`);
+      const upload = await uploadListingPhoto(result.id, file, authFetch);
+      if (!upload.ok) {
+        setSubmitError(`Listing created, but the ${slot.label.toLowerCase()} photo failed: ${upload.error}`);
         setSubmittedId(result.id);
         setUploading(false);
         return;
@@ -195,20 +224,13 @@ export function SellForm() {
     setSubmittedId(result.id);
   }
 
-  const previewSeed = `${watched.player}-${watched.year}-${watched.set}`.toLowerCase().replace(/\s+/g, "-") || "preview";
-
   if (submittedId) {
     return (
       <div className="rounded-2xl border border-line bg-elevated p-10 text-center shadow-card">
-        <CheckCircle2 size={40} className="mx-auto text-confirmed" />
+        <CheckCircle2 size={40} className="mx-auto text-confirmed" aria-hidden />
         <h2 className="mt-4 font-display text-2xl text-ink">Listing is live</h2>
-        <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-ink-dim">
-          Your card is in front of every collector in the country. Escrow protects you and the buyer.
-        </p>
-        <Link
-          href={`/listing/${submittedId}`}
-          className="mt-6 inline-block rounded-lg bg-gold px-6 py-2.5 text-sm font-semibold text-base transition-colors hover:bg-gold-dim"
-        >
+        {submitError && <p className="mx-auto mt-2 max-w-sm text-sm text-urgent">{submitError}</p>}
+        <Link href={`/listing/${submittedId}`} className={cn(btnPrimary, "mt-6 inline-flex")}>
           View listing
         </Link>
       </div>
@@ -218,16 +240,19 @@ export function SellForm() {
   if (!user) {
     return (
       <div className="flex flex-col items-center rounded-2xl border border-dashed border-line-hv p-12 text-center">
-        <LogIn size={28} className="text-gold" />
+        <LogIn size={28} className="text-gold" aria-hidden />
         <h2 className="mt-4 font-display text-2xl text-ink">Sign in to start selling</h2>
         <p className="mt-2 max-w-sm text-sm text-ink-dim">
-          Listings belong to a verified account so buyers know exactly who they&apos;re trading with.
+          Listings belong to an account so buyers know exactly who they&apos;re trading with.
         </p>
         <div className="mt-6 flex gap-3">
-          <Link href="/login" className="rounded-lg border border-line px-5 py-2.5 text-sm font-medium text-ink hover:border-gold hover:text-gold">
+          <Link
+            href="/login"
+            className="flex min-h-11 items-center rounded-lg border border-line px-5 py-2.5 text-sm font-medium text-ink hover:border-gold hover:text-gold"
+          >
             Sign in
           </Link>
-          <Link href="/register" className="rounded-lg bg-gold px-5 py-2.5 text-sm font-semibold text-base hover:bg-gold-dim">
+          <Link href="/register" className={cn(btnPrimary, "px-5")}>
             Create account
           </Link>
         </div>
@@ -235,29 +260,31 @@ export function SellForm() {
     );
   }
 
-  const previewListing = {
-    id: `preview-${previewSeed}`,
-    title: `${watched.player} ${watched.year} ${watched.set}`,
-    player: watched.player || "Player Name",
-    team: "San Antonio Spurs",
-    year: Number(watched.year) || 2024,
-    set: watched.set || "Prizm",
-    parallel: watched.parallel || undefined,
-    graded: watched.graded,
-    gradingCompany: watched.gradingCompany,
-    gradeValue: watched.gradeValue,
-    type: "single_card" as const,
-    category: watched.category,
-    format: watched.format,
-    price: Number(watched.price) || 0,
-    createdAt: new Date().toISOString(),
-    sellerId: "s1",
-    description: "",
+  const serial = values.isSports ? values.serialNumber?.trim() : undefined;
+  const preview: CardArtListing = {
+    id: `preview-${`${values.player}-${values.set}`.toLowerCase().replace(/\s+/g, "-")}`,
+    title: values.player || "Your card",
+    category: values.category,
+    player: values.player || "Card name",
+    team: values.isSports ? (values.team ?? null) : null,
+    year: values.year ?? null,
+    set: values.set || "Set",
+    parallel: values.parallel || null,
+    graded: values.graded,
+    gradingCompany: values.gradingCompany ?? null,
+    gradeValue: values.gradeValue ?? null,
+    numbered: Boolean(serial),
+    serialNumber: serial || null,
+    type: values.type,
   };
 
   return (
     <div className="grid gap-10 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-      <form onSubmit={handleSubmit(onSubmit)} className="rounded-2xl border border-line bg-elevated p-6 shadow-card sm:p-8">
+      <form
+        onSubmit={handleSubmit(onSubmit, onInvalid)}
+        noValidate
+        className="rounded-2xl border border-line bg-elevated p-6 shadow-card sm:p-8"
+      >
         <ol className="mb-8 flex items-center gap-2" aria-label="Progress">
           {STEPS.map((label, i) => (
             <li key={label} className="flex flex-1 items-center gap-2">
@@ -276,36 +303,34 @@ export function SellForm() {
           ))}
         </ol>
 
-        {/* STEP 1 */}
+        {/* STEP 1 — the card */}
         <div className={cn(step !== 0 && "hidden")} role="group" aria-label="Step 1: The card">
           <div className="mb-5 rounded-xl border border-dashed border-gold/40 bg-gold/5 p-4">
             <div className="flex items-center gap-2">
-              <Sparkles size={16} className="text-gold" />
+              <Sparkles size={16} className="text-gold" aria-hidden />
               <span className="text-sm font-medium text-ink">Scan the card</span>
               <span className="rounded bg-raised px-1.5 py-0.5 font-mono text-[10px] text-ink-faint">beta</span>
             </div>
-            <p className="mt-1 text-xs text-ink-dim">
-              Upload a clear photo and Atlas fills in the details for you.
-            </p>
+            <p className="mt-1 text-xs text-ink-dim">Upload a clear photo and Atlas fills in what it recognises.</p>
             <div className="mt-3 flex flex-wrap items-center gap-3">
-              <label className="cursor-pointer rounded-lg border border-line bg-base px-4 py-2 text-xs font-medium text-ink transition-colors hover:border-gold">
+              <label className="flex min-h-11 cursor-pointer items-center rounded-lg border border-line bg-base px-4 py-2 text-xs font-medium text-ink transition-colors hover:border-gold has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-gold">
                 Choose photo
                 <input
                   type="file"
-                  accept="image/jpeg,image/png,image/webp"
+                  accept={PHOTO_TYPES.join(",")}
                   className="sr-only"
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
                     setScanBusy(true);
                     setScanResult("");
-                    const r = await scanCard(file, authFetch);
+                    const scan = await scanCard(file, authFetch);
                     setScanBusy(false);
-                    if (!r.ok) {
-                      setScanResult(r.error);
+                    if (!scan.ok) {
+                      setScanResult(scan.error);
                       return;
                     }
-                    const sc = r.scan;
+                    const sc = scan.scan;
                     if (sc.player) setValue("player", sc.player);
                     if (sc.set) setValue("set", sc.set);
                     if (sc.year) setValue("year", sc.year);
@@ -317,58 +342,131 @@ export function SellForm() {
               {scanBusy && <span className="font-mono text-xs text-ink-faint">Scanning…</span>}
             </div>
             {scanResult && (
-              <p role="status" className="mt-2 text-xs text-gold">{scanResult}</p>
+              <p role="status" className="mt-2 text-xs text-gold">
+                {scanResult}
+              </p>
             )}
           </div>
 
-          <div className="mb-4">
-            <Field label="Category">
-              <select {...register("category")} className={inputCls}>
-                <option value="nba">NBA / basketball</option>
-                <option value="pokemon">Pokémon</option>
-                <option value="one_piece">One Piece</option>
-                <option value="disney">Disney & Lorcana</option>
+          <div className="mb-4 grid gap-4 sm:grid-cols-2">
+            <Field label="Game or sport" error={errors.category?.message}>
+              <select
+                {...register("category", {
+                  onChange: (e) => setValue("isSports", categories.find((c) => c.slug === e.target.value)?.group === "sports"),
+                })}
+                className={inputCls}
+              >
+                {GROUPS.map((group) => (
+                  <optgroup key={group} label={GROUP_LABELS[group]}>
+                    {categories
+                      .filter((c) => c.group === group)
+                      .map((c) => (
+                        <option key={c.slug} value={c.slug}>
+                          {c.name}
+                        </option>
+                      ))}
+                  </optgroup>
+                ))}
+              </select>
+            </Field>
+            <Field label="What are you listing?">
+              <select {...register("type")} className={inputCls}>
+                {TYPES.map(([v, label]) => (
+                  <option key={v} value={v}>
+                    {label}
+                  </option>
+                ))}
               </select>
             </Field>
           </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Player / character" error={errors.player?.message}>
-              <input {...register("player")} placeholder="e.g. Victor Wembanyama" className={inputCls} />
+            <Field label={values.isSports ? "Player" : "Card or character name"} error={errors.player?.message}>
+              <input {...register("player")} placeholder={values.isSports ? "e.g. Victor Wembanyama" : "e.g. Charizard ex"} className={inputCls} />
             </Field>
-            <Field label="Year" error={errors.year?.message}>
-              <input {...register("year", { valueAsNumber: true })} inputMode="numeric" placeholder="2023" className={cn(inputCls, "font-mono")} />
-            </Field>
+            {values.isSports && (
+              <Field label="Team" error={errors.team?.message}>
+                <input {...register("team", { setValueAs: optional })} placeholder="e.g. San Antonio Spurs" className={inputCls} />
+              </Field>
+            )}
             <Field label="Set" error={errors.set?.message}>
-              <input {...register("set")} placeholder="Prizm, Surging Sparks…" className={inputCls} />
+              <input {...register("set")} placeholder={values.isSports ? "Prizm, Select…" : "151, Romance Dawn…"} className={inputCls} />
             </Field>
-            <Field label="Parallel (optional)">
-              <input {...register("parallel")} placeholder="Silver, SIR, Enchanted…" className={inputCls} />
+            <Field label={values.isSports ? "Year" : "Year (optional)"} error={errors.year?.message}>
+              <input
+                {...register("year", { setValueAs: (v) => (optional(v) === undefined ? undefined : Number(v)) })}
+                inputMode="numeric"
+                placeholder="2023"
+                className={cn(inputCls, "font-mono")}
+              />
+            </Field>
+            <Field label="Card number (optional)" error={errors.cardNumber?.message}>
+              <input
+                {...register("cardNumber", { setValueAs: optional })}
+                placeholder={values.isSports ? "#136" : "199/165, OP05-119…"}
+                className={cn(inputCls, "font-mono")}
+              />
+            </Field>
+            <Field label={values.isSports ? "Parallel (optional)" : "Rarity or variant (optional)"} error={errors.parallel?.message}>
+              <input
+                {...register("parallel", { setValueAs: optional })}
+                placeholder={values.isSports ? "Silver, Gold /10…" : "SIR, Alt Art, Enchanted…"}
+                className={inputCls}
+              />
+            </Field>
+            {values.isSports && (
+              <Field label="Serial (optional)" error={errors.serialNumber?.message}>
+                <input {...register("serialNumber", { setValueAs: optional })} placeholder="e.g. 07/10" className={cn(inputCls, "font-mono")} />
+              </Field>
+            )}
+            <Field label="Language">
+              <select {...register("language")} className={inputCls}>
+                {LANGUAGE_OPTIONS.map(([code, name]) => (
+                  <option key={code} value={code}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+          <div className="mt-4">
+            <Field label="Description (optional)" error={errors.description?.message}>
+              <textarea
+                {...register("description", { setValueAs: optional })}
+                rows={3}
+                placeholder="Centering, corners, where it was pulled…"
+                className={inputCls}
+              />
             </Field>
           </div>
         </div>
 
-        {/* STEP 2 */}
+        {/* STEP 2 — condition */}
         <div className={cn(step !== 1 && "hidden")} role="group" aria-label="Step 2: Condition">
-          <label className="mb-4 flex cursor-pointer items-start gap-3 rounded-lg border border-line p-4 transition-colors hover:border-line-hv has-checked:border-gold">
-            <input type="checkbox" {...register("graded")} className="mt-0.5 h-4 w-4 accent-[#b08d3e]" />
+          <label className="mb-4 flex min-h-11 cursor-pointer items-start gap-3 rounded-lg border border-line p-4 transition-colors hover:border-line-hv has-checked:border-gold">
+            <input type="checkbox" {...register("graded")} className="mt-0.5 h-5 w-5 accent-gold" />
             <span>
               <span className="block text-sm font-medium text-ink">Professionally graded</span>
-              <span className="block text-xs text-ink-dim">Slabbed by PSA, BGS or SGC</span>
+              <span className="block text-xs text-ink-dim">Slabbed by PSA, BGS, CGC, SGC, TAG or ACE</span>
             </span>
           </label>
 
-          {watch("graded") ? (
+          {values.graded ? (
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Grading company">
-                <select {...register("gradingCompany")} defaultValue="PSA" className={inputCls}>
-                  <option value="PSA">PSA</option>
-                  <option value="BGS">BGS</option>
-                  <option value="SGC">SGC</option>
+              <Field label="Grading company" error={errors.gradingCompany?.message}>
+                <select {...register("gradingCompany", { setValueAs: optional })} className={inputCls}>
+                  <option value="">Choose…</option>
+                  {GRADERS.map((g) => (
+                    <option key={g} value={g}>
+                      {g}
+                    </option>
+                  ))}
                 </select>
               </Field>
-              <Field label="Grade">
-                <select {...register("gradeValue")} defaultValue="10" className={inputCls}>
-                  {["10", "9.5", "9", "8.5", "8"].map((g) => (
+              <Field label="Grade" error={errors.gradeValue?.message}>
+                <select {...register("gradeValue", { setValueAs: optional })} className={inputCls}>
+                  <option value="">Choose…</option>
+                  {GRADES.map((g) => (
                     <option key={g} value={g}>
                       {g}
                     </option>
@@ -376,37 +474,37 @@ export function SellForm() {
                 </select>
               </Field>
             </div>
-          ) : (
-            <Field label="Condition">
-              <select {...register("condition")} defaultValue="Near Mint" className={inputCls}>
-                {["Near Mint", "Lightly Played", "Moderately Played", "Played"].map((c) => (
-                  <option key={c} value={c}>
-                    {c}
+          ) : values.type === "single_card" ? (
+            <Field label="Condition" error={errors.condition?.message}>
+              <select {...register("condition")} className={inputCls}>
+                {CONDITIONS.map(([code, name]) => (
+                  <option key={code} value={code}>
+                    {code} — {name}
                   </option>
                 ))}
               </select>
             </Field>
+          ) : (
+            <p className="text-sm text-ink-dim">
+              Sealed product, lots and supplies don’t need a condition grade. Mention anything worth knowing in the description.
+            </p>
           )}
         </div>
 
-        {/* STEP 3 */}
+        {/* STEP 3 — photos */}
         <div className={cn(step !== 2 && "hidden")} role="group" aria-label="Step 3: Photos">
-          <p className="mb-4 text-sm text-ink-dim">
-            Real photos sell. Neutral background, steady hand — the front photo becomes your tile.
-          </p>
+          <p className="mb-4 text-sm text-ink-dim">Real photos sell. Neutral background, steady hand — the front photo becomes your tile.</p>
           <div className="grid gap-4 sm:grid-cols-3">
             {PHOTO_SLOTS.map((slot) => (
               <label
                 key={slot.key}
-                className={cn(
-                  "flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-dashed border-line-hv p-4 text-center transition-colors hover:border-gold has-[img]:border-solid has-[img]:border-line",
-                )}
+                className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-dashed border-line-hv p-4 text-center transition-colors hover:border-gold has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-gold has-[img]:border-solid has-[img]:border-line"
               >
-                {photos[slot.key] ? (
+                {photoUrls[slot.key] ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={URL.createObjectURL(photos[slot.key]!)} alt={`${slot.label} preview`} className="aspect-[3/4] w-full rounded-lg object-cover" />
+                  <img src={photoUrls[slot.key]} alt={`${slot.label} preview`} className="aspect-[3/4] w-full rounded-lg object-cover" />
                 ) : (
-                  <ImagePlus size={22} className="mt-2 text-ink-faint" />
+                  <ImagePlus size={22} className="mt-2 text-ink-faint" aria-hidden />
                 )}
                 <span className="text-sm font-medium text-ink">
                   {slot.label}
@@ -415,7 +513,7 @@ export function SellForm() {
                 <span className="text-[11px] leading-snug text-ink-faint">{slot.hint}</span>
                 <input
                   type="file"
-                  accept="image/jpeg,image/png,image/webp"
+                  accept={PHOTO_TYPES.join(",")}
                   className="sr-only"
                   onChange={(e) => setPhoto(slot.key, e.target.files?.[0])}
                 />
@@ -425,20 +523,40 @@ export function SellForm() {
           {!photos.front && <p className="mt-3 text-xs text-ink-faint">Front photo required before publishing.</p>}
         </div>
 
-        {/* STEP 4 */}
+        {/* STEP 4 — format and price */}
         <div className={cn(step !== 3 && "hidden")} role="group" aria-label="Step 4: Format and price">
           <div className="mb-5 grid grid-cols-2 gap-3" role="radiogroup" aria-label="Listing format">
-            {([
-              ["fixed", "Buy now", "Set your price"],
-              ["auction", "Auction", "Live for 72 hours"],
-            ] as const).map(([v, title, sub]) => (
-              <label key={v} className="cursor-pointer rounded-lg border border-line p-4 transition-colors has-checked:border-gold has-checked:bg-gold/5">
+            {(
+              [
+                ["fixed", "Buy now", "Set your price"],
+                ["auction", "Auction", "Highest bid wins"],
+              ] as const
+            ).map(([v, title, sub]) => (
+              <label
+                key={v}
+                className="min-h-11 cursor-pointer rounded-lg border border-line p-4 transition-colors has-checked:border-gold has-checked:bg-gold/5 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-gold"
+              >
                 <input type="radio" value={v} {...register("format")} className="sr-only" />
                 <span className="block text-sm font-semibold text-ink">{title}</span>
                 <span className="block text-xs text-ink-dim">{sub}</span>
               </label>
             ))}
           </div>
+
+          {values.format === "auction" && (
+            <div className="mb-5">
+              <Field label="Auction length" error={errors.endsInHours?.message}>
+                <select {...register("endsInHours", { setValueAs: (v) => (v ? Number(v) : undefined) })} className={inputCls}>
+                  {AUCTION_HOURS.map(([hours, label]) => (
+                    <option key={hours} value={hours}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </div>
+          )}
+
           {competing && (
             <div className="mb-5 rounded-xl border border-gold/40 bg-gold/5 p-4">
               <div className="flex items-center justify-between gap-2">
@@ -450,25 +568,29 @@ export function SellForm() {
                 </span>
               </div>
               <p className="mt-1 text-xs text-ink-dim">
-                Market median <span className="font-semibold text-gold">₱{competing.median.toLocaleString("en-PH")}</span> — priced smart beats priced high.
+                Their median asking price is <span className="font-semibold text-gold">₱{competing.median.toLocaleString("en-PH")}</span>.
               </p>
               <div className="mt-2.5 flex flex-wrap gap-2">
-                <button type="button"
+                <button
+                  type="button"
                   onClick={() => setValue("price", competing.median, { shouldValidate: true })}
-                  className="rounded-lg border border-line bg-base px-3 py-1.5 font-mono text-xs text-ink transition-colors hover:border-gold hover:text-gold">
+                  className="min-h-11 rounded-lg border border-line bg-base px-3 py-1.5 font-mono text-xs text-ink transition-colors hover:border-gold hover:text-gold"
+                >
                   Match median · ₱{competing.median.toLocaleString("en-PH")}
                 </button>
-                <button type="button"
-                  onClick={() => setValue("price", Math.max(100, competing.min - 100), { shouldValidate: true })}
-                  className="rounded-lg border border-line bg-base px-3 py-1.5 font-mono text-xs text-ink transition-colors hover:border-gold hover:text-gold">
-                  Undercut lowest · ₱{Math.max(100, competing.min - 100).toLocaleString("en-PH")}
+                <button
+                  type="button"
+                  onClick={() => setValue("price", Math.max(1, competing.min - 100), { shouldValidate: true })}
+                  className="min-h-11 rounded-lg border border-line bg-base px-3 py-1.5 font-mono text-xs text-ink transition-colors hover:border-gold hover:text-gold"
+                >
+                  Undercut lowest · ₱{Math.max(1, competing.min - 100).toLocaleString("en-PH")}
                 </button>
               </div>
             </div>
           )}
 
-          <Field label={watch("format") === "auction" ? "Starting bid (₱)" : "Your price (₱)"} error={errors.price?.message}>
-            <input {...register("price", { valueAsNumber: true })} inputMode="numeric" className={cn(inputCls, "font-mono tabular-nums")} />
+          <Field label={values.format === "auction" ? "Starting bid (₱)" : "Your price (₱)"} error={errors.price?.message}>
+            <input {...register("price", { valueAsNumber: true })} inputMode="decimal" className={cn(inputCls, "font-mono tabular-nums")} />
           </Field>
         </div>
 
@@ -483,25 +605,18 @@ export function SellForm() {
             type="button"
             onClick={() => setStep((s) => Math.max(0, s - 1))}
             disabled={step === 0}
-            className="flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-medium text-ink-dim transition-colors hover:text-ink disabled:opacity-0"
+            className="flex min-h-11 items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-medium text-ink-dim transition-colors hover:text-ink disabled:opacity-0"
           >
-            <ChevronLeft size={15} /> Back
+            <ChevronLeft size={15} aria-hidden /> Back
           </button>
 
           {step < STEPS.length - 1 ? (
-            <button
-              type="button"
-              onClick={goNext}
-              className="flex items-center gap-1.5 rounded-lg bg-gold px-6 py-2.5 text-sm font-semibold text-base transition-colors hover:bg-gold-dim"
-            >
-              Continue <ChevronRight size={15} />
+            <button type="button" onClick={goNext} className={btnPrimary}>
+              Continue <ChevronRight size={15} aria-hidden />
             </button>
           ) : (
-            <button
-              type="submit"
-              disabled={uploading}
-              className="rounded-lg bg-gold px-6 py-2.5 text-sm font-semibold text-base transition-colors hover:bg-gold-dim disabled:opacity-50"
-            >
+            <button type="submit" disabled={uploading} aria-busy={uploading} className={btnPrimary}>
+              {uploading && <Loader2 size={15} className="animate-spin motion-reduce:animate-none" aria-hidden />}
               {uploading ? "Publishing…" : "Publish listing"}
             </button>
           )}
@@ -513,12 +628,10 @@ export function SellForm() {
         <div className="mx-auto w-full max-w-[260px]">
           <div className="overflow-hidden rounded-xl border border-line shadow-lifted">
             <div className="aspect-[3/4]">
-              <CardArt listing={previewListing} />
+              <CardArt listing={preview} />
             </div>
           </div>
-          <p className="mt-3 text-center font-display text-xl text-gold">
-            ₱{Number(watched.price || 0).toLocaleString("en-PH")}
-          </p>
+          <p className="mt-3 text-center font-display text-xl text-gold">₱{Number(values.price || 0).toLocaleString("en-PH")}</p>
         </div>
       </aside>
     </div>

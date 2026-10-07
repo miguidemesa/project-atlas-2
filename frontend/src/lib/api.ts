@@ -61,10 +61,13 @@ export const loadSellerReviews = (sellerId: string) =>
 export interface CreateListingPayload {
   category: Category;
   player: string;
-  team: string;
-  year: number;
+  team?: string;
+  year?: number;
   set: string;
+  cardNumber?: string;
+  language: string;
   parallel?: string;
+  serialNumber?: string;
   graded: boolean;
   gradingCompany?: string;
   gradeValue?: string;
@@ -73,6 +76,7 @@ export interface CreateListingPayload {
   format: "fixed" | "auction";
   price: number;
   endsInHours?: number;
+  description?: string;
 }
 
 export async function createListing(
