@@ -33,3 +33,11 @@ describe("Holo Night colour rules", () => {
     expect(files.filter(({ text }) => /#34d399|#c6a24b|#b08d3e|198,\s*162,\s*75/i.test(text)).map(({ file }) => file)).toEqual([]);
   });
 });
+
+describe("shadcn components", () => {
+  it("highlight rows with muted, not the holo cyan accent (shadcn's accent is a hover fill)", () => {
+    const shadcn = files.filter(({ file }) => file.startsWith("components/ui/") && /data-slot=/.test(readFileSync(path.join(SRC, file), "utf8")));
+    const hits = shadcn.filter(({ text }) => /(^|[\s"'`:])bg-accent(?![-\w])|text-accent-foreground/.test(text)).map(({ file }) => file);
+    expect(hits).toEqual([]);
+  });
+});

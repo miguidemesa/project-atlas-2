@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono, Onest, Unbounded } from "next/font/google";
 import { Providers } from "@/components/providers";
-import { Navbar } from "@/components/layout/navbar";
+import { SiteHeader } from "@/components/layout/site-header";
 import { Footer } from "@/components/layout/footer";
-import { BottomNav } from "@/components/layout/bottom-nav";
+import { TabBar } from "@/components/layout/tab-bar";
 import { loadCategories } from "@/lib/api";
 import "./globals.css";
 
@@ -30,10 +30,12 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           Skip to content
         </a>
         <Providers categories={categories}>
-          <Navbar />
-          <main id="main">{children}</main>
+          <SiteHeader />
+          <main id="main" className="pb-24 md:pb-0">
+            {children}
+          </main>
           <Footer />
-          <BottomNav />
+          <TabBar />
         </Providers>
       </body>
     </html>
