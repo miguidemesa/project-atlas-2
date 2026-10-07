@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Atlas.Application.Ai;
+using Atlas.Application.Listings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -13,7 +14,6 @@ public sealed class LlmSearchParser(HttpClient http, IConfiguration config, Rule
 {
     private static readonly HashSet<string> Categories = ["nba", "pokemon", "one_piece", "disney"];
     private static readonly HashSet<string> Formats = ["fixed", "auction"];
-    private static readonly HashSet<string> Types = ["single_card", "lot", "hobby_box", "accessory"];
 
     public async Task<ParsedSearch> ParseAsync(string query, CancellationToken ct = default)
     {
@@ -57,7 +57,7 @@ public sealed class LlmSearchParser(HttpClient http, IConfiguration config, Rule
 
             string? Cat() { var v = Str(r, "category"); return v is not null && Categories.Contains(v) ? v : null; }
             string? Fmt() { var v = Str(r, "format"); return v is not null && Formats.Contains(v) ? v : null; }
-            string? Typ() { var v = Str(r, "type"); return v is not null && Types.Contains(v) ? v : null; }
+            string? Typ() { var v = Str(r, "type"); return v is not null && ListingTypes.Names.Contains(v) ? v : null; }
             bool? Graded() => r.TryGetProperty("graded", out var g) && g.ValueKind == System.Text.Json.JsonValueKind.True ? true : null;
             decimal? Max() => r.TryGetProperty("maxPrice", out var mp) && mp.TryGetDecimal(out var d) && d > 0 ? d : null;
 

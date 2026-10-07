@@ -196,21 +196,25 @@ public class ListingsController(AtlasDbContext db, IObjectStorage storage, IVali
         if (!validation.IsValid)
             return BadRequest(new { error = validation.Errors[0].ErrorMessage, errors = validation.Errors.Select(e => e.ErrorMessage) });
 
+        ListingTypes.TryParse(request.Type, out var type);
+        var serial = string.IsNullOrWhiteSpace(request.SerialNumber) ? null : request.SerialNumber.Trim();
         var listing = new Listing
         {
             Id = Guid.NewGuid(),
             SellerId = userId.Value,
             Category = request.Category,
-            Type = ParseListingType(request.Type),
-            Title = $"{request.Player} {request.Year} {request.Set}{(string.IsNullOrEmpty(request.Parallel) ? "" : $" {request.Parallel}")}".Trim(),
-            Description = $"Listed by an Atlas seller. Ships bubble-wrapped with tracking anywhere in PH.",
+            Type = type,
+            Title = ListingTitle.Build(request),
+            Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
             Player = request.Player.Trim(),
             Team = string.IsNullOrWhiteSpace(request.Team) ? null : request.Team.Trim(),
             Year = request.Year,
             Set = request.Set.Trim(),
-            Parallel = string.IsNullOrWhiteSpace(request.Parallel) ? null : request.Parallel!.Trim(),
-            Numbered = false,
-            SerialNumber = null,
+            CardNumber = string.IsNullOrWhiteSpace(request.CardNumber) ? null : request.CardNumber.Trim(),
+            Language = request.Language ?? ListingLanguages.Default,
+            Parallel = string.IsNullOrWhiteSpace(request.Parallel) ? null : request.Parallel.Trim(),
+            Numbered = serial is not null,
+            SerialNumber = serial,
             Graded = request.Graded,
             GradingCompany = request.Graded ? request.GradingCompany : null,
             GradeValue = request.Graded ? request.GradeValue : null,
@@ -285,22 +289,6 @@ public class ListingsController(AtlasDbContext db, IObjectStorage storage, IVali
 
         return Ok(new { data = new { key, url } });
     }
-
-    private static ListingType ParseListingType(string value) => value switch
-    {
-        "lot" => ListingType.Lot,
-        "hobby_box" => ListingType.HobbyBox,
-        "accessory" => ListingType.Accessory,
-        _ => ListingType.SingleCard,
-    };
-
-    private static string ToApiType(ListingType type) => type switch
-    {
-        ListingType.Lot => "lot",
-        ListingType.HobbyBox => "hobby_box",
-        ListingType.Accessory => "accessory",
-        _ => "single_card",
-    };
 
     private static string ToApiStatus(ListingStatus status) => status switch
     {
@@ -503,7 +491,7 @@ public sealed record CompetingResult(int Count, decimal Min, decimal Median, dec
             auction?.CurrentBid,
             auction is null ? null : bidCount,
             auction?.EndTime,
-            ToApiType(l.Type),
+            ListingTypes.ToName(l.Type),
             ToApiFormat(l.ListingFormat),
             ToApiStatus(l.Status),
             l.CreatedAt,
