@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, Gavel, ShieldCheck } from "lucide-react";
 import { Countdown } from "@/components/ui/countdown";
 import { useAuth } from "@/lib/auth";
 import { createOrder, makeOffer, maxRedeemable, payOrder as payOrderApi, placeBid, fetchMyRewards } from "@/lib/api";
+import { payOutcome } from "@/lib/checkout";
 import { formatPeso } from "@/lib/format";
 import { cn } from "@/lib/cn";
-
-const PAID_STATES: readonly string[] = ["paid_awaiting_shipment", "shipped", "delivered_confirmed", "funds_released"];
 
 interface Props {
   listingId: string;
@@ -25,6 +25,8 @@ export function BidBox({ listingId, price, format, bidCount, endsAt }: Props) {
   const [address, setAddress] = useState("");
   const [buyError, setBuyError] = useState("");
   const [pendingNote, setPendingNote] = useState(false);
+  const [ordersHint, setOrdersHint] = useState(false);
+  const busy = useRef(false);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [offerStage, setOfferStage] = useState<"idle" | "form" | "sent">("idle");
   const [offerAmount, setOfferAmount] = useState(() => String(Math.round((price * 0.9) / 100) * 100));
@@ -45,6 +47,17 @@ export function BidBox({ listingId, price, format, bidCount, endsAt }: Props) {
     fetchMyRewards(authFetch).then((r) => { if (live) setPtsBalance(r.balance); });
     return () => { live = false; };
   }, [user, format, authFetch]);
+
+  // A bfcache Back can restore the page mid-checkout; don't strand the form.
+  useEffect(() => {
+    const onShow = (e: PageTransitionEvent) => {
+      if (!e.persisted) return;
+      busy.current = false;
+      setCheckoutStage((s) => (s === "paying" ? "address" : s));
+    };
+    window.addEventListener("pageshow", onShow);
+    return () => window.removeEventListener("pageshow", onShow);
+  }, []);
 
   function quick(step: number | "pct5") {
     const base = Number(amount) || price;
@@ -73,14 +86,25 @@ export function BidBox({ listingId, price, format, bidCount, endsAt }: Props) {
 
   async function submitBuy(e: React.FormEvent) {
     e.preventDefault();
+    if (!user || busy.current) return;
+    busy.current = true;
     setBuyError("");
-    if (!user) return;
+    setOrdersHint(false);
     setCheckoutStage("paying");
+    try {
+      await runCheckout();
+    } finally {
+      busy.current = false;
+    }
+  }
+
+  async function runCheckout() {
     let id = orderId;
     if (!id) {
       const created = await createOrder(listingId, address, authFetch);
       if (!created.ok) {
         setBuyError(created.error);
+        setOrdersHint(created.status === 409);
         setCheckoutStage("idle");
         return;
       }
@@ -88,26 +112,27 @@ export function BidBox({ listingId, price, format, bidCount, endsAt }: Props) {
       setOrderId(id);
     }
     const paid = await payOrderApi(id, undefined, usePts, authFetch);
-    if (!paid.ok) {
-      // Order stays reserved; the form stays open so the buyer can retry.
-      setBuyError(`Payment didn’t go through: ${paid.error || "please try again."} Your order is reserved, so you can try again or finish from Orders.`);
-      setCheckoutStage("address");
-      return;
-    }
-    if (paid.checkoutUrl) {
-      window.location.href = paid.checkoutUrl; // PayMongo hosted page; stays "paying" until we leave
-      return;
-    }
-    // Only the server's order status says whether money moved (domain rule 11).
-    const status = paid.order?.status;
-    if (!status || status === "pending_payment") {
-      setPendingNote(true);
-    } else if (PAID_STATES.includes(status)) {
-      setDone(true);
-    } else {
-      setBuyError("Payment didn’t go through. You can try again or check Orders.");
-      setCheckoutStage("address");
-      return;
+    // Only the server's answer says whether money moved (domain rule 11).
+    switch (payOutcome(paid)) {
+      case "redirect":
+        window.location.href = paid.checkoutUrl!; // PayMongo hosted page; the form stays disabled until we leave
+        return;
+      case "paid":
+        setDone(true);
+        break;
+      case "pending":
+        setPendingNote(true);
+        break;
+      case "expired":
+        setOrderId(null);
+        setBuyError("This reservation ended. Start checkout again.");
+        setCheckoutStage("idle");
+        return;
+      default:
+        // The order stays reserved; the form stays open so the buyer can retry.
+        setBuyError(`Payment didn’t go through${paid.error ? `: ${paid.error}` : "."} Your order is reserved, so you can try again or finish from Orders.`);
+        setCheckoutStage("address");
+        return;
     }
     setCheckoutStage("idle");
   }
@@ -187,7 +212,7 @@ export function BidBox({ listingId, price, format, bidCount, endsAt }: Props) {
         <p role="status" className="rounded-lg border border-line bg-elevated px-4 py-3 text-sm text-ink-dim">
           Payment pending — we haven’t had confirmation yet. Check Orders for the latest status.
         </p>
-      ) : checkoutStage === "address" ? (
+      ) : checkoutStage !== "idle" ? (
         <form
           onSubmit={submitBuy}
         >
@@ -207,16 +232,16 @@ export function BidBox({ listingId, price, format, bidCount, endsAt }: Props) {
           {buyError && <p role="alert" className="mt-2 text-xs text-urgent">{buyError}</p>}
           {ptsBalance >= 100 && (
             <label className="mt-2 flex cursor-pointer items-center gap-2 text-xs text-ink-dim">
-              <input type="checkbox" checked={usePts} onChange={(e) => setUsePts(e.target.checked)} className="h-3.5 w-3.5 accent-[#b08d3e]" />
+              <input type="checkbox" checked={usePts} onChange={(e) => setUsePts(e.target.checked)} className="h-3.5 w-3.5 accent-gold" />
               Use ⭐ points — save {formatPeso(maxRedeemable(ptsBalance, price))}
             </label>
           )}
           <div className="mt-3 flex gap-2">
-            <button type="button" onClick={() => setCheckoutStage("idle")} className="rounded-lg border border-line px-4 py-2.5 text-sm text-ink-dim hover:text-ink">
+            <button type="button" disabled={checkoutStage === "paying"} onClick={() => setCheckoutStage("idle")} className="rounded-lg border border-line px-4 py-2.5 text-sm text-ink-dim hover:text-ink disabled:opacity-50">
               Cancel
             </button>
-            <button type="submit" className="flex-1 rounded-lg bg-gold py-2.5 text-sm font-semibold text-base hover:bg-gold-dim disabled:opacity-50">
-              {orderId ? "Try payment again" : "Confirm & pay"} {formatPeso(price - (usePts ? maxRedeemable(ptsBalance, price) : 0))}
+            <button type="submit" disabled={checkoutStage === "paying"} className="flex-1 rounded-lg bg-gold py-2.5 text-sm font-semibold text-base hover:bg-gold-dim disabled:opacity-50">
+              {checkoutStage === "paying" ? "Processing…" : orderId ? "Try payment again" : "Confirm & pay"} {formatPeso(price - (usePts ? maxRedeemable(ptsBalance, price) : 0))}
             </button>
           </div>
         </form>
@@ -239,6 +264,9 @@ export function BidBox({ listingId, price, format, bidCount, endsAt }: Props) {
       {buyError && checkoutStage === "idle" && offerStage !== "form" && (
         <p role="alert" className="text-xs text-urgent">
           {buyError}
+          {ordersHint && (
+            <> Check <Link href="/orders" className="underline">Orders</Link> for it.</>
+          )}
         </p>
       )}
 

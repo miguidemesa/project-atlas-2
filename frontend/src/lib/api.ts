@@ -141,11 +141,11 @@ const orderRequest = async (
   authFetch: (path: string, init?: RequestInit) => Promise<Response>,
   path: string,
   init?: RequestInit,
-): Promise<{ ok: true; order: Order } | { ok: false; error: string }> => {
+): Promise<{ ok: true; order: Order } | { ok: false; error: string; status?: number }> => {
   try {
     const res = await authFetch(path, init);
     const json = await res.json().catch(() => ({}));
-    if (!res.ok) return { ok: false, error: json.error ?? `Request failed (${res.status}).` };
+    if (!res.ok) return { ok: false, status: res.status, error: json.error ?? `Request failed (${res.status}).` };
     return { ok: true, order: json.data as Order };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Something went wrong." };
@@ -161,13 +161,6 @@ export const createOrder = (
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ listingId, shippingAddress }),
 });
-
-export interface PayResult {
-  ok: boolean;
-  error?: string;
-  order?: Order;
-  checkoutUrl?: string;
-}
 
 export const payOrder = async (
   id: string,
@@ -185,7 +178,7 @@ export const payOrder = async (
       body: Object.keys(body).length ? JSON.stringify(body) : undefined,
     });
     const json = await res.json().catch(() => ({}));
-    if (!res.ok) return { ok: false, error: json.error ?? `Payment failed (${res.status}).` };
+    if (!res.ok) return { ok: false, status: res.status, error: json.error ?? `Payment failed (${res.status}).` };
     const data = json.data ?? {};
     if (data.checkoutUrl) return { ok: true, checkoutUrl: data.checkoutUrl as string };
     if (data.order) return { ok: true, order: data.order as Order, discountApplied: data.discountApplied as number | undefined };
@@ -430,4 +423,6 @@ export interface PayResult {
   order?: Order;
   checkoutUrl?: string;
   discountApplied?: number;
+  /** HTTP status of a failed call, so callers can tell a dead order (404/409) from a retryable failure. */
+  status?: number;
 }
