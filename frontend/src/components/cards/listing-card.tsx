@@ -54,15 +54,14 @@ export function ListingCard({ listing }: { listing: Listing }) {
         </div>
         <span className="truncate text-[13px] leading-[18px] text-ink-dim">{cardSubtitle(listing)}</span>
         <span className="t-price mt-1 text-ink">{formatPeso(listing.currentBid ?? listing.price)}</span>
+        {auction && (
+          <span className="t-mono text-xs text-ink-dim">
+            <Countdown endsAt={listing.endsAt!} /> · {listing.bidCount ?? 0} bids
+          </span>
+        )}
         <span className="flex min-w-0 items-center justify-between gap-2 text-xs text-ink-faint">
-          <GameLine slug={listing.category} />
-          {auction ? (
-            <span className="t-mono shrink-0 text-xs">
-              <Countdown endsAt={listing.endsAt!} /> · {listing.bidCount ?? 0} bids
-            </span>
-          ) : (
-            <span className="truncate">{listing.sellerName}</span>
-          )}
+          <GameLine slug={listing.category} className="shrink-0" />
+          <span className="truncate">{listing.sellerName}</span>
         </span>
         {listing.dealScore && (
           <div className="pt-0.5">
