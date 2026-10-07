@@ -52,6 +52,15 @@ export interface SellerSummary {
   verified: boolean;
 }
 
+/** A seller ranked by paid orders in the last 30 days (real orders only). */
+export interface TopSeller {
+  id: string;
+  displayName: string;
+  sales: number;
+  verified: boolean;
+  listings: Listing[];
+}
+
 export interface Storefront {
   category: string | null;
   activeListings: number;
@@ -63,6 +72,7 @@ export interface Storefront {
   newArrivals: Listing[];
   recentlySold: RecentSale[];
   sets: SetSummary[];
+  topSellers: TopSeller[];
   generatedAt: string;
 }
 

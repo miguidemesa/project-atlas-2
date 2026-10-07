@@ -90,4 +90,37 @@ public class StorefrontTests(ApiFactory factory)
     [Fact]
     public async Task Unknown_Category_Is_Rejected() =>
         (await _anon.GetAsync("/api/storefront?category=nba")).StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+    [Fact]
+    public async Task Top_Sellers_Rank_By_Paid_Orders_In_The_Last_30_Days()
+    {
+        var (busy, busyId) = await factory.SignInNewUserAsync("Busy Seller");
+        var (quiet, quietId) = await factory.SignInNewUserAsync("Quiet Seller");
+        var (buyer, _) = await factory.SignInNewUserAsync("Buyer");
+        await SellAsync(busy, buyer, "flesh_and_blood");
+        await SellAsync(busy, buyer, "flesh_and_blood");
+        await SellAsync(quiet, buyer, "flesh_and_blood");
+        var stillListed = await TestListings.CreateAsync(busy, category: "flesh_and_blood");
+
+        var hub = await StorefrontAsync("flesh_and_blood");
+
+        hub.TopSellers.Select(s => s.Id).Should().ContainInOrder(busyId, quietId);
+        var top = hub.TopSellers.Single(s => s.Id == busyId);
+        top.Sales.Should().Be(2);
+        top.DisplayName.Should().Be("Busy Seller");
+        top.Listings.Should().ContainSingle(l => l.Id == stillListed.Id); // sold listings aren't live
+    }
+
+    [Fact]
+    public async Task Top_Sellers_Is_Empty_Without_Paid_Orders() =>
+        (await StorefrontAsync("riftbound")).TopSellers.Should().BeEmpty();
+
+    private static async Task SellAsync(HttpClient seller, HttpClient buyer, string category)
+    {
+        var listing = await TestListings.CreateAsync(seller, category: category, price: 1500m);
+        var order = await (await buyer.PostAsJsonAsync("/api/orders",
+                new { listingId = listing.Id, shippingAddress = "123 Test Street, Barangay Test, Quezon City" }))
+            .DataAsync<OrderCreated>();
+        (await buyer.PostAsJsonAsync($"/api/orders/{order.Id}/pay", new { })).EnsureSuccessStatusCode(); // Mock provider in tests
+    }
 }

@@ -19,6 +19,9 @@ public sealed class StorefrontService(AtlasDbContext db, ListingDtoBuilder dtos,
     private const int GrailsSize = 4;
     private const int Shelf = 8;
     private const int Grid = 12;
+    private static readonly TimeSpan TopSellersWindow = TimeSpan.FromDays(30);
+    private const int TopSellersSize = 8;
+    private const int SellerPreview = 3;
 
     /// <summary>The busiest pages, so each is rebuilt at most once a minute per category.</summary>
     public async Task<StorefrontDto> GetAsync(string? category, CancellationToken ct) =>
@@ -82,6 +85,8 @@ public sealed class StorefrontService(AtlasDbContext db, ListingDtoBuilder dtos,
             .Select(s => new SetSummaryDto(s.Name, s.Count, s.From))
             .ToList();
 
+        var topSellers = await TopSellersAsync(category, now, scoped, ct);
+
         return new StorefrontDto(
             category,
             counts.Where(c => category == null || c.Key == category).Sum(c => c.Value),
@@ -93,6 +98,47 @@ public sealed class StorefrontService(AtlasDbContext db, ListingDtoBuilder dtos,
             await dtos.BuildAsync(newArrivals, ct),
             recentlySold,
             sets,
+            topSellers,
             now);
+    }
+    /// <summary>Sellers ranked by real paid orders in the window, scoped to the game on a hub.</summary>
+    private async Task<List<TopSellerDto>> TopSellersAsync(string? category, DateTime now, IQueryable<Listing> scopedLive, CancellationToken ct)
+    {
+        var since = now - TopSellersWindow;
+        var ranked = await db.Orders.AsNoTracking()
+            .Where(o => o.PaidAt != null && o.PaidAt >= since && o.Status != OrderStatus.Cancelled && o.Status != OrderStatus.Refunded)
+            .Join(db.Listings.AsNoTracking(), o => o.ListingId, l => l.Id, (o, l) => new { o.SellerId, l.Category })
+            .Where(x => category == null || x.Category == category)
+            .GroupBy(x => x.SellerId)
+            .Select(g => new { SellerId = g.Key, Sales = g.Count() })
+            .OrderByDescending(s => s.Sales).ThenBy(s => s.SellerId)
+            .Take(TopSellersSize)
+            .ToListAsync(ct);
+        if (ranked.Count == 0) return [];
+
+        var ids = ranked.Select(r => r.SellerId).ToList();
+        var profiles = await db.SellerProfiles.AsNoTracking()
+            .Where(p => ids.Contains(p.UserId))
+            .ToDictionaryAsync(p => p.UserId, p => (p.DisplayName, p.VerificationBadge), ct);
+        var names = await db.Users.AsNoTracking()
+            .Where(u => ids.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id, u => u.Name, ct);
+
+        var result = new List<TopSellerDto>(ranked.Count);
+        foreach (var r in ranked)
+        {
+            // ponytail: one small query per ranked seller (at most 8, cached 60s); a window-function query if this shows up in traces
+            var live = await scopedLive.Where(l => l.SellerId == r.SellerId)
+                .OrderByDescending(l => l.CreatedAt).ThenBy(l => l.Id)
+                .Take(SellerPreview).ToListAsync(ct);
+            var hasProfile = profiles.TryGetValue(r.SellerId, out var profile);
+            result.Add(new TopSellerDto(
+                r.SellerId,
+                hasProfile ? profile.DisplayName : names.GetValueOrDefault(r.SellerId) ?? "Atlas seller",
+                r.Sales,
+                hasProfile && profile.VerificationBadge,
+                await dtos.BuildAsync(live, ct)));
+        }
+        return result;
     }
 }

@@ -12,4 +12,5 @@ public sealed record StorefrontDto(
     IReadOnlyList<ListingDto> NewArrivals,
     IReadOnlyList<RecentSaleDto> RecentlySold,
     IReadOnlyList<SetSummaryDto> Sets,
+    IReadOnlyList<TopSellerDto> TopSellers,
     DateTime GeneratedAt);
