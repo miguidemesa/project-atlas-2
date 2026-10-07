@@ -12,7 +12,6 @@ namespace Atlas.Infrastructure.Ai;
 /// </summary>
 public sealed class LlmSearchParser(HttpClient http, IConfiguration config, RuleBasedSearchParser fallback, ILogger<LlmSearchParser> logger) : ISearchQueryParser
 {
-    private static readonly HashSet<string> Categories = ["nba", "pokemon", "one_piece", "disney"];
     private static readonly HashSet<string> Formats = ["fixed", "auction"];
 
     public async Task<ParsedSearch> ParseAsync(string query, CancellationToken ct = default)
@@ -29,7 +28,7 @@ public sealed class LlmSearchParser(HttpClient http, IConfiguration config, Rule
                     {
                         role = "user",
                         content = "Extract marketplace search filters from this Filipino-collector query. Respond ONLY minified JSON: "
-                            + "{\"category\":\"nba|pokemon|one_piece|disney|null\",\"format\":\"fixed|auction|null\","
+                            + "{\"category\":\"" + string.Join('|', CategoryList.All.Select(c => c.Slug)) + "|null\",\"format\":\"fixed|auction|null\","
                             + "\"type\":\"single_card|lot|hobby_box|accessory|null\",\"graded\":true|false|null,"
                             + "\"maxPrice\":number-in-PHP-or-null}. "
                             + $"Query: \"{query}\"",
@@ -55,7 +54,8 @@ public sealed class LlmSearchParser(HttpClient http, IConfiguration config, Rule
             using var p = System.Text.Json.JsonDocument.Parse(text.Trim());
             var r = p.RootElement;
 
-            string? Cat() { var v = Str(r, "category"); return v is not null && Categories.Contains(v) ? v : null; }
+            // the model sometimes invents slugs ("nba"); fall back to the keyword match
+            string? Cat() { var v = Str(r, "category"); return CategoryList.IsValid(v) ? v : CategoryList.MatchAlias(query); }
             string? Fmt() { var v = Str(r, "format"); return v is not null && Formats.Contains(v) ? v : null; }
             string? Typ() { var v = Str(r, "type"); return v is not null && ListingTypes.Names.Contains(v) ? v : null; }
             bool? Graded() => r.TryGetProperty("graded", out var g) && g.ValueKind == System.Text.Json.JsonValueKind.True ? true : null;
