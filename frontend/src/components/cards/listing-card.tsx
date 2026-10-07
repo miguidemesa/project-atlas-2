@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CardImage } from "./card-image";
-import { TiltCard, tierFor } from "./tilt-card";
+import { TiltCard } from "./tilt-card";
+import { tierFor } from "./tilt-tier";
 import { DealBadge } from "./deal-badge";
 import { Countdown } from "@/components/ui/countdown";
 import { cardSubtitle, formatPeso } from "@/lib/format";

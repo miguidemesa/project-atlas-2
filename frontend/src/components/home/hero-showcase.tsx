@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useRef } from "react";
-import { TiltCard, tierFor } from "@/components/cards/tilt-card";
+import { TiltCard } from "@/components/cards/tilt-card";
+import { tierFor } from "@/components/cards/tilt-tier";
 import { CardImage } from "@/components/cards/card-image";
 import type { Listing } from "@/lib/types";
 

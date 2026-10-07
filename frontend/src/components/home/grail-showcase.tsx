@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { CardImage } from "@/components/cards/card-image";
-import { TiltCard, tierFor } from "@/components/cards/tilt-card";
+import { TiltCard } from "@/components/cards/tilt-card";
+import { tierFor } from "@/components/cards/tilt-tier";
 import { cardSubtitle } from "@/lib/format";
 import type { Listing } from "@/lib/types";
 

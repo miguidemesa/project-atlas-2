@@ -2,17 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/cn";
-import type { Listing } from "@/lib/types";
-
-export type TiltTier = "standard" | "foil" | "premium" | "slab";
-
-export function tierFor(listing: Listing): TiltTier {
-  if (listing.graded) return "slab";
-  if (listing.parallel?.toLowerCase().includes("gold") || listing.numbered) return "premium";
-  const p = listing.parallel?.toLowerCase() ?? "";
-  if (p.includes("silver") || p.includes("holo") || p.includes("ice") || p.includes("crusade")) return "foil";
-  return "standard";
-}
+import type { TiltTier } from "./tilt-tier";
 
 const MAX_DEG = 4;
 
