@@ -6,6 +6,7 @@ import { DealBadge } from "./deal-badge";
 import { Countdown } from "@/components/ui/countdown";
 import { cardSubtitle, formatPeso } from "@/lib/format";
 import { cn } from "@/lib/cn";
+import { GameLine } from "@/components/ui/game-line";
 import type { Listing } from "@/lib/types";
 
 const CONDITION_CHIP: Record<string, string> = {
@@ -20,7 +21,7 @@ const CONDITION_CHIP: Record<string, string> = {
 export function conditionChip(listing: Listing): { label: string; cls: string } | null {
   if (listing.graded && listing.gradingCompany) {
     const label = [listing.gradingCompany, listing.gradeValue].filter(Boolean).join(" ");
-    return { label, cls: "text-accent border-accent/55 bg-accent/10" };
+    return { label, cls: "text-graded border-graded-line bg-graded-wash" };
   }
   if (!listing.condition) return null;
   return { label: listing.condition, cls: CONDITION_CHIP[listing.condition] ?? "text-ink-dim border-line-hv" };
@@ -28,52 +29,47 @@ export function conditionChip(listing: Listing): { label: string; cls: string } 
 
 export function ListingCard({ listing }: { listing: Listing }) {
   const chip = conditionChip(listing);
+  const auction = listing.format === "auction" && listing.endsAt;
 
   return (
-    <TiltCard tier={tierFor(listing)}>
-      <Link href={`/listing/${listing.id}`} className="group flex min-w-0 flex-col gap-3">
-        <div className="relative aspect-[63/88] overflow-hidden rounded-[10px] border border-line bg-elevated transition-[border-color] duration-200 ease-out group-hover:border-line-hv">
+    <Link href={`/listing/${listing.id}`} className="group flex min-w-0 flex-col gap-3">
+      <TiltCard tier={tierFor(listing)}>
+        <div className="relative aspect-[63/88] overflow-hidden rounded-[12px] border border-well-line bg-well transition-[border-color,box-shadow] duration-[220ms] group-hover/card:border-transparent group-hover/card:shadow-lift">
           <CardImage listing={listing} />
           {listing.status === "sold" && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-base/60">
-              <span className="rounded border border-line-hv px-3 py-1 text-sm font-semibold uppercase tracking-wider text-ink">Sold</span>
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-scrim">
+              <span className="t-label rounded-full border border-line-strong px-3 py-1 uppercase text-ink">Sold</span>
             </div>
           )}
         </div>
-
-        <div className="flex min-w-0 flex-col gap-1">
-          <div className="flex min-w-0 items-center justify-between gap-2">
-            <span className="truncate text-[15px] font-semibold leading-5 text-ink">{listing.player}</span>
-            {chip && (
-              <span
-                className={cn(
-                  "inline-flex h-[22px] flex-shrink-0 items-center whitespace-nowrap rounded-full border px-2 text-[11px] font-bold uppercase tracking-wider",
-                  chip.cls,
-                )}
-              >
-                {chip.label}
-              </span>
-            )}
-          </div>
-          <span className="truncate text-[13px] leading-[18px] text-ink-dim">{cardSubtitle(listing)}</span>
-          <span className="mt-1.5 text-[17px] font-bold leading-[22px] tabular-nums text-ink">
-            {formatPeso(listing.currentBid ?? listing.price)}
-          </span>
-          {listing.format === "auction" && listing.endsAt ? (
-            <div className="flex items-center justify-between text-[12px] text-ink-faint">
-              <Countdown endsAt={listing.endsAt} />
-              <span>{listing.bidCount ?? 0} bids</span>
-            </div>
+      </TiltCard>
+      <div className="flex min-w-0 flex-col gap-1">
+        <div className="flex min-w-0 items-center justify-between gap-2">
+          <span className="truncate text-[15px] font-semibold leading-5 text-ink">{listing.player}</span>
+          {chip && (
+            <span className={cn("t-label inline-flex h-[22px] shrink-0 items-center whitespace-nowrap rounded-full border px-2 uppercase", chip.cls)}>
+              {chip.label}
+            </span>
+          )}
+        </div>
+        <span className="truncate text-[13px] leading-[18px] text-ink-dim">{cardSubtitle(listing)}</span>
+        <span className="t-price mt-1 text-ink">{formatPeso(listing.currentBid ?? listing.price)}</span>
+        <span className="flex min-w-0 items-center justify-between gap-2 text-xs text-ink-faint">
+          <GameLine slug={listing.category} />
+          {auction ? (
+            <span className="t-mono shrink-0 text-xs">
+              <Countdown endsAt={listing.endsAt!} /> · {listing.bidCount ?? 0} bids
+            </span>
           ) : (
-            <span className="truncate text-[12px] leading-4 text-ink-faint">{listing.sellerName}</span>
+            <span className="truncate">{listing.sellerName}</span>
           )}
-          {listing.dealScore && (
-            <div className="pt-0.5">
-              <DealBadge score={listing.dealScore} />
-            </div>
-          )}
-        </div>
-      </Link>
-    </TiltCard>
+        </span>
+        {listing.dealScore && (
+          <div className="pt-0.5">
+            <DealBadge score={listing.dealScore} />
+          </div>
+        )}
+      </div>
+    </Link>
   );
 }
