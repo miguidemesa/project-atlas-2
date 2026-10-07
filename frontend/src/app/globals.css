@@ -1,44 +1,110 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
+@custom-variant dark (&:is(.dark *));
+
+/* Holo Night: tokens from DESIGN.md and the Atlas Design System (ds/atlas/tokens.css). */
 @theme {
-  --color-base: #0b0b0d;
-  --color-elevated: #151518;
-  --color-raised: #18181b;
-  --color-line: rgba(255, 255, 255, 0.08);
-  --color-line-hv: rgba(255, 255, 255, 0.16);
-  --color-ink: #f4f4f5;
-  --color-ink-dim: #a1a1aa;
-  --color-ink-faint: #8a8a93;
-  /* ponytail: kept the --color-gold name to avoid a site-wide class rename;
-     it's the one action color (emerald) now, not gold. Rename to --color-accent
-     across components in a follow-up pass. */
-  --color-gold: #34d399;
-  --color-gold-dim: #5fe0b0;
-  --color-urgent: #f58b8b;
-  --color-warn: #f5a524;
-  --color-fixed: #6ea8fe;
-  --color-confirmed: #34d399;
+  --color-base: #0c121e;
+  --color-elevated: #121a29;
+  --color-raised: #18233a;
+  --color-chrome: #090e18;
+  --color-stage: #0a0f1a;
+  --color-well: #0e1524;
+  --color-well-line: #1f2a3d;
+  --color-avatar: #24314a;
+  --color-line: rgba(150, 175, 225, 0.12);
+  --color-line-hv: rgba(150, 175, 225, 0.22);
+  --color-line-strong: rgba(150, 175, 225, 0.34);
+  --color-hover-wash: rgba(150, 175, 225, 0.08);
+  --color-scrim: rgba(3, 6, 12, 0.66);
+  --color-ink: #eef3ff;
+  --color-ink-soft: #cdd6ea;
+  --color-ink-dim: #9eabc6;
+  --color-ink-faint: #7f8ba6;
+  --color-ink-ghost: #36425c;
+  --color-accent: #40e2e7;
+  --color-accent-hover: #7aeef1;
+  --color-on-accent: #04181a;
+  --color-accent-wash: #0b2126;
+  --color-accent-line: rgba(64, 226, 231, 0.26);
+  --color-foil-1: #7cf2ff;
+  --color-foil-2: #b39cff;
+  --color-foil-3: #ff8fd6;
+  --color-foil-4: #ffd27a;
+  --color-confirmed: #48d597;
+  --color-confirmed-line: rgba(72, 213, 151, 0.45);
+  --color-confirmed-wash: rgba(72, 213, 151, 0.14);
+  --color-fixed: #8ab4ff;
+  --color-fixed-line: rgba(138, 180, 255, 0.45);
+  --color-warn: #f3b65b;
+  --color-warn-line: rgba(243, 182, 91, 0.45);
+  --color-urgent: #ff8a8a;
+  --color-urgent-line: rgba(255, 138, 138, 0.45);
+  --color-graded: #e6c57f;
+  --color-graded-line: rgba(230, 197, 127, 0.5);
+  --color-graded-wash: rgba(230, 197, 127, 0.1);
 
-  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+  --font-sans: var(--font-onest), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-unbounded), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  --shadow-card: 0 1px 2px rgb(32 31 28 / 0.06), 0 8px 24px -12px rgb(32 31 28 / 0.18);
-  --shadow-lifted: 0 2px 4px rgb(32 31 28 / 0.08), 0 16px 40px -16px rgb(32 31 28 / 0.25);
+  /* The Border Or Shadow Rule: panels have a border at rest and no shadow. */
+  --shadow-card: 0 0 #0000;
+  --shadow-lift: 0 22px 44px -20px rgba(2, 6, 14, 0.85);
+  --shadow-fan: 0 28px 48px -18px rgba(2, 6, 14, 0.8);
+  --shadow-pop: 0 18px 48px -12px rgba(2, 6, 14, 0.75);
+  --shadow-lifted: 0 18px 48px -12px rgba(2, 6, 14, 0.75);
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 
   --animate-rise: rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 
   @keyframes rise {
     from {
       opacity: 0;
-      transform: translateY(28px) rotateX(6deg);
+      transform: translateY(28px);
     }
     to {
       opacity: 1;
-      transform: translateY(0) rotateX(0deg);
+      transform: translateY(0);
     }
   }
 }
+
+/* Outside a hub every skin role equals the Atlas default; hubs override them with skinVars(). */
+:root {
+  --skin-ground: var(--color-base);
+  --skin-surface: var(--color-elevated);
+  --skin-raised: var(--color-raised);
+  --skin-control: #1d2942;
+  --skin-line: var(--color-line);
+  --skin-line-strong: var(--color-line-hv);
+  --skin-border: var(--color-line-hv);
+  --skin-accent: var(--color-ink);
+  --skin-on-accent: var(--color-base);
+  --skin-text: var(--color-ink-dim);
+  --skin-faint: var(--color-ink-faint);
+}
+
+@utility t-hub-title { font-family: var(--font-display); font-size: 64px; line-height: 68px; font-weight: 800; letter-spacing: -0.02em; }
+@utility t-hub-title-phone { font-family: var(--font-display); font-size: 38px; line-height: 42px; font-weight: 800; letter-spacing: -0.02em; }
+@utility t-display { font-family: var(--font-display); font-size: 44px; line-height: 50px; font-weight: 700; letter-spacing: -0.02em; }
+@utility t-display-phone { font-family: var(--font-display); font-size: 26px; line-height: 32px; font-weight: 700; letter-spacing: -0.015em; }
+@utility t-title-1 { font-family: var(--font-display); font-size: 28px; line-height: 34px; font-weight: 600; letter-spacing: -0.01em; }
+@utility t-title-1-phone { font-family: var(--font-display); font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em; }
+@utility t-title-2 { font-family: var(--font-display); font-size: 17px; line-height: 22px; font-weight: 600; letter-spacing: 0.04em; }
+@utility t-title-2-phone { font-family: var(--font-display); font-size: 15px; line-height: 20px; font-weight: 600; letter-spacing: 0.04em; }
+@utility t-door { font-family: var(--font-display); font-size: 17px; line-height: 22px; font-weight: 700; letter-spacing: -0.01em; }
+@utility t-door-phone { font-family: var(--font-display); font-size: 14px; line-height: 18px; font-weight: 700; }
+@utility t-price { font-family: var(--font-display); font-size: 16px; line-height: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+@utility t-price-lg { font-family: var(--font-display); font-size: 24px; line-height: 30px; font-weight: 600; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+@utility t-label { font-family: var(--font-sans); font-size: 11px; line-height: 14px; font-weight: 700; letter-spacing: 0.06em; }
+@utility t-mono { font-family: var(--font-mono); font-size: 13px; line-height: 18px; font-weight: 500; font-variant-numeric: tabular-nums; }
+@utility t-wordmark { font-family: var(--font-display); font-size: 20px; line-height: 24px; font-weight: 800; letter-spacing: 0.06em; }
 
 html {
   color-scheme: dark;
@@ -48,12 +114,12 @@ html {
 body {
   background: var(--color-base);
   color: var(--color-ink);
-  caret-color: var(--color-gold);
+  caret-color: var(--color-accent);
 }
 
 ::selection {
-  background: var(--color-gold);
-  color: #141517;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
 }
 
 ::-webkit-scrollbar {
@@ -73,8 +139,8 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-gold);
-  outline-offset: 2px;
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
   border-radius: 2px;
 }
 
@@ -83,6 +149,44 @@ body {
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* Carousel progress: the current slide's bar fills with foil over 5 s (one of foil's two places). */
+@keyframes foil-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.foil-progress {
+  width: 100%;
+  transform-origin: left;
+  background: linear-gradient(90deg, var(--color-foil-1), var(--color-foil-2), var(--color-foil-3), var(--color-foil-4));
+  animation: foil-fill 5s linear both;
+}
+
+/* Holo tilt on touch: one sweep of the foil layer per press. */
+@keyframes holo-sweep {
+  from { background-position: 0% 0%; opacity: 1; }
+  to { background-position: 100% 100%; opacity: 0; }
+}
+.holo-sweep [data-foil] {
+  animation: holo-sweep 650ms var(--ease-out);
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.7s var(--ease-out),
+    transform 0.7s var(--ease-out);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.reveal.in-view {
+  opacity: 1;
+  transform: none;
+}
+
+button:active {
+  transform: scale(0.97);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -96,56 +200,67 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-}
-
-.reveal {
-  opacity: 0;
-  transform: translateY(24px);
-  transition:
-    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-  transition-delay: var(--reveal-delay, 0ms);
-}
-
-.reveal.in-view {
-  opacity: 1;
-  transform: none;
-}
-
-@keyframes floaty {
-  0%,
-  100% {
-    transform: translateY(0) rotate(var(--tilt, 0deg));
-  }
-  50% {
-    transform: translateY(-9px) rotate(var(--tilt, 0deg));
-  }
-}
-
-.floaty {
-  animation: floaty var(--float-duration, 7s) ease-in-out infinite;
-  animation-delay: var(--float-delay, 0s);
-}
-
-@media (prefers-reduced-motion: reduce) {
   .reveal {
     opacity: 1 !important;
     transform: none !important;
-    transition: none !important;
-  }
-
-  .floaty {
-    animation: none !important;
   }
 }
 
-/* Display voice: optical sizing + presence */
-.font-display {
-  font-optical-sizing: auto;
-  font-variation-settings: "opsz" 40;
-  letter-spacing: -0.02em;
+/*
+ * shadcn/ui's semantic colours, mapped onto Holo Night. Atlas is dark only (<html class="dark">).
+ * Naming clash: shadcn's "accent" is a subtle hover fill, but Atlas's accent is holo cyan. So shadcn's
+ * accent maps to Night Raised, and components added with `shadcn add` must use bg-muted (not bg-accent)
+ * for hover/selected rows; the colour guard test catches a cyan fill with light text.
+ */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --font-heading: var(--font-display);
+  --radius-sm: calc(var(--radius) * 0.8);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) * 1.2);
+  --radius-xl: calc(var(--radius) * 1.6);
 }
 
-button:active {
-  transform: scale(0.985);
+:root {
+  --background: var(--color-base);
+  --foreground: var(--color-ink);
+  --card: var(--color-elevated);
+  --card-foreground: var(--color-ink);
+  --popover: var(--color-elevated);
+  --popover-foreground: var(--color-ink);
+  --primary: var(--color-accent);
+  --primary-foreground: var(--color-on-accent);
+  --secondary: var(--color-raised);
+  --secondary-foreground: var(--color-ink);
+  --muted: var(--color-raised);
+  --muted-foreground: var(--color-ink-dim);
+  --accent: var(--color-raised);
+  --accent-foreground: var(--color-ink);
+  --destructive: var(--color-urgent);
+  --border: var(--color-line);
+  --input: var(--color-line-hv);
+  --ring: var(--color-accent);
+  --radius: 10px;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
 }
