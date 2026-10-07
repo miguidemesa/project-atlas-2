@@ -42,11 +42,9 @@ Dependency flow: `Web.Api → Infrastructure → Application → Domain`. Domain
 
 ```
 frontend/
-├── src/app/              Pages and route groups: (auth)/, (feed)/, listings/[id], listings/new, account
-├── src/components/        Reusable UI (ui/, cards/, listings/, auctions/, sellers/, search/, nav/, charts/)
-├── src/features/          Feature-scoped hooks and components (auth/, listings/, search/)
-├── src/lib/               API client, auth context, formatters, utilities
-└── src/hooks/             Shared hooks (infinite scroll, media query)
+├── src/app/              Pages: /, /browse, /listing/[id], /sellers/[id], /sell, /orders, /messages, /admin, /login, /register, error.tsx
+├── src/components/       UI by area: cards/, home/, listing/, browse/, sell/, layout/, orders/, ui/, motion/
+└── src/lib/              http.ts (API client), api.ts (endpoints), types.ts, categories.ts (skins), auth.tsx, format.ts
 ```
 
 - Server components by default; `'use client'` only where interactivity is required.

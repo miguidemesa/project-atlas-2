@@ -26,7 +26,7 @@ Extends ASP.NET Core Identity (`IdentityUser<Guid>`). The user row is the source
 
 ### `listings`
 
-The core marketplace entity. Key columns: `id`, `seller_id` (FK), `type` (`single_card` | `lot` | `hobby_box` | `accessory`), `title`, `description`, `sport`, `player`, `team`, `year`, `set`, `parallel`, `numbered`, `serial_number`, `graded`, `grading_company`, `grade_value`, `condition`, `price`, `listing_format` (`fixed_price` | `auction`), `status` (`draft` | `active` | `sold` | `ended` | `cancelled`), `created_at`, `updated_at`.
+The core marketplace entity. Key columns: `id`, `seller_id` (FK), `type` (`single_card` | `lot` | `hobby_box` | `accessory`), `title`, `description`, `category` (slug from `/api/categories`), `player`, `team` (nullable), `year` (nullable), `set`, `card_number`, `language`, `view_count`, `parallel`, `numbered`, `serial_number`, `graded`, `grading_company`, `grade_value`, `condition`, `price`, `listing_format` (`fixed_price` | `auction`), `status` (`draft` | `active` | `sold` | `ended` | `cancelled`), `created_at`, `updated_at`.
 
 `listing_photos`: child table, cascade-deleted with the listing. Key columns: `id`, `listing_id`, `storage_key`, `url`, `sort_order`.
 

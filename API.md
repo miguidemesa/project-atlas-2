@@ -1,10 +1,10 @@
-# API — Endpoint Reference (Phase 0–3)
+# API — Endpoint Reference
 
-Base URL: `http://localhost:5000` (see `NEXT_PUBLIC_API_URL`).
+Base URL: `http://localhost:5080` in local development (see `NEXT_PUBLIC_API_URL`).
 
 All endpoints return JSON. Errors use [RFC 7807](https://www.rfc-editor.org/rfc/rfc7807) `ProblemDetails`.
 
-The authoritative API design lives in the design spec at [`docs/superpowers/specs/2026-08-04-nba-card-marketplace-phase0-3-design.md`](docs/superpowers/specs/2026-08-04-nba-card-marketplace-phase0-3-design.md).
+Bids, orders, payments, reviews, conversations, offers, disputes and rewards endpoints also exist; read the controllers in `backend/src/Atlas.Web.Api/Controllers/` for those.
 
 ## Auth
 
@@ -15,46 +15,47 @@ All `/api/auth/*` endpoints are rate-limited to **10 requests/min per IP**.
 | POST | `/api/auth/register` | — | email + name + password |
 | POST | `/api/auth/login` | — | email + password → access + refresh tokens |
 | POST | `/api/auth/refresh` | — | rotate refresh token |
-| POST | `/api/auth/logout` | Bearer | revoke refresh token |
-| POST | `/api/auth/verify-email` | — | token (from email) |
-| POST | `/api/auth/resend-verification` | — | resend verification email |
-| POST | `/api/auth/forgot-password` | — | email → reset token |
-| POST | `/api/auth/reset-password` | — | token + new password |
-| POST | `/api/auth/google` | — | Google ID token → our tokens; 503 if not configured |
-
-## Users
-
-| Method | Path | Auth | Notes |
-|---|---|---|---|
 | GET | `/api/auth/me` | Bearer | current user profile |
-| PATCH | `/api/users/me` | Bearer | update name/phone |
 
-## Sellers
+Not built yet: logout, email verification, password reset, Google sign-in (not yet assigned to a plan).
+
+## Categories
 
 | Method | Path | Auth | Notes |
 |---|---|---|---|
-| POST | `/api/sellers` | Bearer | become a seller (creates `SellerProfile`) |
-| GET | `/api/sellers/{id}` | — | public seller profile |
+| GET | `/api/categories` | — | every game and sport: slug, name, group, hue, live listing count |
+
+## Storefront
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET | `/api/storefront` | — | home shelves: spotlight, trending, grails, ending soon, new arrivals, recently sold, per-category counts (cached 60s) |
+| GET | `/api/storefront?category=pokemon` | — | one game's hub, plus its sets; unknown slug is 400 |
 
 ## Listings
 
 | Method | Path | Auth | Notes |
 |---|---|---|---|
-| POST | `/api/listings` | Bearer | create listing |
-| POST | `/api/listings/{id}/photos` | Bearer | upload image (multipart, max 5MB, JPEG/PNG/WebP) |
-| DELETE | `/api/listings/{id}/photos/{photoId}` | Bearer | remove photo |
-| GET | `/api/listings` | — | feed — see query parameters below |
-| GET | `/api/listings/{id}` | — | detail + seller trust + price history |
+| GET | `/api/listings` | — | live listings: `category, format (fixed\|auction), type, graded, minPrice, maxPrice, language, player, q, sort (newest\|popular\|price_asc\|price_desc\|ending), page, pageSize` (max 60) |
+| GET | `/api/listings/{id}` | — | detail with photos, seller and price history |
+| GET | `/api/listings/mine` | Bearer | the caller's listings |
+| POST | `/api/listings` | Bearer | create (category must be a slug from `/api/categories`) |
+| POST | `/api/listings/{id}/photos` | Bearer | upload photo |
+| POST | `/api/listings/{id}/sold` | Bearer | seller marks sold |
+| GET | `/api/listings/competing` | Bearer | other sellers' prices for the same card |
 
-### Feed query parameters (`GET /api/listings`)
+## Sellers
 
-`page`, `per_page`, `sort`, `player`, `team`, `year`, `set`, `price_min`, `price_max`, `listing_format`, `graded`, `grading_company`, `grade`, `auction_ending`.
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET | `/api/sellers/{id}` | — | real stats and the seller's live listings (up to 60) |
+| GET | `/api/sellers/{id}/reviews` | — | reviews for the seller |
 
 ### Upload rules
 
 - Max 5 MB per image
 - MIME type check: JPEG, PNG, WebP only (magic-byte sniff, not extension)
-- Max 10 photos per listing
+- Max 6 photos per listing
 
 ## Health
 
