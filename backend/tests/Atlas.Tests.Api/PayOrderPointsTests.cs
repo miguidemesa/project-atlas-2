@@ -19,7 +19,8 @@ public class PayOrderPointsTests(ApiFactory factory)
         var (buyer, buyerId) = await factory.SignInNewUserAsync("Buyer");
         await using (var db = factory.NewDb())
         {
-            db.PointsLedger.Add(new PointsLedger { Id = Guid.NewGuid(), UserId = buyerId, Delta = 1000, Kind = "earn_review" });
+            // enough that the 20% cap (₱400 = 1600 pts) leaves points over for a second redemption
+            db.PointsLedger.Add(new PointsLedger { Id = Guid.NewGuid(), UserId = buyerId, Delta = 5000, Kind = "earn_review" });
             await db.SaveChangesAsync();
         }
         var order = await (await buyer.PostAsJsonAsync("/api/orders",
