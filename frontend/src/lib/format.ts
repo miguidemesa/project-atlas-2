@@ -31,3 +31,35 @@ export function pctChange(current: number, previous: number): number {
   if (!previous) return 0;
   return ((current - previous) / previous) * 100;
 }
+
+const LANGUAGES: Record<string, string> = {
+  en: "English",
+  ja: "Japanese",
+  ko: "Korean",
+  zh: "Chinese",
+  fr: "French",
+  de: "German",
+  it: "Italian",
+  es: "Spanish",
+  pt: "Portuguese",
+  id: "Indonesian",
+  th: "Thai",
+  other: "Other",
+};
+
+/** Language codes the API accepts, in display order. */
+export const LANGUAGE_OPTIONS = Object.entries(LANGUAGES) as [string, string][];
+
+export function languageName(code: string): string {
+  return LANGUAGES[code] ?? code;
+}
+
+/** "2023 · Prizm 136 · Silver": only the parts a listing actually has. */
+export function cardSubtitle(l: {
+  year?: number | null;
+  set: string;
+  cardNumber?: string | null;
+  parallel?: string | null;
+}): string {
+  return [l.year, [l.set, l.cardNumber].filter(Boolean).join(" "), l.parallel].filter(Boolean).join(" · ");
+}

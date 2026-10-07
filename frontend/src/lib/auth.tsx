@@ -1,9 +1,9 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { apiUrl } from "./http";
 
 const STORAGE_KEY = "atlas-auth.v1";
-const BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export interface AuthUser {
   id: string;
@@ -48,9 +48,8 @@ function save(auth: StoredAuth | null) {
 }
 
 async function rotateRefreshToken(refreshToken: string): Promise<StoredAuth | null> {
-  if (!BASE) return null;
   try {
-    const res = await fetch(`${BASE}/api/auth/refresh`, {
+    const res = await fetch(apiUrl("/auth/refresh"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refreshToken }),
@@ -84,9 +83,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(
     async (email: string, password: string) => {
-      if (!BASE) return { ok: false, error: "Accounts go live with the API launch." };
       try {
-        const res = await fetch(`${BASE}/api/auth/login`, {
+        const res = await fetch(apiUrl("/auth/login"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
@@ -109,9 +107,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const register = useCallback(
     async (email: string, name: string, password: string) => {
-      if (!BASE) return { ok: false, error: "Accounts go live with the API launch." };
       try {
-        const res = await fetch(`${BASE}/api/auth/register`, {
+        const res = await fetch(apiUrl("/auth/register"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, name, password }),
@@ -138,10 +135,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const authFetch = useCallback(
     async (path: string, init: RequestInit = {}): Promise<Response> => {
       let auth = load();
-      if (!auth || !BASE) throw new Error("Not signed in.");
+      if (!auth) throw new Error("Not signed in.");
 
       const doFetch = (accessToken: string) =>
-        fetch(`${BASE}${path}`, {
+        fetch(apiUrl(path), {
           ...init,
           headers: { ...(init.headers ?? {}), Authorization: `Bearer ${accessToken}` },
         });

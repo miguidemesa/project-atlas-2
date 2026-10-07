@@ -7,7 +7,76 @@ export interface DealScore {
   samples: number;
 }
 
-export type Category = "nba" | "pokemon" | "one_piece" | "disney";
+// ---- P1 API types (Task 9): carried forward by Task 12; keep this block contiguous ----
+/** A slug from GET /api/categories, e.g. "pokemon" or "basketball". */
+export type Category = string;
+
+export interface CategoryInfo {
+  slug: string;
+  name: string;
+  group: "tcg" | "sports" | "nonsport";
+  hue: number;
+  activeListings: number;
+}
+
+export interface Paged<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface SetSummary {
+  name: string;
+  listings: number;
+  fromPrice: number | null;
+}
+
+export interface RecentSale {
+  listingId: string;
+  title: string;
+  category: string;
+  price: number;
+  soldAt: string;
+  imageUrl: string | null;
+}
+
+/** Seller stats from real data only; ratingAvg is null until the first review. */
+export interface SellerSummary {
+  id: string;
+  displayName: string;
+  ratingAvg: number | null;
+  ratingCount: number;
+  soldCount: number;
+  joinedYear: number;
+  verified: boolean;
+}
+
+export interface Storefront {
+  category: string | null;
+  activeListings: number;
+  categories: { category: string; activeListings: number }[];
+  spotlight: Listing[];
+  trending: Listing[];
+  grails: Listing[];
+  endingSoon: Listing[];
+  newArrivals: Listing[];
+  recentlySold: RecentSale[];
+  sets: SetSummary[];
+  generatedAt: string;
+}
+
+export interface ListingDetail {
+  listing: Listing;
+  seller: SellerSummary | null;
+  history: PricePoint[];
+}
+
+export interface SellerPage {
+  seller: SellerSummary;
+  listings: Listing[];
+}
+// ---- end P1 API types ----
 
 export type ListingType = "single_card" | "lot" | "hobby_box" | "accessory";
 export type ListingFormat = "fixed" | "auction";
@@ -59,6 +128,10 @@ export interface Listing {
   sellerId: string;
   dealScore?: DealScore;
   description?: string;
+  cardNumber?: string | null;
+  language?: string;
+  sellerName?: string;
+  photos?: string[];
 }
 
 export interface MarketMover {

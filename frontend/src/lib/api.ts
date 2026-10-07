@@ -1,6 +1,7 @@
 import { getListing, getSeller, listings as seedListings, movers as seedMovers, priceHistory, sellers as seedSellers } from "./data";
 import { computeDealScore } from "./deal-score";
-import type { Category, Listing, MarketMover, PricePoint, Seller } from "./types";
+import { apiGet, apiGetOrNull, apiUrl } from "./http";
+import type { Category, CategoryInfo, Listing, ListingDetail, ListingType, MarketMover, Paged, PricePoint, Seller, SellerPage, Storefront } from "./types";
 
 /**
  * Data access layer with graceful degradation:
@@ -116,6 +117,58 @@ export async function fetchMovers(): Promise<MarketMover[]> {
 
 const latency = (ms = 120) => new Promise<void>((r) => setTimeout(r, ms));
 
+// ---------- reads: real API only (failures throw; pages show app/error.tsx) ----------
+
+export interface ListingQuery {
+  category?: string;
+  format?: "fixed" | "auction";
+  type?: ListingType;
+  player?: string;
+  graded?: boolean;
+  minPrice?: number;
+  maxPrice?: number;
+  language?: string;
+  q?: string;
+  sort?: "newest" | "popular" | "price_asc" | "price_desc" | "ending";
+  page?: number;
+  pageSize?: number;
+}
+
+const FEED_KEYS = ["category", "format", "type", "player", "language", "sort", "q"] as const;
+
+/** Path and query for GET /api/listings, with only the filters that are set. */
+export function feedQuery(f: ListingQuery): string {
+  const params = new URLSearchParams({ page: String(f.page ?? 1), pageSize: String(f.pageSize ?? 24) });
+  for (const key of FEED_KEYS) {
+    const value = f[key];
+    if (value) params.set(key, value);
+  }
+  if (f.graded) params.set("graded", "true");
+  if (f.minPrice) params.set("minPrice", String(f.minPrice));
+  if (f.maxPrice) params.set("maxPrice", String(f.maxPrice));
+  return `/listings?${params.toString()}`;
+}
+
+/** The next page for "Load more", or undefined once everything is on screen. */
+export function nextPage(last: Paged<unknown>): number | undefined {
+  return last.page * last.pageSize < last.total ? last.page + 1 : undefined;
+}
+
+export const loadFeed = (f: ListingQuery = {}) => apiGet<Paged<Listing>>(feedQuery(f));
+
+export const loadStorefront = (category?: string) =>
+  apiGet<Storefront>(category ? `/storefront?category=${encodeURIComponent(category)}` : "/storefront");
+
+export const loadCategories = () => apiGet<CategoryInfo[]>("/categories");
+
+export const loadListing = (id: string) =>
+  apiGetOrNull<ListingDetail>(`/listings/${encodeURIComponent(id)}`, { cache: "no-store" });
+
+export const loadSeller = (id: string) => apiGetOrNull<SellerPage>(`/sellers/${encodeURIComponent(id)}`);
+
+export const loadSellerReviews = (sellerId: string) =>
+  apiGet<{ avg: number; count: number; items: SellerReview[] }>(`/sellers/${encodeURIComponent(sellerId)}/reviews`);
+
 // ---------- seller actions (Phase B) ----------
 
 export interface CreateListingPayload {
@@ -181,8 +234,17 @@ export interface SoldListing {
 }
 
 export async function fetchRecentlySold(): Promise<SoldListing[]> {
-  const data = await getApiData<SoldListing[]>("/listings/sold/recent?limit=6");
-  return data ?? [];
+  // /listings/sold/recent was removed in Task 8; read the storefront's recentlySold instead
+  const { recentlySold } = await loadStorefront();
+  return recentlySold.slice(0, 6).map((s) => ({
+    id: s.listingId,
+    title: s.title,
+    player: "",
+    category: s.category,
+    price: s.price,
+    imageUrl: s.imageUrl ?? undefined,
+    soldAt: s.soldAt,
+  }));
 }
 
 // ---------- orders (Phase D) ----------
@@ -445,11 +507,8 @@ export interface ParsedSearch {
 }
 
 export async function parseSearchQuery(q: string): Promise<ParsedSearch | null> {
-  const data = await getApiData<ParsedSearch>("/search/parse");
-  if (data !== null) return data;
-  // POST fallback shape
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/search/parse`, {
+    const res = await fetch(apiUrl("/search/parse"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query: q }),
@@ -457,7 +516,7 @@ export async function parseSearchQuery(q: string): Promise<ParsedSearch | null> 
     if (!res.ok) return null;
     return ((await res.json()).data ?? null) as ParsedSearch | null;
   } catch {
-    return null;
+    return null; // search still works as plain text without the parser
   }
 }
 
