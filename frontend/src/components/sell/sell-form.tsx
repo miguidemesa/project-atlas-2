@@ -41,9 +41,9 @@ const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const COMPETING_DEBOUNCE_MS = 700;
 
 const inputCls =
-  "min-h-11 w-full rounded-lg border border-line bg-elevated px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:border-gold";
+  "min-h-11 w-full rounded-lg border border-line bg-elevated px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:border-accent";
 const btnPrimary =
-  "flex min-h-11 items-center justify-center gap-1.5 rounded-lg bg-gold px-6 py-2.5 text-sm font-semibold text-base transition-colors hover:bg-gold-dim disabled:opacity-60";
+  "flex min-h-11 items-center justify-center gap-1.5 rounded-lg bg-accent px-6 py-2.5 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover disabled:opacity-60";
 
 type PhotoSlotKey = "front" | "back" | "surface";
 
@@ -272,7 +272,7 @@ export function SellForm({ categories }: { categories: CategoryInfo[] }) {
                     type="button"
                     onClick={() => retryPhoto(slot.key)}
                     disabled={retrying !== null}
-                    className="min-h-11 rounded-lg border border-line px-4 text-xs font-medium text-ink hover:border-gold hover:text-gold disabled:opacity-60"
+                    className="min-h-11 rounded-lg border border-line px-4 text-xs font-medium text-ink hover:border-accent hover:text-accent disabled:opacity-60"
                   >
                     {retrying === slot.key ? "Retrying…" : "Retry"}
                   </button>
@@ -291,7 +291,7 @@ export function SellForm({ categories }: { categories: CategoryInfo[] }) {
   if (!user) {
     return (
       <div className="flex flex-col items-center rounded-2xl border border-dashed border-line-hv p-12 text-center">
-        <LogIn size={28} className="text-gold" aria-hidden />
+        <LogIn size={28} className="text-accent" aria-hidden />
         <h2 className="mt-4 font-display text-2xl text-ink">Sign in to start selling</h2>
         <p className="mt-2 max-w-sm text-sm text-ink-dim">
           Listings belong to an account so buyers know exactly who they&apos;re trading with.
@@ -299,7 +299,7 @@ export function SellForm({ categories }: { categories: CategoryInfo[] }) {
         <div className="mt-6 flex gap-3">
           <Link
             href="/login"
-            className="flex min-h-11 items-center rounded-lg border border-line px-5 py-2.5 text-sm font-medium text-ink hover:border-gold hover:text-gold"
+            className="flex min-h-11 items-center rounded-lg border border-line px-5 py-2.5 text-sm font-medium text-ink hover:border-accent hover:text-accent"
           >
             Sign in
           </Link>
@@ -343,7 +343,7 @@ export function SellForm({ categories }: { categories: CategoryInfo[] }) {
                 aria-current={i === step ? "step" : undefined}
                 className={cn(
                   "flex h-7 w-7 shrink-0 items-center justify-center rounded-full font-mono text-xs",
-                  i < step ? "bg-confirmed/20 text-confirmed" : i === step ? "bg-gold text-base" : "bg-raised text-ink-faint",
+                  i < step ? "bg-confirmed/20 text-confirmed" : i === step ? "bg-accent text-on-accent" : "bg-raised text-ink-faint",
                 )}
               >
                 {i + 1}
@@ -356,15 +356,15 @@ export function SellForm({ categories }: { categories: CategoryInfo[] }) {
 
         {/* STEP 1 — the card */}
         <div className={cn(step !== 0 && "hidden")} role="group" aria-label="Step 1: The card">
-          <div className="mb-5 rounded-xl border border-dashed border-gold/40 bg-gold/5 p-4">
+          <div className="mb-5 rounded-xl border border-dashed border-accent/40 bg-accent/5 p-4">
             <div className="flex items-center gap-2">
-              <Sparkles size={16} className="text-gold" aria-hidden />
+              <Sparkles size={16} className="text-accent" aria-hidden />
               <span className="text-sm font-medium text-ink">Scan the card</span>
               <span className="rounded bg-raised px-1.5 py-0.5 font-mono text-[10px] text-ink-faint">beta</span>
             </div>
             <p className="mt-1 text-xs text-ink-dim">Upload a clear photo and Atlas fills in what it recognises.</p>
             <div className="mt-3 flex flex-wrap items-center gap-3">
-              <label className="flex min-h-11 cursor-pointer items-center rounded-lg border border-line bg-base px-4 py-2 text-xs font-medium text-ink transition-colors hover:border-gold has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-gold">
+              <label className="flex min-h-11 cursor-pointer items-center rounded-lg border border-line bg-base px-4 py-2 text-xs font-medium text-ink transition-colors hover:border-accent has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent">
                 Choose photo
                 <input
                   type="file"
@@ -393,7 +393,7 @@ export function SellForm({ categories }: { categories: CategoryInfo[] }) {
               {scanBusy && <span className="font-mono text-xs text-ink-faint">Scanning…</span>}
             </div>
             {scanResult && (
-              <p role="status" className="mt-2 text-xs text-gold">
+              <p role="status" className="mt-2 text-xs text-accent">
                 {scanResult}
               </p>
             )}
@@ -492,8 +492,8 @@ export function SellForm({ categories }: { categories: CategoryInfo[] }) {
 
         {/* STEP 2 — condition */}
         <div className={cn(step !== 1 && "hidden")} role="group" aria-label="Step 2: Condition">
-          <label className="mb-4 flex min-h-11 cursor-pointer items-start gap-3 rounded-lg border border-line p-4 transition-colors hover:border-line-hv has-checked:border-gold">
-            <input type="checkbox" {...register("graded")} className="mt-0.5 h-5 w-5 accent-gold" />
+          <label className="mb-4 flex min-h-11 cursor-pointer items-start gap-3 rounded-lg border border-line p-4 transition-colors hover:border-line-hv has-checked:border-accent">
+            <input type="checkbox" {...register("graded")} className="mt-0.5 h-5 w-5 accent-accent" />
             <span>
               <span className="block text-sm font-medium text-ink">Professionally graded</span>
               <span className="block text-xs text-ink-dim">Slabbed by PSA, BGS, CGC, SGC, TAG or ACE</span>
@@ -547,7 +547,7 @@ export function SellForm({ categories }: { categories: CategoryInfo[] }) {
             {PHOTO_SLOTS.map((slot) => (
               <label
                 key={slot.key}
-                className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-dashed border-line-hv p-4 text-center transition-colors hover:border-gold has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-gold has-[img]:border-solid has-[img]:border-line"
+                className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-dashed border-line-hv p-4 text-center transition-colors hover:border-accent has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent has-[img]:border-solid has-[img]:border-line"
               >
                 {photoUrls[slot.key] ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -583,7 +583,7 @@ export function SellForm({ categories }: { categories: CategoryInfo[] }) {
             ).map(([v, title, sub]) => (
               <label
                 key={v}
-                className="min-h-11 cursor-pointer rounded-lg border border-line p-4 transition-colors has-checked:border-gold has-checked:bg-gold/5 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-gold"
+                className="min-h-11 cursor-pointer rounded-lg border border-line p-4 transition-colors has-checked:border-accent has-checked:bg-accent/5 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent"
               >
                 <input type="radio" value={v} {...register("format")} className="sr-only" />
                 <span className="block text-sm font-semibold text-ink">{title}</span>
@@ -607,7 +607,7 @@ export function SellForm({ categories }: { categories: CategoryInfo[] }) {
           )}
 
           {competing && (
-            <div className="mb-5 rounded-xl border border-gold/40 bg-gold/5 p-4">
+            <div className="mb-5 rounded-xl border border-accent/40 bg-accent/5 p-4">
               <div className="flex items-center justify-between gap-2">
                 <p className="text-sm font-medium text-ink">
                   {competing.count} {competing.count === 1 ? "seller" : "sellers"} already list this card
@@ -617,20 +617,20 @@ export function SellForm({ categories }: { categories: CategoryInfo[] }) {
                 </span>
               </div>
               <p className="mt-1 text-xs text-ink-dim">
-                Their median asking price is <span className="font-semibold text-gold">₱{competing.median.toLocaleString("en-PH")}</span>.
+                Their median asking price is <span className="font-semibold text-accent">₱{competing.median.toLocaleString("en-PH")}</span>.
               </p>
               <div className="mt-2.5 flex flex-wrap gap-2">
                 <button
                   type="button"
                   onClick={() => setValue("price", Math.round(competing.median * 100) / 100, { shouldValidate: true })}
-                  className="min-h-11 rounded-lg border border-line bg-base px-3 py-1.5 font-mono text-xs text-ink transition-colors hover:border-gold hover:text-gold"
+                  className="min-h-11 rounded-lg border border-line bg-base px-3 py-1.5 font-mono text-xs text-ink transition-colors hover:border-accent hover:text-accent"
                 >
                   Match median · ₱{(Math.round(competing.median * 100) / 100).toLocaleString("en-PH")}
                 </button>
                 <button
                   type="button"
                   onClick={() => setValue("price", Math.max(1, competing.min - 100), { shouldValidate: true })}
-                  className="min-h-11 rounded-lg border border-line bg-base px-3 py-1.5 font-mono text-xs text-ink transition-colors hover:border-gold hover:text-gold"
+                  className="min-h-11 rounded-lg border border-line bg-base px-3 py-1.5 font-mono text-xs text-ink transition-colors hover:border-accent hover:text-accent"
                 >
                   Undercut lowest · ₱{Math.max(1, competing.min - 100).toLocaleString("en-PH")}
                 </button>
@@ -680,7 +680,7 @@ export function SellForm({ categories }: { categories: CategoryInfo[] }) {
               <CardArt listing={preview} />
             </div>
           </div>
-          <p className="mt-3 text-center font-display text-xl text-gold">₱{Number(values.price || 0).toLocaleString("en-PH")}</p>
+          <p className="mt-3 text-center font-display text-xl text-accent">₱{Number(values.price || 0).toLocaleString("en-PH")}</p>
         </div>
       </aside>
     </div>

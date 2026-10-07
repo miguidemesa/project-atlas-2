@@ -42,7 +42,7 @@ export function ReviewForm({ orderId, onDone }: { orderId: string; onDone: () =>
             onClick={() => setRating(n)}
             className={cn(
               "text-lg leading-none transition-transform",
-              n <= rating ? "scale-110 text-gold" : "text-line-hv hover:text-gold-dim",
+              n <= rating ? "scale-110 text-accent" : "text-line-hv hover:text-accent-hover",
             )}
           >
             ★
@@ -56,7 +56,7 @@ export function ReviewForm({ orderId, onDone }: { orderId: string; onDone: () =>
         onChange={(e) => setContent(e.target.value)}
         maxLength={1000}
         placeholder="Optional — how did it go?"
-        className="w-full rounded-lg border border-line bg-base px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-gold focus:outline-none"
+        className="w-full rounded-lg border border-line bg-base px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none"
       />
       {error && (
         <p role="alert" className="text-xs text-urgent">
@@ -66,7 +66,7 @@ export function ReviewForm({ orderId, onDone }: { orderId: string; onDone: () =>
       <button
         type="submit"
         disabled={busy || !rating}
-        className="rounded-lg bg-gold px-4 py-2 text-xs font-semibold text-base hover:bg-gold-dim disabled:opacity-40"
+        className="rounded-lg bg-accent px-4 py-2 text-xs font-semibold text-on-accent hover:bg-accent-hover disabled:opacity-40"
       >
         {busy ? "Posting…" : "Post review"}
       </button>

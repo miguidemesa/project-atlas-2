@@ -8,7 +8,7 @@ export default function NotFound() {
       <p className="mt-3 text-sm leading-relaxed text-ink-dim">
         This listing was pulled, sold, or never existed. The market moves fast.
       </p>
-      <Link href="/browse" className="mt-8 rounded-lg bg-gold px-6 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-gold-dim">
+      <Link href="/browse" className="mt-8 rounded-lg bg-accent px-6 py-2.5 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover">
         Back to browse
       </Link>
     </div>

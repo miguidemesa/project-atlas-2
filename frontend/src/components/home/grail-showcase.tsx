@@ -70,7 +70,7 @@ export function GrailShowcase({ listing }: { listing: Listing }) {
       <div className="sticky top-0 flex h-screen items-center overflow-hidden">
         <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,4fr)] lg:px-8">
           <div>
-            <p className="font-mono text-xs uppercase tracking-[0.2em] text-gold">How Atlas works</p>
+            <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent">How Atlas works</p>
             <div className="relative mt-6 h-[300px] sm:h-[330px]">
               {STEPS.map((step, i) => (
                 <div

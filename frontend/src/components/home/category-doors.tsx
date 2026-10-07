@@ -13,7 +13,7 @@ export function CategoryDoors({ categories }: { categories: CategoryInfo[] }) {
           href={`/browse?category=${c.slug}`}
           aria-label={`${c.name}, ${c.activeListings} for sale`}
           style={skinVars(skinFor(c.slug, c.hue))}
-          className="group relative flex min-h-11 h-[110px] flex-col justify-between overflow-hidden rounded-xl border border-[color:var(--skin-border)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold bg-[color:var(--skin-ground)] p-4 transition-transform duration-200 ease-out hover:-translate-y-[3px] motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+          className="group relative flex min-h-11 h-[110px] flex-col justify-between overflow-hidden rounded-xl border border-[color:var(--skin-border)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent bg-[color:var(--skin-ground)] p-4 transition-transform duration-200 ease-out hover:-translate-y-[3px] motion-reduce:transition-none motion-reduce:hover:translate-y-0"
         >
           <span className="flex items-center gap-2 text-xl font-extrabold tracking-tight text-[color:var(--skin-accent)]">
             <span aria-hidden className="h-2.5 w-2.5 flex-shrink-0 rounded-full bg-[color:var(--skin-accent)]" />

@@ -12,15 +12,15 @@ export function AuthShell({ title, subtitle, children, footer }: { title: string
       <p className="mt-6 text-center text-sm text-ink-dim">{footer}</p>
       <p className="mt-6 text-center text-xs leading-relaxed text-ink-faint">
         By continuing you agree to the Atlas{" "}
-        <Link href="/" className="underline underline-offset-2 hover:text-gold">Terms</Link> and{" "}
-        <Link href="/" className="underline underline-offset-2 hover:text-gold">Privacy Policy</Link>.
+        <Link href="/" className="underline underline-offset-2 hover:text-accent">Terms</Link> and{" "}
+        <Link href="/" className="underline underline-offset-2 hover:text-accent">Privacy Policy</Link>.
       </p>
     </div>
   );
 }
 
 export const inputCls =
-  "w-full rounded-lg border border-line bg-base px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:border-gold focus:outline-none";
+  "w-full rounded-lg border border-line bg-base px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none";
 
 export const btnCls =
-  "w-full rounded-lg bg-gold py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-gold-dim disabled:opacity-40";
+  "w-full rounded-lg bg-accent py-2.5 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover disabled:opacity-40";

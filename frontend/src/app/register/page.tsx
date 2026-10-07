@@ -22,7 +22,7 @@ export default function RegisterPage() {
       footer={
         <>
           Already collecting?{" "}
-          <Link href="/login" className="font-medium text-gold hover:underline">
+          <Link href="/login" className="font-medium text-accent hover:underline">
             Sign in
           </Link>
         </>

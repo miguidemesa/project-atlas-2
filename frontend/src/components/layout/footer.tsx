@@ -6,7 +6,7 @@ export function Footer() {
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
         <div>
           <p className="font-display text-xl text-ink">
-            Atlas<span className="text-gold">.</span>
+            Atlas<span className="text-accent">.</span>
           </p>
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-ink-dim">
             The Philippine marketplace for NBA, Pokémon, One Piece and Disney collectible cards.
@@ -23,7 +23,7 @@ export function Footer() {
             <ul className="mt-4 space-y-2.5 text-sm text-ink-dim">
               {col.links.map(([label, href]) => (
                 <li key={label}>
-                  <Link href={href} className="transition-colors hover:text-gold">
+                  <Link href={href} className="transition-colors hover:text-accent">
                     {label}
                   </Link>
                 </li>

@@ -28,14 +28,14 @@ export function BottomNav() {
               aria-current={active ? "page" : undefined}
               className={cn(
                 "relative flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition-colors",
-                primary ? "-translate-y-3" : active ? "text-gold" : "text-ink-dim",
+                primary ? "-translate-y-3" : active ? "text-accent" : "text-ink-dim",
                 !primary && !active && "hover:text-ink",
               )}
             >
               <span
                 className={cn(
                   "flex items-center justify-center rounded-full",
-                  primary && "h-12 w-12 bg-gold text-ink shadow-lifted",
+                  primary && "h-12 w-12 bg-accent text-on-accent shadow-lifted",
                 )}
               >
                 <Icon size={primary ? 22 : 20} />

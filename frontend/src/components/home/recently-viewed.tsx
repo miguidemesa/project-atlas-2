@@ -31,7 +31,7 @@ export function RecentlyViewed() {
           <Link
             key={r.id}
             href={`/listing/${r.id}`}
-            className="group flex w-64 shrink-0 items-center gap-3 rounded-xl border border-line bg-elevated p-2.5 shadow-card transition-colors hover:border-gold"
+            className="group flex w-64 shrink-0 items-center gap-3 rounded-xl border border-line bg-elevated p-2.5 shadow-card transition-colors hover:border-accent"
           >
             <div className="relative h-16 w-12 shrink-0 overflow-hidden rounded-lg">
               {r.imageUrl ? (
@@ -44,7 +44,7 @@ export function RecentlyViewed() {
             </div>
             <div className="min-w-0">
               <p className="truncate text-sm font-medium text-ink">{r.title}</p>
-              <p className="font-display text-base text-gold">{formatPeso(r.price)}</p>
+              <p className="font-display text-base text-accent">{formatPeso(r.price)}</p>
             </div>
           </Link>
         ))}

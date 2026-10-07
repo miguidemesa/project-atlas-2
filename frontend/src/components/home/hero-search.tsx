@@ -21,7 +21,7 @@ export function HeroSearch({ listingCount, categories }: { listingCount?: number
       <h1 className="font-display text-4xl leading-tight tracking-tight text-ink sm:text-6xl">
         The Philippine home
         <br />
-        of <span className="text-gold">cardboard.</span>
+        of <span className="text-accent">cardboard.</span>
       </h1>
 
       <form
@@ -39,11 +39,11 @@ export function HeroSearch({ listingCount, categories }: { listingCount?: number
           onChange={(e) => setQ(e.target.value)}
           placeholder="Try “Charizard 151”, “PSA 10” or “Wembanyama rookie”…"
           aria-label="Search the marketplace"
-          className="w-full rounded-xl border border-line-hv bg-elevated py-3.5 pl-12 pr-28 text-base text-ink shadow-card placeholder:text-ink-faint focus:border-gold focus:outline-none"
+          className="w-full rounded-xl border border-line-hv bg-elevated py-3.5 pl-12 pr-28 text-base text-ink shadow-card placeholder:text-ink-faint focus:border-accent focus:outline-none"
         />
         <button
           type="submit"
-          className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg bg-gold px-5 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-gold-dim"
+          className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover"
         >
           Search
         </button>
@@ -54,7 +54,7 @@ export function HeroSearch({ listingCount, categories }: { listingCount?: number
           <a
             key={label}
             href={`/browse${params ? `?${params}` : ""}`}
-            className="inline-flex min-h-11 items-center rounded-full border border-line px-4 text-sm text-ink-dim transition-colors hover:border-gold hover:text-gold"
+            className="inline-flex min-h-11 items-center rounded-full border border-line px-4 text-sm text-ink-dim transition-colors hover:border-accent hover:text-accent"
           >
             {label}
           </a>

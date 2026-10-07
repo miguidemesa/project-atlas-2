@@ -40,9 +40,9 @@ function useDebounced<T>(value: T, ms: number): T {
   return settled;
 }
 
-const focusCls = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold";
+const focusCls = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
 const fieldCls = cn(
-  "min-h-11 w-full rounded-lg border border-line bg-elevated px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-gold",
+  "min-h-11 w-full rounded-lg border border-line bg-elevated px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-accent",
   focusCls,
 );
 
@@ -163,7 +163,7 @@ export function BrowseClient({ initial, categories }: { initial: ListingQuery; c
               className={cn(
                 "min-h-11 flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
                 focusCls,
-                format === (v || undefined) ? "bg-gold text-ink" : "text-ink-dim hover:text-ink",
+                format === (v || undefined) ? "bg-accent text-on-accent" : "text-ink-dim hover:text-ink",
               )}
             >
               {label}
@@ -190,7 +190,7 @@ export function BrowseClient({ initial, categories }: { initial: ListingQuery; c
           type="checkbox"
           checked={graded}
           onChange={(e) => setGraded(e.target.checked)}
-          className={cn("h-5 w-5 accent-gold", focusCls)}
+          className={cn("h-5 w-5 accent-accent", focusCls)}
         />
         Graded slabs only
       </label>
@@ -256,7 +256,7 @@ export function BrowseClient({ initial, categories }: { initial: ListingQuery; c
                 "min-h-11 shrink-0 rounded-full border px-4 py-1.5 text-sm transition-colors",
                 focusCls,
                 category === c.slug
-                  ? "border-gold bg-gold font-semibold text-ink"
+                  ? "border-accent bg-accent font-semibold text-on-accent"
                   : "border-line bg-elevated text-ink-dim hover:border-line-hv hover:text-ink",
               )}
             >
@@ -267,10 +267,10 @@ export function BrowseClient({ initial, categories }: { initial: ListingQuery; c
 
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           {aiChips.length > 0 && (
-            <div className="flex items-center gap-1.5 text-xs text-gold" title="Read from your search">
+            <div className="flex items-center gap-1.5 text-xs text-accent" title="Read from your search">
               <Sparkles size={12} aria-hidden />
               {aiChips.map((c) => (
-                <span key={c} className="rounded border border-gold/40 px-1.5 py-0.5">
+                <span key={c} className="rounded border border-accent/40 px-1.5 py-0.5">
                   {c}
                 </span>
               ))}
@@ -293,13 +293,13 @@ export function BrowseClient({ initial, categories }: { initial: ListingQuery; c
               )}
             >
               <SlidersHorizontal size={14} aria-hidden />
-              Filters{activeCount > 0 && <span className="rounded-full bg-gold px-1.5 text-[10px] text-ink">{activeCount}</span>}
+              Filters{activeCount > 0 && <span className="rounded-full bg-accent px-1.5 text-[10px] text-on-accent">{activeCount}</span>}
             </button>
             <select
               aria-label="Sort results"
               value={sort}
               onChange={(e) => setSort(e.target.value as NonNullable<ListingQuery["sort"]>)}
-              className={cn("min-h-11 rounded-lg border border-line bg-elevated px-3 py-2 text-xs text-ink focus:border-gold", focusCls)}
+              className={cn("min-h-11 rounded-lg border border-line bg-elevated px-3 py-2 text-xs text-ink focus:border-accent", focusCls)}
             >
               {SORTS.map(([v, label]) => (
                 <option key={v} value={v}>
@@ -323,7 +323,7 @@ export function BrowseClient({ initial, categories }: { initial: ListingQuery; c
             <button
               type="button"
               onClick={() => feed.refetch()}
-              className={cn("mt-6 min-h-11 rounded-lg bg-gold px-5 py-2 text-sm font-semibold text-ink hover:bg-gold-dim", focusCls)}
+              className={cn("mt-6 min-h-11 rounded-lg bg-accent px-5 py-2 text-sm font-semibold text-on-accent hover:bg-accent-hover", focusCls)}
             >
               Try again
             </button>
@@ -346,7 +346,7 @@ export function BrowseClient({ initial, categories }: { initial: ListingQuery; c
                 <button
                   type="button"
                   onClick={() => feed.fetchNextPage()}
-                  className={cn("min-h-11 rounded-lg bg-gold px-5 py-2 text-sm font-semibold text-ink hover:bg-gold-dim", focusCls)}
+                  className={cn("min-h-11 rounded-lg bg-accent px-5 py-2 text-sm font-semibold text-on-accent hover:bg-accent-hover", focusCls)}
                 >
                   Try again
                 </button>
@@ -359,7 +359,7 @@ export function BrowseClient({ initial, categories }: { initial: ListingQuery; c
                   onClick={() => feed.fetchNextPage()}
                   disabled={feed.isFetchingNextPage}
                   className={cn(
-                    "min-h-11 rounded-lg border border-line px-6 py-2.5 text-sm font-medium text-ink transition-colors hover:border-gold hover:text-gold disabled:opacity-50",
+                    "min-h-11 rounded-lg border border-line px-6 py-2.5 text-sm font-medium text-ink transition-colors hover:border-accent hover:text-accent disabled:opacity-50",
                     focusCls,
                   )}
                 >
@@ -390,7 +390,7 @@ export function BrowseClient({ initial, categories }: { initial: ListingQuery; c
             <button
               type="button"
               onClick={() => setSheetOpen(false)}
-              className={cn("mt-6 min-h-11 w-full rounded-lg bg-gold py-3 text-sm font-semibold text-ink hover:bg-gold-dim", focusCls)}
+              className={cn("mt-6 min-h-11 w-full rounded-lg bg-accent py-3 text-sm font-semibold text-on-accent hover:bg-accent-hover", focusCls)}
             >
               Show {total.toLocaleString()} results
             </button>

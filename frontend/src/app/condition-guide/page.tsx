@@ -41,7 +41,7 @@ export default function ConditionGuidePage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-14 lg:px-8">
       <header className="max-w-2xl">
-        <p className="font-mono text-xs uppercase tracking-[0.2em] text-gold">Trust & transparency</p>
+        <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent">Trust & transparency</p>
         <h1 className="mt-3 font-display text-4xl leading-tight text-ink sm:text-5xl">The condition guide.</h1>
         <p className="mt-4 text-base leading-relaxed text-ink-dim">
           Every raw card on Atlas carries one of four conditions, and sellers back them with front, back and
@@ -52,7 +52,7 @@ export default function ConditionGuidePage() {
       <section className="mt-12 space-y-4" aria-label="Raw card conditions">
         {RAW_CONDITIONS.map((c) => (
           <div key={c.short} className="flex gap-5 rounded-xl border border-line bg-elevated p-5 shadow-card sm:items-baseline">
-            <span className="w-16 shrink-0 rounded-lg border border-line-hv bg-raised py-1 text-center font-mono text-sm font-semibold text-gold">
+            <span className="w-16 shrink-0 rounded-lg border border-line-hv bg-raised py-1 text-center font-mono text-sm font-semibold text-accent">
               {c.short}
             </span>
             <div>
@@ -74,7 +74,7 @@ export default function ConditionGuidePage() {
         <dl className="mt-6 divide-y divide-line overflow-hidden rounded-xl border border-line bg-elevated shadow-card">
           {GRADES.map((g) => (
             <div key={g.grade} className="grid gap-1 px-5 py-4 sm:grid-cols-[140px_120px_1fr] sm:items-baseline sm:gap-4">
-              <dt className="font-mono text-sm font-semibold text-gold">{g.grade}</dt>
+              <dt className="font-mono text-sm font-semibold text-accent">{g.grade}</dt>
               <dd className="text-sm font-medium text-ink">{g.label}</dd>
               <dd className="text-sm leading-relaxed text-ink-dim">{g.note}</dd>
             </div>
@@ -93,7 +93,7 @@ export default function ConditionGuidePage() {
 
       <p className="mt-10 text-sm text-ink-dim">
         Ready to browse with confidence?{" "}
-        <Link href="/browse" className="font-medium text-gold hover:underline">
+        <Link href="/browse" className="font-medium text-accent hover:underline">
           Head to the market →
         </Link>
       </p>

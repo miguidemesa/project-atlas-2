@@ -60,7 +60,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-8">
       <ViewTracker listing={listing} />
-      <Link href="/browse" className="mb-6 inline-flex min-h-11 items-center gap-1.5 text-sm text-ink-dim transition-colors hover:text-gold">
+      <Link href="/browse" className="mb-6 inline-flex min-h-11 items-center gap-1.5 text-sm text-ink-dim transition-colors hover:text-accent">
         <ArrowLeft size={14} aria-hidden /> Back to browse
       </Link>
 
@@ -89,12 +89,12 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
           </div>
 
           {listing.status === "sold" ? (
-            <div className="rounded-xl border border-gold/50 bg-elevated p-5 text-center shadow-card">
-              <p className="font-display text-2xl tracking-wider text-gold">SOLD</p>
+            <div className="rounded-xl border border-accent/50 bg-elevated p-5 text-center shadow-card">
+              <p className="font-display text-2xl tracking-wider text-accent">SOLD</p>
               <p className="mt-1.5 text-sm text-ink-dim">This card found its home.</p>
               <Link
                 href={`/browse?category=${listing.category}`}
-                className="mt-4 inline-flex min-h-11 items-center rounded-lg border border-line px-5 py-2 text-sm font-medium text-ink transition-colors hover:border-gold hover:text-gold"
+                className="mt-4 inline-flex min-h-11 items-center rounded-lg border border-line px-5 py-2 text-sm font-medium text-ink transition-colors hover:border-accent hover:text-accent"
               >
                 Find a similar card
               </Link>
@@ -129,7 +129,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
           )}
 
           <details className="group rounded-xl border border-line bg-elevated open:pb-5">
-            <summary className="min-h-11 cursor-pointer list-none px-5 py-4 text-sm font-semibold text-ink marker:hidden hover:text-gold [&::-webkit-details-marker]:hidden">
+            <summary className="min-h-11 cursor-pointer list-none px-5 py-4 text-sm font-semibold text-ink marker:hidden hover:text-accent [&::-webkit-details-marker]:hidden">
               Card details & description
             </summary>
             <div className="space-y-5 px-5">
@@ -146,7 +146,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
               )}
               {!listing.graded && listing.condition && (
                 <p className="text-xs">
-                  <Link href="/condition-guide" className="inline-flex min-h-11 items-center text-gold hover:underline">
+                  <Link href="/condition-guide" className="inline-flex min-h-11 items-center text-accent hover:underline">
                     What does {listing.condition} mean? →
                   </Link>
                 </p>

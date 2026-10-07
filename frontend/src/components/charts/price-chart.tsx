@@ -67,7 +67,7 @@ export function PriceChart({ history }: { history: PricePoint[] }) {
                 setPathKey((k) => k + 1);
               }}
               className={`rounded-md px-2.5 py-1 text-xs transition-colors ${
-                rangeDays === r.days ? "bg-gold text-ink font-semibold" : "text-ink-dim hover:bg-raised hover:text-ink"
+                rangeDays === r.days ? "bg-accent text-on-accent font-semibold" : "text-ink-dim hover:bg-raised hover:text-ink"
               }`}
             >
               {r.label}
@@ -99,8 +99,8 @@ export function PriceChart({ history }: { history: PricePoint[] }) {
 
           <defs>
             <linearGradient id="chart-fill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#C6A24B" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="#C6A24B" stopOpacity="0.02" />
+              <stop offset="0%" className="[stop-color:var(--skin-accent)]" stopOpacity="0.25" />
+              <stop offset="100%" className="[stop-color:var(--skin-accent)]" stopOpacity="0.02" />
             </linearGradient>
           </defs>
 
@@ -109,7 +109,7 @@ export function PriceChart({ history }: { history: PricePoint[] }) {
             <path
               d={geom.line}
               fill="none"
-              stroke="#C6A24B"
+              className="stroke-[color:var(--skin-accent)]"
               strokeWidth="2"
               strokeLinecap="round"
               style={{
@@ -131,7 +131,7 @@ export function PriceChart({ history }: { history: PricePoint[] }) {
                 strokeWidth="1"
                 strokeDasharray="3 3"
               />
-              <circle cx={geom.x(hoverIdx)} cy={geom.y(data[hoverIdx].price)} r="4" fill="#C6A24B" stroke="#141517" strokeWidth="2" />
+              <circle cx={geom.x(hoverIdx)} cy={geom.y(data[hoverIdx].price)} r="4" className="fill-[color:var(--skin-accent)] stroke-base" strokeWidth="2" />
             </g>
           )}
 
@@ -157,7 +157,7 @@ export function PriceChart({ history }: { history: PricePoint[] }) {
             }}
           >
             <p className="font-mono text-xs text-ink-dim">{hovered.date}</p>
-            <p className="font-display text-lg leading-tight text-gold">{formatPeso(hovered.price)}</p>
+            <p className="font-display text-lg leading-tight text-accent">{formatPeso(hovered.price)}</p>
           </div>
         )}
       </div>

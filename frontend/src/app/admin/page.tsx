@@ -40,7 +40,7 @@ export default function AdminPage() {
       <div className="mx-auto flex min-h-[50vh] max-w-md items-center justify-center px-4 text-center">
         <div>
           <p className="font-display text-2xl text-ink">Admin access required.</p>
-          <Link href="/" className="mt-4 inline-block text-sm text-gold hover:underline">← Back</Link>
+          <Link href="/" className="mt-4 inline-block text-sm text-accent hover:underline">← Back</Link>
         </div>
       </div>
     );
@@ -62,7 +62,7 @@ export default function AdminPage() {
             onClick={() => setTab(t)}
             className={cn(
               "rounded-lg px-5 py-2 text-sm font-medium capitalize transition-colors",
-              tab === t ? "bg-gold text-base font-semibold" : "text-ink-dim hover:bg-elevated hover:text-ink",
+              tab === t ? "bg-accent text-on-accent font-semibold" : "text-ink-dim hover:bg-elevated hover:text-ink",
             )}
           >
             {t}
@@ -108,7 +108,7 @@ function PayoutsTab({ busyId, setBusyId, qc }: { busyId: string | null; setBusyI
         <tbody>{data.map((p) => (
           <tr key={p.id} className="border-b border-line/60 last:border-0 hover:bg-raised">
             <td className="px-4 py-3 font-mono text-xs">{p.userId.slice(0, 8)}</td>
-            <td className="px-4 py-3 font-semibold text-gold">{formatPeso(p.amount)}</td>
+            <td className="px-4 py-3 font-semibold text-accent">{formatPeso(p.amount)}</td>
             <td className="px-4 py-3 text-xs uppercase text-ink-dim">{p.method}</td>
             <td className="px-4 py-3 text-right">
               <button type="button" disabled={busyId === p.id} onClick={() => act(p.id, "approve")} className="rounded-lg bg-confirmed px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-40 mr-1">Approve</button>

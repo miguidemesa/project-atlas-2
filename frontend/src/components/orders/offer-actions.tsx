@@ -35,7 +35,7 @@ export function OfferActions({ offer, onDone }: { offer: Offer; onDone: () => vo
           onChange={(e) => setAmount(e.target.value)}
           placeholder="Your counter amount in ₱"
           aria-label="Counter amount in pesos"
-          className="w-full max-w-xs rounded-lg border border-line bg-base px-3 py-2 font-mono text-sm tabular-nums text-ink placeholder:text-ink-faint focus:border-gold focus:outline-none"
+          className="w-full max-w-xs rounded-lg border border-line bg-base px-3 py-2 font-mono text-sm tabular-nums text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none"
         />
       )}
       {error && (
@@ -55,7 +55,7 @@ export function OfferActions({ offer, onDone }: { offer: Offer; onDone: () => vo
           <button
             type="button"
             onClick={() => setMode("counter")}
-            className="rounded-lg border border-line px-4 py-2 text-xs font-medium text-ink transition-colors hover:border-gold hover:text-gold"
+            className="rounded-lg border border-line px-4 py-2 text-xs font-medium text-ink transition-colors hover:border-accent hover:text-accent"
           >
             Counter
           </button>
@@ -64,7 +64,7 @@ export function OfferActions({ offer, onDone }: { offer: Offer; onDone: () => vo
             type="button"
             disabled={!Number(amount)}
             onClick={() => void run("counter")}
-            className="rounded-lg bg-gold px-4 py-2 text-xs font-semibold text-base hover:bg-gold-dim disabled:opacity-40"
+            className="rounded-lg bg-accent px-4 py-2 text-xs font-semibold text-on-accent hover:bg-accent-hover disabled:opacity-40"
           >
             Send counter
           </button>

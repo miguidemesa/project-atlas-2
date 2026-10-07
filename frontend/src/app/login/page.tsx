@@ -21,7 +21,7 @@ export default function LoginPage() {
       footer={
         <>
           New to Atlas?{" "}
-          <Link href="/register" className="font-medium text-gold hover:underline">
+          <Link href="/register" className="font-medium text-accent hover:underline">
             Create an account
           </Link>
         </>
@@ -46,7 +46,7 @@ export default function LoginPage() {
         <div>
           <div className="mb-1.5 flex items-baseline justify-between">
             <label htmlFor="password" className="block text-sm font-medium text-ink">Password</label>
-            <Link href="/login" className="text-xs text-ink-dim hover:text-gold">Forgot?</Link>
+            <Link href="/login" className="text-xs text-ink-dim hover:text-accent">Forgot?</Link>
           </div>
           <input id="password" type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className={inputCls} />
         </div>

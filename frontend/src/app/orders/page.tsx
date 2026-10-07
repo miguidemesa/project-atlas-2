@@ -66,10 +66,10 @@ export default function OrdersPage() {
   if (!user) {
     return (
       <div className="mx-auto flex min-h-[50vh] max-w-md flex-col items-center justify-center px-4 text-center">
-        <Package size={32} className="text-gold" />
+        <Package size={32} className="text-accent" />
         <h1 className="mt-4 font-display text-3xl text-ink">Your orders</h1>
         <p className="mt-2 text-sm text-ink-dim">Sign in to track purchases and sales in one place.</p>
-        <Link href="/login" className="mt-6 rounded-lg bg-gold px-6 py-2.5 text-sm font-semibold text-base hover:bg-gold-dim">
+        <Link href="/login" className="mt-6 rounded-lg bg-accent px-6 py-2.5 text-sm font-semibold text-on-accent hover:bg-accent-hover">
           Sign in
         </Link>
       </div>
@@ -98,7 +98,7 @@ export default function OrdersPage() {
             {[...offers.incoming, ...offers.outgoing].map((o) => (
               <li key={o.id} className="rounded-xl border border-line bg-elevated p-4 shadow-card">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <Link href={`/listing/${o.listingId}`} className="font-medium text-ink hover:text-gold">
+                  <Link href={`/listing/${o.listingId}`} className="font-medium text-ink hover:text-accent">
                     {o.listingTitle}
                   </Link>
                   <span
@@ -116,7 +116,7 @@ export default function OrdersPage() {
                 </div>
                 <p className="mt-1 font-mono text-xs text-ink-faint">
                   {o.viewerRole === "buyer" ? "You offered" : "They offered"}{" "}
-                  <span className="text-gold">{formatPeso(o.amount)}</span> · asking {formatPeso(o.listingPrice)}
+                  <span className="text-accent">{formatPeso(o.amount)}</span> · asking {formatPeso(o.listingPrice)}
                 </p>
 
                 {o.awaitingViewerResponse && o.status === "pending" && (
@@ -138,7 +138,7 @@ export default function OrdersPage() {
         <div className="rounded-xl border border-dashed border-line-hv p-14 text-center">
           <p className="font-display text-xl text-ink">No orders yet</p>
           <p className="mt-2 text-sm text-ink-dim">When you buy or sell, every step shows up here.</p>
-          <Link href="/browse" className="mt-6 inline-block rounded-lg bg-gold px-6 py-2.5 text-sm font-semibold text-base hover:bg-gold-dim">
+          <Link href="/browse" className="mt-6 inline-block rounded-lg bg-accent px-6 py-2.5 text-sm font-semibold text-on-accent hover:bg-accent-hover">
             Browse the market
           </Link>
         </div>
@@ -149,7 +149,7 @@ export default function OrdersPage() {
             return (
               <li key={o.id} className="rounded-xl border border-line bg-elevated p-4 shadow-card sm:p-5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <Link href={`/listing/${o.listingId}`} className="font-medium text-ink hover:text-gold">
+                  <Link href={`/listing/${o.listingId}`} className="font-medium text-ink hover:text-accent">
                     {o.listingTitle}
                   </Link>
                   <span className={cn("rounded-md px-2 py-0.5 text-xs font-medium", meta.cls)}>{meta.label}</span>
@@ -170,13 +170,13 @@ export default function OrdersPage() {
                       onChange={(e) => setTracking((t) => ({ ...t, [o.id]: e.target.value }))}
                       placeholder="Tracking number (optional)"
                       aria-label={`Tracking number for order ${o.id}`}
-                      className="min-w-0 flex-1 rounded-lg border border-line bg-base px-3 py-2 text-xs text-ink placeholder:text-ink-faint focus:border-gold focus:outline-none"
+                      className="min-w-0 flex-1 rounded-lg border border-line bg-base px-3 py-2 text-xs text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none"
                     />
                     <button
                       type="button"
                       disabled={busyId === o.id}
                       onClick={() => act(o, "ship")}
-                      className="flex items-center gap-1.5 rounded-lg bg-gold px-4 py-2 text-xs font-semibold text-base hover:bg-gold-dim disabled:opacity-50"
+                      className="flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-xs font-semibold text-on-accent hover:bg-accent-hover disabled:opacity-50"
                     >
                       Mark shipped
                     </button>
@@ -238,7 +238,7 @@ function PayNow({ orderId, hasAddress, onPaid }: { orderId: string; hasAddress: 
     <div className="mt-3 space-y-2 border-t border-line pt-3">
       {rw.data && rw.data.balance >= 100 && (
         <label className="flex cursor-pointer items-center gap-2 text-xs text-ink-dim">
-          <input type="checkbox" checked={usePoints} onChange={(e) => setUsePoints(e.target.checked)} className="h-3.5 w-3.5 accent-[#b08d3e]" />
+          <input type="checkbox" checked={usePoints} onChange={(e) => setUsePoints(e.target.checked)} className="h-3.5 w-3.5 accent-accent" />
           Use ⭐ {rw.data.balance} pts
         </label>
       )}
@@ -250,7 +250,7 @@ function PayNow({ orderId, hasAddress, onPaid }: { orderId: string; hasAddress: 
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           placeholder="Delivery address for this order"
-          className="w-full rounded-lg border border-line bg-base px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-gold focus:outline-none"
+          className="w-full rounded-lg border border-line bg-base px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none"
         />
       )}
       {error && (
@@ -262,7 +262,7 @@ function PayNow({ orderId, hasAddress, onPaid }: { orderId: string; hasAddress: 
         type="button"
         disabled={busy || (!hasAddress && address.trim().length < 20)}
         onClick={go}
-        className="rounded-lg bg-gold px-4 py-2 text-xs font-semibold text-base hover:bg-gold-dim disabled:opacity-40"
+        className="rounded-lg bg-accent px-4 py-2 text-xs font-semibold text-on-accent hover:bg-accent-hover disabled:opacity-40"
       >
         {busy ? "Redirecting…" : "Complete payment"}
       </button>

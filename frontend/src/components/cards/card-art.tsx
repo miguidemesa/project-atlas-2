@@ -97,10 +97,10 @@ export function CardArt({ listing, large = false }: { listing: CardArtListing; l
         </linearGradient>
         {foil && (
           <linearGradient id={`foil-${listing.id}`} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#C6A24B" stopOpacity="0.35" />
+            <stop offset="0%" className="[stop-color:var(--color-graded)]" stopOpacity="0.35" />
             <stop offset="30%" stopColor="#EDE6D6" stopOpacity="0.18" />
             <stop offset="60%" stopColor="#8A8D93" stopOpacity="0.16" />
-            <stop offset="100%" stopColor="#C6A24B" stopOpacity="0.3" />
+            <stop offset="100%" className="[stop-color:var(--color-graded)]" stopOpacity="0.3" />
           </linearGradient>
         )}
       </defs>
@@ -127,7 +127,7 @@ export function CardArt({ listing, large = false }: { listing: CardArtListing; l
       </text>
 
       {listing.numbered && listing.serialNumber && (
-        <text x="150" y="330" textAnchor="middle" fontFamily="var(--font-jetbrains)" fontSize="13" fill="#C6A24B" letterSpacing="2">
+        <text x="150" y="330" textAnchor="middle" fontFamily="var(--font-jetbrains)" fontSize="13" className="fill-graded" letterSpacing="2">
           {listing.serialNumber}
         </text>
       )}

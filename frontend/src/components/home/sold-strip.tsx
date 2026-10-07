@@ -31,13 +31,13 @@ export function SoldStrip({ sales }: { sales: RecentSale[] }) {
                     {s.title.slice(0, 2).toUpperCase()}
                   </span>
                 )}
-                <span className="absolute inset-x-0 bottom-0 flex items-center justify-center bg-base/70 py-1 font-display text-sm tracking-wider text-gold backdrop-blur-sm">
+                <span className="absolute inset-x-0 bottom-0 flex items-center justify-center bg-base/70 py-1 font-display text-sm tracking-wider text-accent backdrop-blur-sm">
                   SOLD
                 </span>
               </div>
               <div className="space-y-1 p-3">
                 <p className="truncate text-sm font-medium text-ink">{s.title}</p>
-                <p className="font-display text-lg leading-none text-gold">{formatPeso(s.price)}</p>
+                <p className="font-display text-lg leading-none text-accent">{formatPeso(s.price)}</p>
                 <p className="text-[11px] text-ink-faint">Sold {timeAgo(s.soldAt)}</p>
               </div>
             </Link>

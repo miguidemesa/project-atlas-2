@@ -4,7 +4,7 @@ import type { SellerSummary } from "@/lib/types";
 
 export function Stars({ value }: { value: number }) {
   return (
-    <span className="text-gold" role="img" aria-label={`Rated ${value.toFixed(1)} out of 5`}>
+    <span className="text-accent" role="img" aria-label={`Rated ${value.toFixed(1)} out of 5`}>
       {"★".repeat(Math.round(value))}
       <span className="text-line-hv">{"★".repeat(5 - Math.round(value))}</span>
     </span>
@@ -17,7 +17,7 @@ export function SellerTrust({ seller }: { seller: SellerSummary }) {
       href={`/sellers/${seller.id}`}
       className="flex items-center gap-4 rounded-xl border border-line bg-elevated p-4 transition-colors hover:border-line-hv"
     >
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-raised font-display text-lg text-gold">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-raised font-display text-lg text-accent">
         {seller.displayName[0]}
       </span>
       <div className="min-w-0 flex-1">

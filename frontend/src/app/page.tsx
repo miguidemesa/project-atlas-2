@@ -20,7 +20,7 @@ function SectionHead({ title, href }: { title: string; href?: string }) {
     <div className="mb-5 flex items-end justify-between">
       <h2 className="font-display text-2xl text-ink sm:text-3xl">{title}</h2>
       {href && (
-        <Link href={href} className="group flex min-h-11 items-center gap-1 text-sm text-ink-dim transition-colors hover:text-gold">
+        <Link href={href} className="group flex min-h-11 items-center gap-1 text-sm text-ink-dim transition-colors hover:text-accent">
           View all
           <ArrowRight size={14} aria-hidden className="transition-transform group-hover:translate-x-0.5" />
         </Link>
@@ -100,7 +100,7 @@ export default async function HomePage() {
       )}
 
       <section className="mx-auto max-w-7xl px-4 pb-20 pt-16 lg:px-8" aria-labelledby="sell-cta">
-        <div className="flex flex-col items-start gap-6 rounded-xl border border-gold/25 bg-elevated px-8 py-10 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col items-start gap-6 rounded-xl border border-accent/25 bg-elevated px-8 py-10 sm:flex-row sm:items-center sm:justify-between">
           <div className="max-w-xl">
             <h2 id="sell-cta" className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">
               Have cards to sell?
@@ -111,7 +111,7 @@ export default async function HomePage() {
           </div>
           <Link
             href="/sell"
-            className="inline-flex min-h-11 flex-shrink-0 items-center rounded-lg bg-gold px-7 py-3 text-[15px] font-semibold text-base transition-colors hover:bg-gold-dim"
+            className="inline-flex min-h-11 flex-shrink-0 items-center rounded-lg bg-accent px-7 py-3 text-[15px] font-semibold text-on-accent transition-colors hover:bg-accent-hover"
           >
             Sell a card
           </Link>

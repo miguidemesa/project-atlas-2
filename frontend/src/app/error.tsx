@@ -12,7 +12,7 @@ export default function RouteError({ reset }: { error: Error & { digest?: string
       <button
         type="button"
         onClick={reset}
-        className="mt-8 min-h-11 rounded-lg bg-gold px-6 py-2.5 text-sm font-semibold text-base transition-colors hover:bg-gold-dim"
+        className="mt-8 min-h-11 rounded-lg bg-accent px-6 py-2.5 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover"
       >
         Try again
       </button>

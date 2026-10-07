@@ -61,7 +61,7 @@ export function ForYou({ categories }: { categories: CategoryInfo[] }) {
               Tuned to your browsing · ~{sharePct}% of recent activity
             </p>
           </div>
-          <a href={`/browse?category=${interest.category}`} className="text-sm text-ink-dim transition-colors hover:text-gold">
+          <a href={`/browse?category=${interest.category}`} className="text-sm text-ink-dim transition-colors hover:text-accent">
             Browse all {label}
           </a>
         </div>

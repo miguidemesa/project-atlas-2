@@ -97,7 +97,7 @@ function MessagesInner() {
       <div className="mx-auto flex min-h-[50vh] max-w-md flex-col items-center justify-center px-4 text-center">
         <h1 className="font-display text-3xl text-ink">Messages</h1>
         <p className="mt-2 text-sm text-ink-dim">Sign in to talk shop with buyers and sellers.</p>
-        <Link href="/login" className="mt-6 rounded-lg bg-gold px-6 py-2.5 text-sm font-semibold text-base hover:bg-gold-dim">
+        <Link href="/login" className="mt-6 rounded-lg bg-accent px-6 py-2.5 text-sm font-semibold text-on-accent hover:bg-accent-hover">
           Sign in
         </Link>
       </div>
@@ -133,14 +133,14 @@ function MessagesInner() {
                     className={cn(
                       "w-full rounded-xl border p-3.5 text-left transition-colors",
                       active?.userId === t.otherUserId && active?.listingId === t.listingId
-                        ? "border-gold bg-elevated"
+                        ? "border-accent bg-elevated"
                         : "border-line bg-elevated hover:border-line-hv",
                     )}
                   >
                     <div className="flex items-baseline justify-between gap-2">
                       <span className="truncate font-medium text-ink">{t.otherName}</span>
                       {t.unread > 0 && (
-                        <span className="rounded-full bg-gold px-1.5 text-[10px] font-bold text-base">{t.unread}</span>
+                        <span className="rounded-full bg-accent px-1.5 text-[10px] font-bold text-on-accent">{t.unread}</span>
                       )}
                     </div>
                     {t.listingTitle && (
@@ -201,7 +201,7 @@ function MessagesInner() {
                       className={cn(
                         "max-w-[75%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
                         m.mine
-                          ? "bg-gold/15 text-ink rounded-br-sm"
+                          ? "bg-accent/15 text-on-accent rounded-br-sm"
                           : "bg-raised text-ink rounded-bl-sm",
                       )}
                     >
@@ -219,13 +219,13 @@ function MessagesInner() {
                   onChange={(e) => setDraft(e.target.value)}
                   placeholder="Write a message…"
                   aria-label="Message"
-                  className="flex-1 rounded-lg border border-line bg-base px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:border-gold focus:outline-none"
+                  className="flex-1 rounded-lg border border-line bg-base px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none"
                 />
                 <button
                   type="submit"
                   disabled={!draft.trim()}
                   aria-label="Send message"
-                  className="rounded-lg bg-gold px-4 py-2.5 text-base font-semibold text-base hover:bg-gold-dim disabled:opacity-40"
+                  className="rounded-lg bg-accent px-4 py-2.5 text-on-accent font-semibold text-on-accent hover:bg-accent-hover disabled:opacity-40"
                 >
                   <Send size={16} />
                 </button>
@@ -260,15 +260,15 @@ function OfferChatCard({
   const canAct = !mine;
 
   return (
-    <div className="w-full max-w-[85%] rounded-xl border border-gold/50 bg-gold/5 p-4">
+    <div className="w-full max-w-[85%] rounded-xl border border-accent/50 bg-accent/5 p-4">
       <div className="flex items-center justify-between gap-3">
-        <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-gold">Offer</span>
-        <span className="font-display text-2xl leading-none text-gold">
+        <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-accent">Offer</span>
+        <span className="font-display text-2xl leading-none text-accent">
           {formatPeso(payload.amount)}
         </span>
       </div>
       {canAct && (
-        <div className="mt-3 border-t border-gold/25 pt-3">
+        <div className="mt-3 border-t border-accent/25 pt-3">
           <OfferActions
             offer={{
               id: payload.offerId,

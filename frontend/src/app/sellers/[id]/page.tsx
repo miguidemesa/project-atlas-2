@@ -21,7 +21,7 @@ export default async function SellerPage({ params }: { params: Promise<{ id: str
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 lg:px-8">
       <header className="flex flex-col gap-6 border-b border-line pb-10 sm:flex-row sm:items-center">
-        <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border border-line bg-elevated font-display text-3xl text-gold shadow-card">
+        <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border border-line bg-elevated font-display text-3xl text-accent shadow-card">
           {seller.displayName[0]}
         </span>
 
@@ -50,7 +50,7 @@ export default async function SellerPage({ params }: { params: Promise<{ id: str
         <div className="sm:ml-auto">
           <a
             href={`/messages?to=${seller.id}&name=${encodeURIComponent(seller.displayName)}`}
-            className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-gold px-5 py-2.5 text-sm font-semibold text-base transition-colors hover:bg-gold-dim"
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover"
           >
             Message seller
           </a>

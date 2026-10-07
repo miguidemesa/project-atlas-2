@@ -143,7 +143,7 @@ export function BidBox({ listingId, price, format, bidCount, endsAt }: Props) {
         <div className="flex items-end justify-between">
           <div>
             <p className="text-xs uppercase tracking-wider text-ink-faint">Current bid</p>
-            <p className="font-display text-4xl text-gold">{formatPeso(price)}</p>
+            <p className="font-display text-4xl text-accent">{formatPeso(price)}</p>
           </div>
           <div className="text-right">
             {endsAt && <Countdown endsAt={endsAt} />}
@@ -159,11 +159,11 @@ export function BidBox({ listingId, price, format, bidCount, endsAt }: Props) {
           <>
             <div className="flex gap-2" aria-label="Quick bid increments">
               {[500, 1000].map((s) => (
-                <button key={s} type="button" onClick={() => quick(s)} className="rounded-lg border border-line px-3 py-2 font-mono text-xs text-ink-dim transition-colors hover:border-gold hover:text-gold">
+                <button key={s} type="button" onClick={() => quick(s)} className="rounded-lg border border-line px-3 py-2 font-mono text-xs text-ink-dim transition-colors hover:border-accent hover:text-accent">
                   +{formatPeso(s)}
                 </button>
               ))}
-              <button type="button" onClick={() => quick("pct5")} className="rounded-lg border border-line px-3 py-2 font-mono text-xs text-ink-dim transition-colors hover:border-gold hover:text-gold">
+              <button type="button" onClick={() => quick("pct5")} className="rounded-lg border border-line px-3 py-2 font-mono text-xs text-ink-dim transition-colors hover:border-accent hover:text-accent">
                 +5%
               </button>
             </div>
@@ -175,13 +175,13 @@ export function BidBox({ listingId, price, format, bidCount, endsAt }: Props) {
                 inputMode="numeric"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ""))}
-                className="w-full rounded-lg border border-line bg-elevated px-4 py-3 font-mono tabular-nums text-ink focus:border-gold focus:outline-none"
+                className="w-full rounded-lg border border-line bg-elevated px-4 py-3 font-mono tabular-nums text-ink focus:border-accent focus:outline-none"
                 aria-describedby="bid-help"
               />
               <button
                 type="submit"
                 disabled={Number(amount) <= price || bidBusy}
-                className="flex items-center gap-2 rounded-lg bg-gold px-6 py-3 font-semibold whitespace-nowrap text-base transition-colors hover:bg-gold-dim disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex items-center gap-2 rounded-lg bg-accent px-6 py-3 font-semibold whitespace-nowrap text-on-accent transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <Gavel size={16} />
                 {bidBusy ? "Placing…" : "Place bid"}
@@ -201,7 +201,7 @@ export function BidBox({ listingId, price, format, bidCount, endsAt }: Props) {
     <div className="space-y-4">
       <div>
         <p className="text-xs uppercase tracking-wider text-ink-faint">Price</p>
-        <p className="font-display text-4xl text-gold">{formatPeso(price)}</p>
+        <p className="font-display text-4xl text-accent">{formatPeso(price)}</p>
       </div>
 
       {done ? (
@@ -227,12 +227,12 @@ export function BidBox({ listingId, price, format, bidCount, endsAt }: Props) {
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             placeholder="Street, barangay, city, province, ZIP"
-            className="w-full rounded-lg border border-line bg-base px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:border-gold focus:outline-none"
+            className="w-full rounded-lg border border-line bg-base px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none"
           />
           {buyError && <p role="alert" className="mt-2 text-xs text-urgent">{buyError}</p>}
           {ptsBalance >= 100 && (
             <label className="mt-2 flex cursor-pointer items-center gap-2 text-xs text-ink-dim">
-              <input type="checkbox" checked={usePts} onChange={(e) => setUsePts(e.target.checked)} className="h-3.5 w-3.5 accent-gold" />
+              <input type="checkbox" checked={usePts} onChange={(e) => setUsePts(e.target.checked)} className="h-3.5 w-3.5 accent-accent" />
               Use ⭐ points — save {formatPeso(maxRedeemable(ptsBalance, price))}
             </label>
           )}
@@ -240,7 +240,7 @@ export function BidBox({ listingId, price, format, bidCount, endsAt }: Props) {
             <button type="button" disabled={checkoutStage === "paying"} onClick={() => setCheckoutStage("idle")} className="rounded-lg border border-line px-4 py-2.5 text-sm text-ink-dim hover:text-ink disabled:opacity-50">
               Cancel
             </button>
-            <button type="submit" disabled={checkoutStage === "paying"} className="flex-1 rounded-lg bg-gold py-2.5 text-sm font-semibold text-base hover:bg-gold-dim disabled:opacity-50">
+            <button type="submit" disabled={checkoutStage === "paying"} className="flex-1 rounded-lg bg-accent py-2.5 text-sm font-semibold text-on-accent hover:bg-accent-hover disabled:opacity-50">
               {checkoutStage === "paying" ? "Processing…" : orderId ? "Try payment again" : "Confirm & pay"} {formatPeso(price - (usePts ? maxRedeemable(ptsBalance, price) : 0))}
             </button>
           </div>
@@ -255,7 +255,7 @@ export function BidBox({ listingId, price, format, bidCount, endsAt }: Props) {
             }
             setCheckoutStage("address");
           }}
-          className="w-full rounded-lg bg-gold py-3.5 font-semibold text-base shadow-card transition-all hover:bg-gold-dim active:scale-[0.99]"
+          className="w-full rounded-lg bg-accent py-3.5 font-semibold text-on-accent shadow-card transition-all hover:bg-accent-hover active:scale-[0.99]"
         >
           Buy now
         </button>
@@ -280,7 +280,7 @@ export function BidBox({ listingId, price, format, bidCount, endsAt }: Props) {
             }
             setOfferStage(offerStage === "form" ? "idle" : "form");
           }}
-          className="text-xs font-medium text-ink-dim transition-colors hover:text-gold"
+          className="text-xs font-medium text-ink-dim transition-colors hover:text-accent"
         >
           or make an offer
         </button>
@@ -299,7 +299,7 @@ export function BidBox({ listingId, price, format, bidCount, endsAt }: Props) {
                   className={cn(
                     "rounded-lg border px-3 py-1.5 font-mono text-xs transition-colors",
                     Number(offerAmount) === v
-                      ? "border-gold text-gold"
+                      ? "border-accent text-accent"
                       : "border-line text-ink-dim hover:border-line-hv hover:text-ink",
                   )}
                 >
@@ -313,7 +313,7 @@ export function BidBox({ listingId, price, format, bidCount, endsAt }: Props) {
               value={offerAmount}
               onChange={(e) => setOfferAmount(e.target.value.replace(/[^0-9]/g, ""))}
               aria-label="Your offer in pesos"
-              className="min-w-0 flex-1 rounded-lg border border-line bg-base px-3 py-1.5 font-mono text-xs tabular-nums text-ink focus:border-gold focus:outline-none"
+              className="min-w-0 flex-1 rounded-lg border border-line bg-base px-3 py-1.5 font-mono text-xs tabular-nums text-ink focus:border-accent focus:outline-none"
             />
           </div>
           {buyError && <p role="alert" className="text-xs text-urgent">{buyError}</p>}
@@ -333,7 +333,7 @@ export function BidBox({ listingId, price, format, bidCount, endsAt }: Props) {
                 }
                 setOfferStage("sent");
               }}
-              className="flex-1 rounded-lg border border-gold px-4 py-2 text-sm font-semibold text-gold transition-colors hover:bg-gold hover:text-base disabled:opacity-40"
+              className="flex-1 rounded-lg border border-accent px-4 py-2 text-sm font-semibold text-accent transition-colors hover:bg-accent hover:text-base disabled:opacity-40"
             >
               Send offer
             </button>
@@ -348,7 +348,7 @@ export function BidBox({ listingId, price, format, bidCount, endsAt }: Props) {
       )}
 
       <p className="flex items-center gap-1.5 text-xs text-ink-faint">
-        <ShieldCheck size={14} className="text-gold" /> Funds held in escrow until you confirm delivery.
+        <ShieldCheck size={14} className="text-accent" /> Funds held in escrow until you confirm delivery.
       </p>
     </div>
   );

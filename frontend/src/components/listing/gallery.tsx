@@ -44,8 +44,8 @@ export function Gallery({ listing }: { listing: Listing }) {
               aria-pressed={i === active}
               onClick={() => setActive(i)}
               className={cn(
-                "relative h-20 w-16 min-h-11 min-w-11 overflow-hidden rounded-lg border bg-elevated transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold",
-                i === active ? "border-gold" : "border-line hover:border-line-hv",
+                "relative h-20 w-16 min-h-11 min-w-11 overflow-hidden rounded-lg border bg-elevated transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+                i === active ? "border-accent" : "border-line hover:border-line-hv",
               )}
             >
               <Image src={src} alt="" fill sizes="64px" className="object-contain" />

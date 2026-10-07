@@ -61,7 +61,7 @@ export function TiltCard({
         style={{
           background:
             tier === "slab"
-              ? "linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.14) 45%, rgba(198,162,75,0.10) 55%, transparent 70%)"
+              ? "linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.14) 45%, rgba(230,197,127,0.10) 55%, transparent 70%)"
               : "linear-gradient(115deg, transparent 35%, rgba(237,230,214,0.12) 50%, transparent 65%)",
           backgroundSize: "220% 220%",
           backgroundPosition: "calc(var(--spot-x, 50%) - 60%) calc(var(--spot-y, 50%) - 60%)",

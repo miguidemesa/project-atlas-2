@@ -20,7 +20,7 @@ const CONDITION_CHIP: Record<string, string> = {
 export function conditionChip(listing: Listing): { label: string; cls: string } | null {
   if (listing.graded && listing.gradingCompany) {
     const label = [listing.gradingCompany, listing.gradeValue].filter(Boolean).join(" ");
-    return { label, cls: "text-gold border-gold/55 bg-gold/10" };
+    return { label, cls: "text-accent border-accent/55 bg-accent/10" };
   }
   if (!listing.condition) return null;
   return { label: listing.condition, cls: CONDITION_CHIP[listing.condition] ?? "text-ink-dim border-line-hv" };
