@@ -29,7 +29,7 @@ export function pushRecent(listing: Listing) {
       player: listing.player,
       category: listing.category,
       price: listing.currentBid ?? listing.price,
-      imageUrl: listing.imageUrl,
+      imageUrl: listing.imageUrl ?? undefined,
       at: Date.now(),
     });
     window.localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, MAX_RECENT)));

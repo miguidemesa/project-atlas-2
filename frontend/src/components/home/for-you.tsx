@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Reveal } from "@/components/motion/reveal";
 import { ListingCard } from "@/components/cards/listing-card";
-import { fetchFeed } from "@/lib/api";
+import { loadFeed } from "@/lib/api";
 import { categoryName } from "@/lib/categories";
 import type { CategoryInfo, Listing } from "@/lib/types";
 import { emptyScores, getAffinity, personalRelevance, topCategory } from "@/lib/affinity";
@@ -21,7 +21,7 @@ export function ForYou({ categories }: { categories: CategoryInfo[] }) {
   // read after hydration only — localStorage is unavailable during SSR
   const { data } = useQuery({
     queryKey: ["feed", "for-you"],
-    queryFn: () => fetchFeed(),
+    queryFn: () => loadFeed({ pageSize: 30 }).then((page) => page.items),
     staleTime: 60_000,
     enabled: hydrated,
   });

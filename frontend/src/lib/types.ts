@@ -81,64 +81,44 @@ export interface SellerPage {
 export type ListingType = "single_card" | "lot" | "hobby_box" | "accessory";
 export type ListingFormat = "fixed" | "auction";
 
-export interface Seller {
-  id: string;
-  handle: string;
-  displayName: string;
-  ratingAvg: number;
-  ratingCount: number;
-  soldCount: number;
-  joinedYear: number;
-  verified: boolean;
-}
-
 export interface PricePoint {
   date: string;
   price: number;
 }
 
+/** Mirrors the API's ListingDto. Fields the API can return as null are nullable here. */
 export interface Listing {
   id: string;
-  imageUrl?: string;
   category: Category;
   title: string;
+  /** The player on a sports card; the card or character name for every other game. */
   player: string;
-  team: string;
-  year: number;
+  team?: string | null;
+  year?: number | null;
   set: string;
-  parallel?: string;
+  cardNumber?: string | null;
+  language: string;
+  parallel?: string | null;
   numbered?: boolean;
-  serialNumber?: string;
+  serialNumber?: string | null;
   graded?: boolean;
-  gradingCompany?: string;
-  gradeValue?: string;
-  condition?: string;
+  gradingCompany?: string | null;
+  gradeValue?: string | null;
+  condition?: string | null;
+  description?: string | null;
+  imageUrl?: string | null;
+  photos: string[];
+  sellerId: string;
+  sellerName: string;
+  price: number;
+  currentBid?: number | null;
+  bidCount?: number | null;
+  endsAt?: string | null;
   type: ListingType;
   format: ListingFormat;
-  price: number;
-  previousPrice?: number;
-  currentBid?: number;
-  bidCount?: number;
-  endsAt?: string;
-  views?: number;
-  watchers?: number;
-  status?: string;
+  status: string;
+  views: number;
   createdAt: string;
-  updatedAt?: string;
-  sellerId: string;
-  dealScore?: DealScore;
-  description?: string;
-  cardNumber?: string | null;
-  language?: string;
-  sellerName?: string;
-  photos?: string[];
-}
-
-export interface MarketMover {
-  player: string;
-  team: string;
-  category?: Category;
-  changePct: number;
-  medianPrice: number;
-  salesCount: number;
+  updatedAt: string;
+  dealScore?: DealScore | null;
 }

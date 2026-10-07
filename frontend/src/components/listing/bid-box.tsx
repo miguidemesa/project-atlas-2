@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Gavel, Heart, ShieldCheck } from "lucide-react";
+import { Check, Gavel, ShieldCheck } from "lucide-react";
 import { Countdown } from "@/components/ui/countdown";
 import { useAuth } from "@/lib/auth";
 import { createOrder, makeOffer, maxRedeemable, payOrder as payOrderApi, placeBid, fetchMyRewards } from "@/lib/api";
@@ -12,15 +12,12 @@ import { cn } from "@/lib/cn";
 interface Props {
   listingId: string;
   price: number;
-  previousPrice?: number;
   format: "fixed" | "auction";
   bidCount?: number;
   endsAt?: string;
-  watchers: number;
 }
 
-export function BidBox({ listingId, price, previousPrice, format, bidCount, endsAt, watchers }: Props) {
-  const [watching, setWatching] = useState(false);
+export function BidBox({ listingId, price, format, bidCount, endsAt }: Props) {
   const [done, setDone] = useState(false);
   const [checkoutStage, setCheckoutStage] = useState<"idle" | "address" | "paying">("idle");
   const [address, setAddress] = useState("");
@@ -96,8 +93,6 @@ export function BidBox({ listingId, price, previousPrice, format, bidCount, ends
     setCheckoutStage("idle");
   }
 
-  const change = previousPrice ? ((price - previousPrice) / previousPrice) * 100 : 0;
-
   if (format === "auction") {
     return (
       <div className="space-y-4">
@@ -160,30 +155,10 @@ export function BidBox({ listingId, price, previousPrice, format, bidCount, ends
 
   return (
     <div className="space-y-4">
-      <div className="flex items-end justify-between">
-        <div>
-          <p className="text-xs uppercase tracking-wider text-ink-faint">Price</p>
-          <p className="font-display text-4xl text-gold">{formatPeso(price)}</p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setWatching(!watching)}
-          aria-pressed={watching}
-          className={cn(
-            "flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors",
-            watching ? "border-gold text-gold" : "border-line text-ink-dim hover:border-line-hv hover:text-ink",
-          )}
-        >
-          <Heart size={14} className={cn(watching && "fill-gold")} />
-          {watching ? "Watching" : `Watch · ${watchers}`}
-        </button>
+      <div>
+        <p className="text-xs uppercase tracking-wider text-ink-faint">Price</p>
+        <p className="font-display text-4xl text-gold">{formatPeso(price)}</p>
       </div>
-
-      {previousPrice && Math.abs(change) >= 1 && (
-        <p className={cn("font-mono text-xs", change > 0 ? "text-confirmed" : "text-urgent")}>
-          {change > 0 ? "▲" : "▼"} {Math.abs(change).toFixed(1)}% vs last sale
-        </p>
-      )}
 
       {done ? (
         <p role="status" className="flex items-center gap-2 rounded-lg border border-confirmed/40 bg-confirmed/10 px-4 py-3 text-sm font-medium text-confirmed">

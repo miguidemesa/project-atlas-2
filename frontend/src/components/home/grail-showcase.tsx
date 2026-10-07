@@ -3,11 +3,12 @@
 import { useEffect, useRef } from "react";
 import { CardImage } from "@/components/cards/card-image";
 import { TiltCard, tierFor } from "@/components/cards/tilt-card";
+import { cardSubtitle } from "@/lib/format";
 import type { Listing } from "@/lib/types";
 
 const STEPS = [
-  { title: "See the full market.", body: "Every listing carries its 90-day price history — medians, momentum, recent sales. No guesswork." },
-  { title: "Bid with the median in sight.", body: "Quick-increment bidding against real comps, not hype. The chart is always one glance away." },
+  { title: "Real sellers, real cards.", body: "Every listing comes from a seller with a public profile, photos and a track record that builds with each order." },
+  { title: "Prices that follow real sales.", body: "Deal badges compare a price with paid sales on Atlas, and show up once enough sales have been recorded." },
   { title: "Escrow-protected, every time.", body: "Funds release only when you confirm delivery in hand. Both sides stay honest." },
 ];
 
@@ -104,8 +105,8 @@ export function GrailShowcase({ listing }: { listing: Listing }) {
             </TiltCard>
             <p className="mt-4 text-center font-display text-xl text-ink">{listing.player}</p>
             <p className="text-center font-mono text-xs text-ink-faint">
-              {listing.year} · {listing.set}
-              {listing.gradingCompany ? ` · ${listing.gradingCompany} ${listing.gradeValue}` : ""}
+              {cardSubtitle(listing)}
+              {listing.gradingCompany ? ` · ${[listing.gradingCompany, listing.gradeValue].filter(Boolean).join(" ")}` : ""}
             </p>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { fetchFeed } from "@/lib/api";
+import { loadFeed } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -11,15 +11,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   try {
-    const listings = await fetchFeed();
-    return [
-      ...staticRoutes,
-      ...listings.map((l) => ({
-        url: `${base}/listing/${l.id}`,
-        lastModified: new Date(l.updatedAt ?? l.createdAt),
-      })),
-    ];
+    const { items } = await loadFeed({ pageSize: 60 });
+    return [...staticRoutes, ...items.map((l) => ({ url: `${base}/listing/${l.id}`, lastModified: new Date(l.updatedAt) }))];
   } catch {
-    return staticRoutes;
+    return staticRoutes; // the sitemap stays valid while the API is down
   }
 }

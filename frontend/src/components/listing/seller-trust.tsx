@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { BadgeCheck } from "lucide-react";
-import type { Seller } from "@/lib/types";
+import type { SellerSummary } from "@/lib/types";
 
-function Stars({ value }: { value: number }) {
+export function Stars({ value }: { value: number }) {
   return (
     <span className="text-gold" role="img" aria-label={`Rated ${value} out of 5`}>
       {"★".repeat(Math.round(value))}
@@ -11,7 +11,7 @@ function Stars({ value }: { value: number }) {
   );
 }
 
-export function SellerTrust({ seller }: { seller: Seller }) {
+export function SellerTrust({ seller }: { seller: SellerSummary }) {
   return (
     <Link
       href={`/sellers/${seller.id}`}
@@ -26,9 +26,19 @@ export function SellerTrust({ seller }: { seller: Seller }) {
           {seller.verified && <BadgeCheck size={15} className="shrink-0 text-fixed" aria-label="Verified seller" />}
         </p>
         <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-ink-dim">
-          <Stars value={seller.ratingAvg} />
-          <span className="font-mono">{seller.ratingAvg.toFixed(1)}</span>
-          <span>· {seller.soldCount} sold · since {seller.joinedYear}</span>
+          {seller.ratingAvg === null ? (
+            <span>No reviews yet</span>
+          ) : (
+            <>
+              <Stars value={seller.ratingAvg} />
+              <span className="font-mono">
+                {seller.ratingAvg.toFixed(1)} ({seller.ratingCount})
+              </span>
+            </>
+          )}
+          <span>
+            · {seller.soldCount} sold · since {seller.joinedYear}
+          </span>
         </p>
       </div>
     </Link>

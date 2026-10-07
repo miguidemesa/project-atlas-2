@@ -6,7 +6,7 @@ import { Search } from "lucide-react";
 import { CountUp } from "@/components/ui/count-up";
 import type { CategoryInfo } from "@/lib/types";
 
-export function HeroSearch({ listingCount, categories }: { listingCount: number; categories: CategoryInfo[] }) {
+export function HeroSearch({ listingCount, categories }: { listingCount?: number; categories: CategoryInfo[] }) {
   const [q, setQ] = useState("");
   const router = useRouter();
   const chips: [string, string][] = [
@@ -61,9 +61,11 @@ export function HeroSearch({ listingCount, categories }: { listingCount: number;
         ))}
       </div>
 
-      <p className="mt-6 font-mono text-xs text-ink-faint">
-        <CountUp value={listingCount} /> live listings
-      </p>
+      {listingCount !== undefined && (
+        <p className="mt-6 font-mono text-xs text-ink-faint">
+          <CountUp value={listingCount} /> live listings
+        </p>
+      )}
     </div>
   );
 }
