@@ -53,9 +53,9 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
     row("Listed", new Date(listing.createdAt).toLocaleDateString("en-PH", { month: "short", day: "numeric" })),
   ];
 
-  const related = (await loadFeed({ category: listing.category, pageSize: 5 })).items
-    .filter((l) => l.id !== listing.id)
-    .slice(0, 4);
+  // a failed related-listings call hides the section instead of failing the page
+  const relatedPage = await loadFeed({ category: listing.category, pageSize: 5 }).catch(() => null);
+  const related = (relatedPage?.items ?? []).filter((l) => l.id !== listing.id).slice(0, 4);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-8">
@@ -124,7 +124,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
           {history.length >= 3 && (
             <div className="rounded-xl border border-line bg-elevated p-5 shadow-card">
               <PriceChart history={history} />
-              <p className="mt-3 font-mono text-[11px] text-ink-faint">Seed market data — illustrative, not live quotes.</p>
+              <p className="mt-3 font-mono text-[11px] text-ink-faint">Paid sales on Atlas.</p>
             </div>
           )}
 

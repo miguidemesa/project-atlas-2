@@ -4,7 +4,7 @@ import type { SellerSummary } from "@/lib/types";
 
 export function Stars({ value }: { value: number }) {
   return (
-    <span className="text-gold" role="img" aria-label={`Rated ${value} out of 5`}>
+    <span className="text-gold" role="img" aria-label={`Rated ${value.toFixed(1)} out of 5`}>
       {"★".repeat(Math.round(value))}
       <span className="text-line-hv">{"★".repeat(5 - Math.round(value))}</span>
     </span>

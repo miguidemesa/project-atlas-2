@@ -15,7 +15,7 @@ export function CardImage({ listing, large = false, eager = false }: { listing: 
         fill
         sizes={large ? "(min-width: 1024px) 40vw, 100vw" : "(min-width: 640px) 240px, 50vw"}
         priority={eager}
-        className="object-cover"
+        className="bg-elevated object-contain"
       />
     );
   }

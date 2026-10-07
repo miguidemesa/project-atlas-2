@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { apiGet, apiGetOrNull, apiUrl } from "./http";
 import type { Category, CategoryInfo, Listing, ListingDetail, ListingType, Paged, SellerPage, Storefront } from "./types";
 
@@ -45,8 +46,10 @@ export const loadStorefront = (category?: string) =>
 
 export const loadCategories = () => apiGet<CategoryInfo[]>("/categories");
 
-export const loadListing = (id: string) =>
-  apiGetOrNull<ListingDetail>(`/listings/${encodeURIComponent(id)}`, { cache: "no-store" });
+/** Cached per request so generateMetadata and the page share one call. */
+export const loadListing = cache((id: string) =>
+  apiGetOrNull<ListingDetail>(`/listings/${encodeURIComponent(id)}`, { cache: "no-store" }),
+);
 
 export const loadSeller = (id: string) => apiGetOrNull<SellerPage>(`/sellers/${encodeURIComponent(id)}`);
 
