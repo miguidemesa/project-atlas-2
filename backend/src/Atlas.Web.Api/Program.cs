@@ -18,6 +18,9 @@ var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>
 
 builder.Services.AddControllers();
 builder.Services.AddScoped<Atlas.Web.Api.Listings.ListingDtoBuilder>();
+builder.Services.AddScoped<Atlas.Web.Api.Listings.StorefrontService>();
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddHealthChecks();
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>

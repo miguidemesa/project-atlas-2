@@ -232,27 +232,6 @@ public class ListingsController(
     private Guid? CurrentUserId() =>
         Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub"), out var id) ? id : null;
 
-    [HttpGet("sold/recent")]
-    public async Task<IActionResult> RecentlySold([FromQuery] int limit = 6, CancellationToken ct = default)
-    {
-        limit = Math.Clamp(limit, 1, 12);
-        var items = await db.Listings.AsNoTracking()
-            .Where(l => l.Status == ListingStatus.Sold)
-            .OrderByDescending(l => l.UpdatedAt)
-            .Take(limit)
-            .ToListAsync(ct);
-        return Ok(new { data = items.Select(l => new
-        {
-            id = l.Id,
-            title = l.Title,
-            player = l.Player,
-            category = l.Category,
-            price = l.Price,
-            imageUrl = l.ImageUrl,
-            soldAt = l.UpdatedAt,
-        }) });
-    }
-
     [Authorize]
     [HttpPost("{id:guid}/sold")]
     public async Task<IActionResult> MarkSold(Guid id, CancellationToken ct)
