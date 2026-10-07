@@ -124,7 +124,8 @@ export function BrowseClient({ initial, categories }: { initial: ListingQuery; c
     enabled: parseSettled,
   });
 
-  const results = feed.data?.pages.flatMap((p) => p.items) ?? [];
+  // a new listing can push an item onto the next page too; keep the first copy
+  const results = [...new Map((feed.data?.pages.flatMap((p) => p.items) ?? []).map((l) => [l.id, l] as const)).values()];
   const total = feed.data?.pages[0]?.total ?? 0;
   const activeCount = [format, type, graded, language, minPrice, maxPrice].filter(Boolean).length;
 

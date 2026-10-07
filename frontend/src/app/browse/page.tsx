@@ -22,7 +22,7 @@ export default async function BrowsePage({ searchParams }: { searchParams: Promi
           <p className="mt-2 text-sm text-ink-dim">Every price in Philippine pesos. Real listings from real sellers.</p>
         </div>
       </header>
-      <BrowseClient initial={initial} categories={categories} />
+      <BrowseClient key={JSON.stringify(initial)} initial={initial} categories={categories} />
     </div>
   );
 }

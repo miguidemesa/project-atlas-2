@@ -62,13 +62,13 @@ public sealed class StorefrontService(AtlasDbContext db, ListingDtoBuilder dtos,
             .Where(o => o.PaidAt != null && o.Status != OrderStatus.Cancelled && o.Status != OrderStatus.Refunded)
             .Join(db.Listings.AsNoTracking(), o => o.ListingId, l => l.Id, (o, l) => new { o, l })
             .Where(x => category == null || x.l.Category == category)
-            .OrderByDescending(x => x.o.PaidAt)
+            .OrderByDescending(x => x.o.PaidAt).ThenBy(x => x.o.Id)
             .Take(Shelf)
             .Select(x => new RecentSaleDto(x.l.Id, x.l.Title, x.l.Category, x.o.Price, x.o.PaidAt!.Value, x.l.ImageUrl))
             .ToListAsync(ct);
 
         List<SetSummaryDto> sets = category is null ? [] : (await scoped
-                .Where(l => l.Type != ListingType.Accessory)
+                .Where(l => l.Type != ListingType.Accessory && l.Set != null && l.Set.Trim() != "") // no blank-named sets
                 .GroupBy(l => l.Set)
                 .Select(g => new
                 {

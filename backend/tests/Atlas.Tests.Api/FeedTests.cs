@@ -85,4 +85,21 @@ public class FeedTests(ApiFactory factory)
 
         (await FeedAsync("sort=popular&pageSize=1")).Items.Single().Id.Should().Be(listing.Id);
     }
+
+    [Fact]
+    public async Task A_Huge_Page_Number_Returns_An_Empty_Page_Not_A_Server_Error()
+    {
+        var response = await _anon.GetAsync($"/api/listings?page={int.MaxValue}&pageSize=60");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        (await response.DataAsync<PagedResult<ListingDto>>()).Items.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task A_Very_Long_Search_Phrase_Is_Accepted()
+    {
+        var response = await _anon.GetAsync($"/api/listings?q={new string('a', 5000)}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
 }

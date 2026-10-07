@@ -1,8 +1,8 @@
 # Architecture — Modular Monolith
 
-The marketplace is built as a **modular monolith**: a single deployable backend application with clean, layered boundaries, paired with a Next.js frontend. This keeps Phase 0–3 simple to build and deploy while preserving the option to extract services later.
+The marketplace is built as a **modular monolith**: a single deployable backend application with clean, layered boundaries, paired with a Next.js frontend. This keeps the marketplace simple to build and deploy while preserving the option to extract services later.
 
-The authoritative design spec lives at [`docs/superpowers/specs/2026-08-04-nba-card-marketplace-phase0-3-design.md`](docs/superpowers/specs/2026-08-04-nba-card-marketplace-phase0-3-design.md). This document is a summary — refer to the spec for decisions and ADRs.
+The visual system is in [`DESIGN.md`](DESIGN.md). The phase 0–3 spec (`docs/superpowers/specs/2026-08-04-nba-card-marketplace-phase0-3-design.md`) is history; the current roadmap (P1–P9) lives in the revamp spec. This document is a summary of the code as built.
 
 ## Backend — ASP.NET Core
 

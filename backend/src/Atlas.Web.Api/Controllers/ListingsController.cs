@@ -20,6 +20,7 @@ public class ListingsController(
     ListingDtoBuilder dtos) : ControllerBase
 {
     private const int MaxPageSize = 60;
+    private const int MaxPage = 10_000; // keeps (page - 1) * pageSize far from int overflow
 
     [HttpGet]
     public async Task<IActionResult> Feed([FromQuery] FeedQuery f, CancellationToken ct)
@@ -34,7 +35,7 @@ public class ListingsController(
             listingType = parsed;
         }
 
-        var page = Math.Max(1, f.Page);
+        var page = Math.Clamp(f.Page, 1, MaxPage);
         var pageSize = Math.Clamp(f.PageSize, 1, MaxPageSize);
         var query = db.LiveListings(DateTime.UtcNow);
 
