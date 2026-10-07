@@ -5,11 +5,11 @@ export function Footer() {
     <footer className="border-t border-line pb-24 md:pb-0">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
         <div>
-          <p className="font-display text-xl text-ink">
-            Atlas<span className="text-accent">.</span>
+          <p className="t-wordmark text-ink">
+            ATLAS
           </p>
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-ink-dim">
-            The Philippine marketplace for NBA, Pokémon, One Piece and Disney collectible cards.
+            The Philippine marketplace for every trading card game and sport, priced in pesos.
           </p>
         </div>
 

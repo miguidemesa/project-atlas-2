@@ -55,6 +55,8 @@ npm install
 npm run dev           # http://localhost:3000
 ```
 
+The UI follows `DESIGN.md` (Holo Night: night navy, holo cyan as the only action colour, Unbounded + Onest + JetBrains Mono). Components come from shadcn/ui (Radix), restyled to those tokens; add more with `npx shadcn@latest add <name>`, and use `bg-muted` for row highlights because Atlas's `accent` is the cyan.
+
 ### 4. Apply database migrations
 
 ```bash
@@ -91,13 +93,13 @@ This repo uses a set of living documents. **`CLAUDE.md` and `DESIGN.md` are auth
 | Document | Purpose |
 |---|---|
 | [`CLAUDE.md`](CLAUDE.md) | Tech stack, architecture, coding conventions, domain rules, scope |
-| [`DESIGN.md`](DESIGN.md) | Design system — colors, typography, motion, components, screens |
+| [`DESIGN.md`](DESIGN.md) | Holo Night design system: tokens, type, layout, motion, components, do's and don'ts |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Modular monolith architecture overview |
 | [`DATABASE.md`](DATABASE.md) | PostgreSQL schema overview |
 | [`API.md`](API.md) | API endpoint listing |
 
 ## Scope
 
-Built: auth (register, login, refresh), every game and sport from `GET /api/categories`, fixed-price and auction listings with photo upload, a storefront and per-game hubs, browse with filters and pagination, listing detail, seller pages with real stats, bids, orders, payments, reviews, messages and rewards points.
+Built: auth (register, login, refresh), every game and sport from `GET /api/categories`, fixed-price and auction listings with photo upload, a store home (rail, featured carousel, store tabs including Top sellers ranked by paid orders, game capsules), `/categories`, a skinned hub for every game at `/c/<slug>`, browse with filters and pagination, listing detail, seller pages with real stats, bids, orders, payments, reviews, messages and rewards points.
 
 Not built yet: logout, email verification, password reset and Google sign-in (not yet assigned to a plan). Live streaming, card grading by Atlas and shipping carrier integrations are not planned. See `CLAUDE.md` for the roadmap.
