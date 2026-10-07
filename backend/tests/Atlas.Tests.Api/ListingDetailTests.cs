@@ -1,7 +1,9 @@
 using System.Net;
 using Atlas.Domain.Pricing;
 using Atlas.Web.Api.Listings;
+using Atlas.Domain.Listings;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 
 namespace Atlas.Tests.Api;
 
@@ -55,11 +57,21 @@ public class ListingDetailTests(ApiFactory factory)
     [Fact]
     public async Task Seed_History_Is_Not_Market_Data()
     {
-        var anon = factory.CreateClient();
-        var seeded = (await (await anon.GetAsync("/api/listings?format=fixed&pageSize=60"))
-            .DataAsync<PagedResult<ListingDto>>()).Items.First(l => l.Price > 0);
+        // a fixed-price listing that really has seed history rows, so the filter is what hides them
+        Guid seededId;
+        await using (var db = factory.NewDb())
+        {
+            var keys = await db.PriceHistory.Where(h => h.Source == "seed").Select(h => h.CardIdentityKey).Distinct().ToListAsync();
+            keys.Should().NotBeEmpty();
+            var ids = keys.Select(Guid.Parse).ToList();
+            seededId = await db.Listings
+                .Where(l => ids.Contains(l.Id) && l.ListingFormat == ListingFormat.FixedPrice)
+                .Select(l => l.Id).FirstAsync();
+            (await db.PriceHistory.CountAsync(h => h.CardIdentityKey == seededId.ToString() && h.Source == "seed"))
+                .Should().BeGreaterThan(3);
+        }
 
-        var detail = await (await anon.GetAsync($"/api/listings/{seeded.Id}")).DataAsync<ListingDetailDto>();
+        var detail = await (await factory.CreateClient().GetAsync($"/api/listings/{seededId}")).DataAsync<ListingDetailDto>();
 
         detail.History.Should().BeEmpty();
         detail.Listing.DealScore.Should().BeNull();

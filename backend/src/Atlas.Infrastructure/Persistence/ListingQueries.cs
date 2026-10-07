@@ -25,7 +25,8 @@ public static class ListingQueries
 
     /// <summary>Soonest-ending auction first, in SQL, so the order holds across every page.</summary>
     public static IQueryable<Listing> OrderByEndingSoonest(this IQueryable<Listing> listings, AtlasDbContext db) =>
-        listings.OrderBy(l => db.Auctions.Where(a => a.ListingId == l.Id).Select(a => a.EndTime).First());
+        listings.OrderBy(l => db.Auctions.Where(a => a.ListingId == l.Id).Select(a => a.EndTime).First())
+            .ThenBy(l => l.Id);
 
     /// <summary>Market data only: seeded demo history is never evidence of a price.</summary>
     public static IQueryable<PriceHistory> RealSales(this IQueryable<PriceHistory> history) =>
