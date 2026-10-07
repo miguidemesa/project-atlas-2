@@ -2,12 +2,12 @@
 
 import { cloneElement, useEffect, useId, useMemo, useState, type ReactElement } from "react";
 import Link from "next/link";
-import { useForm, useWatch, type FieldErrors } from "react-hook-form";
+import { useForm, useWatch, type FieldErrors, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle2, ChevronLeft, ChevronRight, ImagePlus, Loader2, LogIn, Sparkles } from "lucide-react";
 import { CardArt, type CardArtListing } from "@/components/cards/card-art";
 import { useAuth } from "@/lib/auth";
-import { competingPriceCheck, createListing, scanCard, uploadListingPhoto } from "@/lib/api";
+import { competingPriceCheck, createListing, type CompetingResult, scanCard, uploadListingPhoto } from "@/lib/api";
 import { GROUP_LABELS } from "@/lib/categories";
 import { LANGUAGE_OPTIONS } from "@/lib/format";
 import { cn } from "@/lib/cn";
@@ -105,12 +105,20 @@ export function SellForm({ categories }: { categories: CategoryInfo[] }) {
   const [uploading, setUploading] = useState(false);
   const [photos, setPhotos] = useState<Partial<Record<PhotoSlotKey, File>>>({});
   const [scanBusy, setScanBusy] = useState(false);
-  const [competing, setCompeting] = useState<{ count: number; min: number; median: number; max: number } | null>(null);
+  const [competingResult, setCompetingResult] = useState<{ key: string; data: CompetingResult } | null>(null);
+  const [photoFailures, setPhotoFailures] = useState<Partial<Record<PhotoSlotKey, string>>>({});
+  const [retrying, setRetrying] = useState<PhotoSlotKey | null>(null);
   const [scanResult, setScanResult] = useState("");
   const [focusField, setFocusField] = useState<keyof SellValues | null>(null);
   const { user, authFetch } = useAuth();
 
   const defaults = useMemo(() => buildDefaults(categories), [categories]);
+  const sportsSlugs = useMemo(() => new Set(categories.filter((c) => c.group === "sports").map((c) => c.slug)), [categories]);
+  // isSports is derived from the chosen category, never held as separate state
+  const resolver = useMemo<Resolver<SellValues>>(
+    () => (vals, ctx, opts) => zodResolver(sellSchema)({ ...vals, isSports: sportsSlugs.has(vals.category) }, ctx, opts),
+    [sportsSlugs],
+  );
   const {
     register,
     handleSubmit,
@@ -118,8 +126,9 @@ export function SellForm({ categories }: { categories: CategoryInfo[] }) {
     setValue,
     setFocus,
     formState: { errors },
-  } = useForm<SellValues>({ resolver: zodResolver(sellSchema), defaultValues: defaults, mode: "onTouched" });
+  } = useForm<SellValues>({ resolver, defaultValues: defaults, mode: "onTouched" });
   const values = useWatch({ control }) as SellValues;
+  const isSports = sportsSlugs.has(values.category);
 
   // once a failed submit has switched the step, focus the first invalid field
   useEffect(() => {
@@ -138,19 +147,24 @@ export function SellForm({ categories }: { categories: CategoryInfo[] }) {
   );
   useEffect(() => () => Object.values(photoUrls).forEach((url) => url && URL.revokeObjectURL(url)), [photoUrls]);
 
-  // live competition check once the card is identified (needs a year until the catalog ships in P3)
-  const { player, set, year, parallel } = values;
+  // live competition check once the card is identified (needs a year until the catalog ships in P3).
+  // The result is tied to the inputs it was fetched for, so it disappears the moment any of them change.
+  // The endpoint takes no category or type, so those are part of the key only.
+  const { player, set, year, parallel, category, type } = values;
+  const competingKey = [category, type, player?.trim(), set?.trim(), year, parallel?.trim()].join("|");
+  const canCompare = Boolean(user && type === "single_card" && player?.trim() && set?.trim() && year);
   useEffect(() => {
-    if (!user || !player?.trim() || !set?.trim() || !year) return;
+    if (!canCompare) return;
     const timer = setTimeout(async () => {
       const result = await competingPriceCheck(
-        { player: player.trim(), year, set: set.trim(), parallel: parallel?.trim() || undefined },
+        { player: player.trim(), year: year!, set: set.trim(), parallel: parallel?.trim() || undefined },
         authFetch,
       );
-      setCompeting(result && result.count > 0 ? result : null);
+      setCompetingResult(result && result.count > 0 ? { key: competingKey, data: result } : null);
     }, COMPETING_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [user, authFetch, player, set, year, parallel]);
+  }, [canCompare, authFetch, player, set, year, parallel, competingKey]);
+  const competing = canCompare && competingResult?.key === competingKey ? competingResult.data : null;
 
   function setPhoto(slot: PhotoSlotKey, file: File | undefined) {
     if (!file) return;
@@ -208,28 +222,65 @@ export function SellForm({ categories }: { categories: CategoryInfo[] }) {
       return;
     }
 
-    for (const slot of PHOTO_SLOTS) {
-      const file = photos[slot.key];
-      if (!file) continue;
-      const upload = await uploadListingPhoto(result.id, file, authFetch);
-      if (!upload.ok) {
-        setSubmitError(`Listing created, but the ${slot.label.toLowerCase()} photo failed: ${upload.error}`);
-        setSubmittedId(result.id);
-        setUploading(false);
-        return;
-      }
-    }
-
-    setUploading(false);
     setSubmittedId(result.id);
+    await uploadPhotos(result.id, PHOTO_SLOTS.map((slot) => slot.key));
+    setUploading(false);
+  }
+
+  /** Tries every slot (a failure doesn't stop the rest) and records which ones failed. */
+  async function uploadPhotos(listingId: string, slots: PhotoSlotKey[]) {
+    const failures: Partial<Record<PhotoSlotKey, string>> = {};
+    for (const key of slots) {
+      const file = photos[key];
+      if (!file) continue;
+      const upload = await uploadListingPhoto(listingId, file, authFetch);
+      if (!upload.ok) failures[key] = upload.error ?? "Upload failed.";
+    }
+    setPhotoFailures((prev) => {
+      const next = { ...prev };
+      for (const key of slots) delete next[key];
+      return { ...next, ...failures };
+    });
+  }
+
+  async function retryPhoto(key: PhotoSlotKey) {
+    if (!submittedId) return;
+    setRetrying(key);
+    await uploadPhotos(submittedId, [key]);
+    setRetrying(null);
   }
 
   if (submittedId) {
+    const failed = PHOTO_SLOTS.filter((slot) => photoFailures[slot.key]);
     return (
       <div className="rounded-2xl border border-line bg-elevated p-10 text-center shadow-card">
         <CheckCircle2 size={40} className="mx-auto text-confirmed" aria-hidden />
-        <h2 className="mt-4 font-display text-2xl text-ink">Listing is live</h2>
-        {submitError && <p className="mx-auto mt-2 max-w-sm text-sm text-urgent">{submitError}</p>}
+        <h2 className="mt-4 font-display text-2xl text-ink">{failed.length ? "Listing created" : "Listing is live"}</h2>
+        {failed.length > 0 && (
+          <div role="alert" className="mx-auto mt-3 max-w-sm text-left">
+            <p className="text-sm text-urgent">
+              {failed.length === 1 ? "One photo" : `${failed.length} photos`} didn&apos;t upload. Retry them so buyers can see your card.
+            </p>
+            <ul className="mt-3 space-y-2">
+              {failed.map((slot) => (
+                <li key={slot.key} className="flex items-center justify-between gap-3 rounded-lg border border-line p-3">
+                  <span className="text-xs text-ink-dim">
+                    <span className="block text-sm font-medium text-ink">{slot.label}</span>
+                    {photoFailures[slot.key]}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => retryPhoto(slot.key)}
+                    disabled={retrying !== null}
+                    className="min-h-11 rounded-lg border border-line px-4 text-xs font-medium text-ink hover:border-gold hover:text-gold disabled:opacity-60"
+                  >
+                    {retrying === slot.key ? "Retrying…" : "Retry"}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         <Link href={`/listing/${submittedId}`} className={cn(btnPrimary, "mt-6 inline-flex")}>
           View listing
         </Link>
@@ -260,13 +311,13 @@ export function SellForm({ categories }: { categories: CategoryInfo[] }) {
     );
   }
 
-  const serial = values.isSports ? values.serialNumber?.trim() : undefined;
+  const serial = isSports ? values.serialNumber?.trim() : undefined;
   const preview: CardArtListing = {
     id: `preview-${`${values.player}-${values.set}`.toLowerCase().replace(/\s+/g, "-")}`,
     title: values.player || "Your card",
     category: values.category,
     player: values.player || "Card name",
-    team: values.isSports ? (values.team ?? null) : null,
+    team: isSports ? (values.team ?? null) : null,
     year: values.year ?? null,
     set: values.set || "Set",
     parallel: values.parallel || null,
@@ -351,9 +402,7 @@ export function SellForm({ categories }: { categories: CategoryInfo[] }) {
           <div className="mb-4 grid gap-4 sm:grid-cols-2">
             <Field label="Game or sport" error={errors.category?.message}>
               <select
-                {...register("category", {
-                  onChange: (e) => setValue("isSports", categories.find((c) => c.slug === e.target.value)?.group === "sports"),
-                })}
+                {...register("category")}
                 className={inputCls}
               >
                 {GROUPS.map((group) => (
@@ -381,18 +430,18 @@ export function SellForm({ categories }: { categories: CategoryInfo[] }) {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={values.isSports ? "Player" : "Card or character name"} error={errors.player?.message}>
-              <input {...register("player")} placeholder={values.isSports ? "e.g. Victor Wembanyama" : "e.g. Charizard ex"} className={inputCls} />
+            <Field label={isSports ? "Player" : "Card or character name"} error={errors.player?.message}>
+              <input {...register("player")} placeholder={isSports ? "e.g. Victor Wembanyama" : "e.g. Charizard ex"} className={inputCls} />
             </Field>
-            {values.isSports && (
+            {isSports && (
               <Field label="Team" error={errors.team?.message}>
                 <input {...register("team", { setValueAs: optional })} placeholder="e.g. San Antonio Spurs" className={inputCls} />
               </Field>
             )}
             <Field label="Set" error={errors.set?.message}>
-              <input {...register("set")} placeholder={values.isSports ? "Prizm, Select…" : "151, Romance Dawn…"} className={inputCls} />
+              <input {...register("set")} placeholder={isSports ? "Prizm, Select…" : "151, Romance Dawn…"} className={inputCls} />
             </Field>
-            <Field label={values.isSports ? "Year" : "Year (optional)"} error={errors.year?.message}>
+            <Field label={isSports ? "Year" : "Year (optional)"} error={errors.year?.message}>
               <input
                 {...register("year", { setValueAs: (v) => (optional(v) === undefined ? undefined : Number(v)) })}
                 inputMode="numeric"
@@ -403,18 +452,18 @@ export function SellForm({ categories }: { categories: CategoryInfo[] }) {
             <Field label="Card number (optional)" error={errors.cardNumber?.message}>
               <input
                 {...register("cardNumber", { setValueAs: optional })}
-                placeholder={values.isSports ? "#136" : "199/165, OP05-119…"}
+                placeholder={isSports ? "#136" : "199/165, OP05-119…"}
                 className={cn(inputCls, "font-mono")}
               />
             </Field>
-            <Field label={values.isSports ? "Parallel (optional)" : "Rarity or variant (optional)"} error={errors.parallel?.message}>
+            <Field label={isSports ? "Parallel (optional)" : "Rarity or variant (optional)"} error={errors.parallel?.message}>
               <input
                 {...register("parallel", { setValueAs: optional })}
-                placeholder={values.isSports ? "Silver, Gold /10…" : "SIR, Alt Art, Enchanted…"}
+                placeholder={isSports ? "Silver, Gold /10…" : "SIR, Alt Art, Enchanted…"}
                 className={inputCls}
               />
             </Field>
-            {values.isSports && (
+            {isSports && (
               <Field label="Serial (optional)" error={errors.serialNumber?.message}>
                 <input {...register("serialNumber", { setValueAs: optional })} placeholder="e.g. 07/10" className={cn(inputCls, "font-mono")} />
               </Field>
@@ -573,10 +622,10 @@ export function SellForm({ categories }: { categories: CategoryInfo[] }) {
               <div className="mt-2.5 flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() => setValue("price", competing.median, { shouldValidate: true })}
+                  onClick={() => setValue("price", Math.round(competing.median * 100) / 100, { shouldValidate: true })}
                   className="min-h-11 rounded-lg border border-line bg-base px-3 py-1.5 font-mono text-xs text-ink transition-colors hover:border-gold hover:text-gold"
                 >
-                  Match median · ₱{competing.median.toLocaleString("en-PH")}
+                  Match median · ₱{(Math.round(competing.median * 100) / 100).toLocaleString("en-PH")}
                 </button>
                 <button
                   type="button"
