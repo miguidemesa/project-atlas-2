@@ -4,7 +4,8 @@ Base URL: `http://localhost:5000` (see `NEXT_PUBLIC_API_URL`).
 
 All endpoints return JSON. Errors use [RFC 7807](https://www.rfc-editor.org/rfc/rfc7807) `ProblemDetails`.
 
-The authoritative API design lives in the design spec at [`docs/superpowers/specs/2026-08-04-nba-card-marketplace-phase0-3-design.md`](docs/superpowers/specs/2026-08-04-nba-card-marketplace-phase0-3-design.md).
+The controllers in `backend/src/Atlas.Web.Api/Controllers` define the current
+API behavior.
 
 ## Auth
 
@@ -66,4 +67,4 @@ All `/api/auth/*` endpoints are rate-limited to **10 requests/min per IP**.
 
 - Never trust the client for user ID, email verification status, or role.
 - Refresh token rotation prevents token reuse attacks.
-- All critical business decisions happen server-side (see `CLAUDE.md` domain rules).
+- All critical business decisions happen server-side.
