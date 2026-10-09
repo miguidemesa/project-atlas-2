@@ -1,39 +1,30 @@
-# Backend
-backend/**/bin/
-backend/**/obj/
-backend/**/node_modules/
-backend/**/App_Data/uploads/
-*.user
-*.suo
-
-# Frontend
-frontend/node_modules/
-frontend/.next/
-frontend/out/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-
-# Env
-.env
-.env.local
-.env.*.local
-
-# Superpowers
-.superpowers/
-
-# OS
-.DS_Store
-Thumbs.db
+# Dependencies and build output
 node_modules/
 backend/**/bin/
 backend/**/obj/
 frontend/.next/
-**/node_modules/
+frontend/out/
 
-# AI agent files — local only, never commit
+# Runtime data
+backend/**/App_Data/uploads/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Editors and OS
+.vscode/
+.idea/
+*.user
+*.suo
+*.swp
+.DS_Store
+Thumbs.db
+Library/
+.local/
+
+# AI agent files: local only
 CLAUDE.md
 AGENTS.md
 PRODUCT.md
