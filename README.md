@@ -1,4 +1,4 @@
-# NBA Card Marketplace Philippines
+# Hobby Card Marketplace Philippines
 
 A production-quality Philippine online marketplace focused on NBA / basketball trading cards. Dark-first premium UI, mobile-first responsive design.
 
@@ -28,11 +28,11 @@ docker-compose.yml  Local PostgreSQL for development
 - Node.js 24+ / npm
 - PostgreSQL 14+ (local or via docker-compose)
 
-## Getting Started
+## Local credentials
 
-### 1. Configure your environment
-
-From the repository root, generate local development credentials in your shell:
+Supply the required backend credentials through environment variables. For a new
+local PostgreSQL database, generate values in the shell used to run Docker
+Compose, the backend and migrations:
 
 ```bash
 export POSTGRES_PASSWORD="$(openssl rand -hex 24)"
@@ -40,50 +40,8 @@ export ConnectionStrings__DefaultConnection="Host=localhost;Port=5432;Database=a
 export Jwt__SecretKey="$(openssl rand -hex 32)"
 ```
 
-Keep this shell open for the database, backend and migrations commands below.
-For an existing PostgreSQL instance, use its credentials instead of generating
-another database password. Changing the environment variable does not change the
-password in an existing Docker database volume.
-
-### 2. Start the database
-
-```bash
-docker compose up -d
-# Or use an existing local PostgreSQL instance with the connection string above
-```
-
-### 3. Run the backend
-
-```bash
-cd backend
-dotnet restore
-dotnet build
-cd src/Atlas.Web.Api
-dotnet run            # http://localhost:5000
-```
-
-### 4. Run the frontend
-
-In a separate terminal, from the repository root:
-
-Without `NEXT_PUBLIC_API_URL`, the frontend starts in demo mode with sample
-listing data and backend authentication disabled.
-
-```bash
-cd frontend
-npm install
-npm run dev           # http://localhost:3000
-```
-
-### 5. Apply database migrations
-
-From the repository root in the shell containing your backend environment variables:
-
-```bash
-cd backend/src/Atlas.Web.Api
-dotnet ef database update
-# Seed data runs automatically on first launch when DB is empty + Development env
-```
+For an existing database, use its current credentials. Changing an environment
+variable does not update the password in an existing Docker database volume.
 
 ## Environment Configuration
 
@@ -109,21 +67,3 @@ Environment files, private keys and local secret files are ignored by Git and
 excluded from Docker build contexts. Keep API keys on the backend: variables
 prefixed with `NEXT_PUBLIC_` are exposed to browser code. Replace any credentials
 that have previously been committed; deleting a file does not remove old commits.
-
-## Documentation
-
-The following project documents should be kept in sync with the codebase:
-
-| Document | Purpose |
-|---|---|
-| [`DESIGN.md`](DESIGN.md) | Design system — colors, typography, motion, components, screens |
-| [`ARCHITECTURE.md`](ARCHITECTURE.md) | Modular monolith architecture overview |
-| [`DATABASE.md`](DATABASE.md) | PostgreSQL schema overview |
-| [`API.md`](API.md) | API endpoint listing for Phase 0–3 |
-
-## Scope (Phase 0–3)
-
-In scope: auth (register/login/email verification/password reset/Google OAuth), seller profiles, NBA card listings (fixed-price + auction), image upload, home/browse feed with filters and pagination, listing details, structured search, and seed data.
-
-The API reference and current implementation describe capabilities added after
-the initial Phase 0–3 scope, including bidding, orders, payments and messaging.

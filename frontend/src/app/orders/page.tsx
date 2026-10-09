@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -9,17 +8,12 @@ import { OfferActions } from "@/components/orders/offer-actions";
 import { ReviewForm } from "@/components/orders/review-form";
 import { useAuth } from "@/lib/auth";
 import {
-  acceptOffer,
   confirmDelivery,
-  counterOffer,
-  declineOffer,
   fetchMyOffers,
   fetchMyOrders,
-  postReview,
   payOrder as payOrderApi,
   fetchMyRewards,
   shipOrder,
-  type Offer,
   type Order,
 } from "@/lib/api";
 import { formatPeso } from "@/lib/format";
@@ -37,7 +31,6 @@ const STATUS_META: Record<Order["status"], { label: string; cls: string }> = {
 
 export default function OrdersPage() {
   const { user, authFetch } = useAuth();
-  const router = useRouter();
   const queryClient = useQueryClient();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState("");

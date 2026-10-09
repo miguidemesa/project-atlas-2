@@ -18,7 +18,7 @@ interface Props {
   watchers: number;
 }
 
-export function BidBox({ listingId, price, previousPrice, format, bidCount, endsAt, watchers }: Props) {
+export function BidBox({ listingId, price, previousPrice, format, bidCount, endsAt: _endsAt, watchers }: Props) {
   const [watching, setWatching] = useState(false);
   const [done, setDone] = useState(false);
   const [checkoutStage, setCheckoutStage] = useState<"idle" | "address" | "paying">("idle");
