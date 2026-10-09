@@ -2,7 +2,9 @@
 
 The application uses a single PostgreSQL database, `atlas_marketplace`, managed by Entity Framework Core migrations. All schema changes must go through an EF Core migration — never modify production schema directly.
 
-The full schema definition, indexes, and constraints live in the design spec at [`docs/superpowers/specs/2026-08-04-nba-card-marketplace-phase0-3-design.md`](docs/superpowers/specs/2026-08-04-nba-card-marketplace-phase0-3-design.md). This document summarizes the key tables.
+This document summarizes the key tables. The EF Core configurations and
+migrations in `backend/src/Atlas.Infrastructure` define the current schema,
+indexes and constraints.
 
 ## Conventions
 

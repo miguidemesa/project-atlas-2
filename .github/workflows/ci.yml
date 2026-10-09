@@ -9,6 +9,23 @@ jobs:
   backend:
     name: Build & test backend
     runs-on: ubuntu-latest
+    env:
+      ConnectionStrings__DefaultConnection: Host=localhost;Port=5432;Database=atlas_ci;Username=atlas_ci
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: atlas_ci
+          POSTGRES_DB: atlas_ci
+          # Disposable CI database; no persistent credentials.
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U atlas_ci -d atlas_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     defaults:
       run:
         working-directory: backend
@@ -24,6 +41,12 @@ jobs:
 
       - name: Build
         run: dotnet build --no-restore
+
+      - name: Configure test authentication
+        run: |
+          jwt_secret="$(openssl rand -hex 32)"
+          echo "::add-mask::$jwt_secret"
+          echo "Jwt__SecretKey=$jwt_secret" >> "$GITHUB_ENV"
 
       - name: Test
         run: dotnet test --no-build --verbosity normal

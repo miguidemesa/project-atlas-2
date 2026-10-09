@@ -2,7 +2,8 @@
 
 The marketplace is built as a **modular monolith**: a single deployable backend application with clean, layered boundaries, paired with a Next.js frontend. This keeps Phase 0–3 simple to build and deploy while preserving the option to extract services later.
 
-The authoritative design spec lives at [`docs/superpowers/specs/2026-08-04-nba-card-marketplace-phase0-3-design.md`](docs/superpowers/specs/2026-08-04-nba-card-marketplace-phase0-3-design.md). This document is a summary — refer to the spec for decisions and ADRs.
+This document summarizes the project architecture. The implementation in
+`backend/src` defines the current module boundaries and business rules.
 
 ## Backend — ASP.NET Core
 
@@ -23,7 +24,7 @@ backend/
 
 ### Layer rules
 
-- **Domain** has zero dependencies and owns the business invariants (see `CLAUDE.md` — domain rules are enforced server-side).
+- **Domain** has zero dependencies and owns the business invariants (domain rules are enforced server-side).
 - **Application** orchestrates use cases and never touches HTTP or EF Core directly.
 - **Infrastructure** implements persistence, Identity, storage, email, and token concerns.
 - **Web.Api** is the composition root — controllers stay thin, all wiring happens in `Program.cs` / DI.
