@@ -12,9 +12,9 @@ import { SectionTitle } from "@/components/ui/section-title";
 import { loadCategories, loadFeed, loadStorefront } from "@/lib/api";
 import { skinFor, skinVars } from "@/lib/categories";
 import { cn } from "@/lib/cn";
-import { LANGUAGE_OPTIONS } from "@/lib/format";
+import { LANGUAGE_OPTIONS } from "@atlas/api";
 import { HUB_TABS, hubFeedQuery, hubGame, hubHref, hubTab, type HubTab } from "@/lib/hub";
-import type { CategoryInfo, Listing, Paged, Storefront } from "@/lib/types";
+import type { CategoryInfo, Listing, Paged, Storefront } from "@atlas/api";
 
 export const dynamic = "force-dynamic";
 

@@ -3,7 +3,7 @@ import { GameLine } from "@/components/ui/game-line";
 import { busiest } from "@/lib/categories";
 import { cn } from "@/lib/cn";
 import { BUDGETS } from "@/lib/store-nav";
-import type { CategoryInfo } from "@/lib/types";
+import type { CategoryInfo } from "@atlas/api";
 
 const heading = "mb-2 px-3 font-display text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-faint";
 const row = "flex h-9 items-center justify-between gap-2 rounded-lg px-3 text-sm text-ink-soft transition-colors hover:bg-hover-wash hover:text-ink";

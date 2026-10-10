@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { CardImage } from "./card-image";
 import { TiltCard } from "./tilt-card";
-import { tierFor } from "./tilt-tier";
+import { tierFor } from "@atlas/api";
 import { DealBadge } from "./deal-badge";
 import { Countdown } from "@/components/ui/countdown";
-import { cardSubtitle, formatPeso } from "@/lib/format";
+import { cardSubtitle, formatPeso } from "@atlas/api";
 import { cn } from "@/lib/cn";
 import { GameLine } from "@/components/ui/game-line";
-import type { Listing } from "@/lib/types";
+import type { Listing } from "@atlas/api";
 
 const CONDITION_CHIP: Record<string, string> = {
   NM: "text-confirmed border-confirmed/45",

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { acceptOffer, counterOffer, declineOffer, type Offer } from "@/lib/api";
-import { formatPeso } from "@/lib/format";
+import { formatPeso } from "@atlas/api";
 
 export function OfferActions({ offer, onDone }: { offer: Offer; onDone: () => void }) {
   const { authFetch } = useAuth();

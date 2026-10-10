@@ -4,6 +4,7 @@ import type { NextConfig } from "next";
 const api = new URL(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5080");
 
 const nextConfig: NextConfig = {
+  transpilePackages: ["@atlas/api", "@atlas/tokens"],
   images: {
     remotePatterns: [
       {

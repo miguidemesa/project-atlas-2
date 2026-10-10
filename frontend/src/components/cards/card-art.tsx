@@ -1,4 +1,4 @@
-import type { Listing } from "@/lib/types";
+import type { Listing } from "@atlas/api";
 
 /** The listing fields card art reads, so previews (the sell form) can render it too. */
 export type CardArtListing = Pick<

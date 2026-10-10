@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import type { CategoryInfo } from "./types";
+import type { CategoryInfo } from "@atlas/api";
 
 const CategoriesContext = createContext<CategoryInfo[]>([]);
 

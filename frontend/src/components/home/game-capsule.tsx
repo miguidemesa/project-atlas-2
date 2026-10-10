@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { skinFor, skinVars } from "@/lib/categories";
-import type { CategoryInfo } from "@/lib/types";
+import type { CategoryInfo } from "@atlas/api";
 
 /** A game's door in its own skin: accent glow in the corner, dot pattern, name, live count, 5px colour band. */
 export function GameCapsule({ category }: { category: CategoryInfo }) {

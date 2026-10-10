@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { CardArt } from "@/components/cards/card-art";
-import type { Listing } from "@/lib/types";
+import type { Listing } from "@atlas/api";
 import { cn } from "@/lib/cn";
 
 const LABELS = ["Front photo", "Back photo", "Surface photo"];

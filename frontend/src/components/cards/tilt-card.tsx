@@ -4,9 +4,7 @@ import { useRef, useState, type CSSProperties } from "react";
 import { cn } from "@/lib/cn";
 import { usePrefersReducedMotion } from "@/lib/use-reduced-motion";
 import { tiltTransform } from "./tilt-math";
-import type { TiltTier } from "./tilt-tier";
-
-const FOIL_STRENGTH: Record<TiltTier, number> = { standard: 0.35, foil: 0.55, premium: 0.7, slab: 0.5 };
+import { FOIL_STRENGTH, type TiltTier } from "@atlas/api";
 
 /**
  * The holo tilt, Atlas's one authored motion: on fine pointers the card leans toward the

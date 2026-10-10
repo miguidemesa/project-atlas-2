@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { formatPeso } from "@/lib/format";
-import type { PricePoint } from "@/lib/types";
+import { formatPeso } from "@atlas/api";
+import type { PricePoint } from "@atlas/api";
 
 const RANGES = [
   { label: "7D", days: 7 },

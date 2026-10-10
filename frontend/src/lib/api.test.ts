@@ -1,22 +1,34 @@
-import { describe, expect, it } from "vitest";
-import { feedQuery, nextPage } from "./api";
+import { afterEach, describe, expect, it } from "vitest";
+import { loadStoredAuth, localTokenStore } from "./api";
 
-describe("feedQuery", () => {
-  it("sends only the filters that are set", () => {
-    expect(feedQuery({})).toBe("/listings?page=1&pageSize=24");
-    expect(feedQuery({ category: "pokemon", graded: true, minPrice: 500, sort: "ending" })).toBe(
-      "/listings?page=1&pageSize=24&category=pokemon&sort=ending&graded=true&minPrice=500",
+const session = {
+  tokens: { accessToken: "a2", accessTokenExpiresAt: "2026-10-05T00:15:00Z", refreshToken: "r2" },
+  user: { id: "u1", email: "ana@example.com", name: "Ana Reyes", role: "buyer" },
+};
+
+afterEach(() => window.localStorage.clear());
+
+describe("localTokenStore", () => {
+  it("reads sessions saved before the upgrade, so nobody is signed out by it", async () => {
+    window.localStorage.setItem(
+      "atlas-auth.v1",
+      JSON.stringify({ accessToken: "a1", refreshToken: "r1", expiresAt: "2026-10-05T00:00:00Z", user: session.user }),
     );
+
+    await expect(localTokenStore.getAccessToken()).resolves.toBe("a1");
+    await expect(localTokenStore.getRefreshToken()).resolves.toBe("r1");
   });
 
-  it("encodes free text", () => {
-    expect(feedQuery({ q: "100% pikachu" })).toBe("/listings?page=1&pageSize=24&q=100%25+pikachu");
-  });
-});
+  it("saves in the same shape and clears both tokens", async () => {
+    await localTokenStore.save(session);
+    expect(loadStoredAuth()).toEqual({ accessToken: "a2", refreshToken: "r2", expiresAt: "2026-10-05T00:15:00Z", user: session.user });
 
-describe("nextPage", () => {
-  it("asks for another page only while results remain", () => {
-    expect(nextPage({ items: [], total: 50, page: 1, pageSize: 24 })).toBe(2);
-    expect(nextPage({ items: [], total: 48, page: 2, pageSize: 24 })).toBeUndefined();
+    await localTokenStore.clear();
+    await expect(localTokenStore.getRefreshToken()).resolves.toBeNull();
+  });
+
+  it("treats a corrupted entry as signed out", async () => {
+    window.localStorage.setItem("atlas-auth.v1", "{not json");
+    await expect(localTokenStore.getAccessToken()).resolves.toBeNull();
   });
 });

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { CardArt } from "./card-art";
-import type { Listing } from "@/lib/types";
+import type { Listing } from "@atlas/api";
 
 /**
  * Renders a listing's real photo when present (seller upload / licensed

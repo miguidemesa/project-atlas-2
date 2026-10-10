@@ -7,13 +7,13 @@ import { Pause, Play } from "lucide-react";
 import { CardImage } from "@/components/cards/card-image";
 import { conditionChip } from "@/components/cards/listing-card";
 import { TiltCard } from "@/components/cards/tilt-card";
-import { tierFor } from "@/components/cards/tilt-tier";
+import { tierFor } from "@atlas/api";
 import { buttonPrimary } from "@/components/ui/button-styles";
 import { GameLine } from "@/components/ui/game-line";
 import { autoplays, carouselReducer, SLIDE_MS } from "@/lib/carousel";
 import { cn } from "@/lib/cn";
-import { cardSubtitle, formatPeso } from "@/lib/format";
-import type { Listing } from "@/lib/types";
+import { cardSubtitle, formatPeso } from "@atlas/api";
+import type { Listing } from "@atlas/api";
 import { usePrefersReducedMotion } from "@/lib/use-reduced-motion";
 
 /** The store's featured capsule: a 5 s carousel on the web, a swipeable track on phones. */

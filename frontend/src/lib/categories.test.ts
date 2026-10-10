@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { busiest, categoryName, gameColor, groupCategories, skinFor, skinVars } from "./categories";
-import type { CategoryInfo } from "./types";
+import type { CategoryInfo } from "@atlas/api";
 
 const category = (slug: string, activeListings: number): CategoryInfo => ({
   slug,

@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { CategoryInfo } from "./types";
+import type { CategoryInfo } from "@atlas/api";
 
 /** A game's page skin: the eleven --skin-* roles. Skins theme pages (hubs, game capsules), never the cards themselves. */
 export interface Skin {

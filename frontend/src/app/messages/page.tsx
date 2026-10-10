@@ -7,7 +7,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Send } from "lucide-react";
 import { OfferActions } from "@/components/orders/offer-actions";
 import { useAuth } from "@/lib/auth";
-import { formatPeso, timeAgo } from "@/lib/format";
+import { formatPeso, timeAgo } from "@atlas/api";
 import { cn } from "@/lib/cn";
 
 interface ThreadPreview {

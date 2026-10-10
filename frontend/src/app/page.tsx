@@ -12,7 +12,7 @@ import { SectionTitle } from "@/components/ui/section-title";
 import { loadCategories, loadStorefront } from "@/lib/api";
 import { busiest } from "@/lib/categories";
 import { storeTabs } from "@/lib/store-tabs";
-import type { CategoryInfo, Storefront } from "@/lib/types";
+import type { CategoryInfo, Storefront } from "@atlas/api";
 
 export const dynamic = "force-dynamic";
 

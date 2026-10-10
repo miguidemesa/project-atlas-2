@@ -6,7 +6,7 @@ import { ListingCard } from "@/components/cards/listing-card";
 import { SectionTitle } from "@/components/ui/section-title";
 import { loadFeed } from "@/lib/api";
 import { categoryName } from "@/lib/categories";
-import type { CategoryInfo, Listing } from "@/lib/types";
+import type { CategoryInfo, Listing } from "@atlas/api";
 import { emptyScores, getAffinity, personalRelevance, topCategory } from "@/lib/affinity";
 
 /**

@@ -1,5 +1,5 @@
 import { groupCategories } from "./categories";
-import type { CategoryInfo } from "./types";
+import type { CategoryInfo } from "@atlas/api";
 
 /** The store bar's sections. Under market joins once P3 has median prices. */
 export const STORE_LINKS = [

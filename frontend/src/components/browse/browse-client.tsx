@@ -4,11 +4,11 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { SlidersHorizontal, Sparkles, X } from "lucide-react";
 import { ListingCard } from "@/components/cards/listing-card";
-import { loadFeed, nextPage, parseSearchQuery, type ListingQuery } from "@/lib/api";
+import { loadFeed, nextPage, parseSearchQuery, queryKeys, type ListingQuery } from "@/lib/api";
 import { recordAffinityEvent } from "@/lib/affinity";
 import { busiest, categoryName } from "@/lib/categories";
-import { LANGUAGE_OPTIONS } from "@/lib/format";
-import type { CategoryInfo, ListingType } from "@/lib/types";
+import { LANGUAGE_OPTIONS } from "@atlas/api";
+import type { CategoryInfo, ListingType } from "@atlas/api";
 import { cn } from "@/lib/cn";
 
 const SORTS = [
@@ -117,7 +117,7 @@ export function BrowseClient({ initial, categories }: { initial: ListingQuery; c
   };
 
   const feed = useInfiniteQuery({
-    queryKey: ["feed", query],
+    queryKey: queryKeys.feed(query),
     queryFn: ({ pageParam }) => loadFeed({ ...query, page: pageParam }),
     initialPageParam: 1,
     getNextPageParam: nextPage,

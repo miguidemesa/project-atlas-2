@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { SectionTitle } from "@/components/ui/section-title";
-import { formatPeso } from "@/lib/format";
-import type { SetSummary } from "@/lib/types";
+import { formatPeso } from "@atlas/api";
+import type { SetSummary } from "@atlas/api";
 
 /** A game's sets with live counts and the lowest fixed price; each opens the marketplace scoped to it. */
 export function HubSets({ id, sets, category, limit, viewAll }: { id: string; sets: SetSummary[]; category: string; limit?: number; viewAll?: string }) {

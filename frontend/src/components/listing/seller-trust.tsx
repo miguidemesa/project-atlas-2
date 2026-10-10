@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { BadgeCheck } from "lucide-react";
-import type { SellerSummary } from "@/lib/types";
+import type { SellerSummary } from "@atlas/api";
 
 export function Stars({ value }: { value: number }) {
   return (

@@ -1,6 +1,6 @@
 import { ListingCard } from "@/components/cards/listing-card";
 import { SectionTitle } from "@/components/ui/section-title";
-import type { Listing } from "@/lib/types";
+import type { Listing } from "@atlas/api";
 
 /** A titled row of listings: a peeking swipe row on phones, an auto-fill grid of 172px+ tiles on the web. Hidden when empty. */
 export function Shelf({ id, title, href, listings }: { id: string; title: string; href?: string; listings: Listing[] }) {

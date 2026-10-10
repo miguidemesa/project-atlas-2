@@ -1,5 +1,5 @@
 import type { ListingQuery } from "./api";
-import type { CategoryInfo } from "./types";
+import type { CategoryInfo } from "@atlas/api";
 
 export const HUB_TABS = [
   { id: "overview", label: "Overview" },

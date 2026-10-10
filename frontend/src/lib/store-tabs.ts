@@ -1,4 +1,4 @@
-import type { Listing, Storefront, TopSeller } from "./types";
+import type { Listing, Storefront, TopSeller } from "@atlas/api";
 
 export type StoreTab =
   | { id: "trending" | "ending"; label: string; listings: Listing[] }

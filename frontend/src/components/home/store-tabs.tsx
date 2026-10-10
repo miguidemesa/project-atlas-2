@@ -8,9 +8,9 @@ import { buttonPrimary } from "@/components/ui/button-styles";
 import { GameLine } from "@/components/ui/game-line";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/cn";
-import { cardSubtitle, formatPeso } from "@/lib/format";
+import { cardSubtitle, formatPeso } from "@atlas/api";
 import type { StoreTab } from "@/lib/store-tabs";
-import type { Listing, TopSeller } from "@/lib/types";
+import type { Listing, TopSeller } from "@atlas/api";
 
 /** Store tabs (New and trending, Top sellers, Ending soon): ranked rows with a preview panel on the web. */
 export function StoreTabs({ tabs }: { tabs: StoreTab[] }) {

@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { getRecent, type RecentSnapshot } from "@/lib/recent";
-import { formatPeso } from "@/lib/format";
+import { formatPeso } from "@atlas/api";
 import { SectionTitle } from "@/components/ui/section-title";
 
 /** "Pick up where you left off" rail — device-local, hidden when empty. */

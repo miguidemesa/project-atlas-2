@@ -1,169 +1,57 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { apiUrl } from "./http";
+import { ApiError, type AuthSession, type AuthUser } from "@atlas/api";
+import { SIGNED_OUT_EVENT, loadStoredAuth, webClient } from "./api";
 
-const STORAGE_KEY = "atlas-auth.v1";
-
-export interface AuthUser {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-}
-
-interface StoredAuth {
-  accessToken: string;
-  refreshToken: string;
-  expiresAt: string;
-  user: AuthUser;
-}
+type Outcome = { ok: boolean; error?: string };
 
 interface AuthContextValue {
   user: AuthUser | null;
-  login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
-  register: (email: string, name: string, password: string) => Promise<{ ok: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<Outcome>;
+  register: (email: string, name: string, password: string) => Promise<Outcome>;
   logout: () => void;
+  /** Fetch with the signed-in person's token; @atlas/api refreshes it once on a 401 and retries once. */
   authFetch: (path: string, init?: RequestInit) => Promise<Response>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-let refreshInFlight: Promise<boolean> | null = null;
-
-function load(): StoredAuth | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as StoredAuth) : null;
-  } catch {
-    return null;
-  }
-}
-
-function save(auth: StoredAuth | null) {
-  if (typeof window === "undefined") return;
-  if (auth) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(auth));
-  else window.localStorage.removeItem(STORAGE_KEY);
-}
-
-async function rotateRefreshToken(refreshToken: string): Promise<StoredAuth | null> {
-  try {
-    const res = await fetch(apiUrl("/auth/refresh"), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refreshToken }),
-    });
-    if (!res.ok) return null;
-    const { data } = await res.json();
-    const auth: StoredAuth = {
-      accessToken: data.tokens.accessToken,
-      refreshToken: data.tokens.refreshToken,
-      expiresAt: data.tokens.accessTokenExpiresAt,
-      user: data.user,
-    };
-    save(auth);
-    return auth;
-  } catch {
-    return null;
-  }
-}
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
 
   useEffect(() => {
-    setUser(load()?.user ?? null);
+    setUser(loadStoredAuth()?.user ?? null);
+    const signedOut = () => setUser(null);
+    window.addEventListener(SIGNED_OUT_EVENT, signedOut);
+    return () => window.removeEventListener(SIGNED_OUT_EVENT, signedOut);
   }, []);
 
-  const applyAuth = useCallback((auth: StoredAuth | null) => {
-    save(auth);
-    setUser(auth?.user ?? null);
+  const start = useCallback(async (begin: () => Promise<AuthSession>): Promise<Outcome> => {
+    try {
+      setUser((await begin()).user);
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: err instanceof ApiError ? err.message : "Could not reach the server. Try again." };
+    }
   }, []);
 
   const login = useCallback(
-    async (email: string, password: string) => {
-      try {
-        const res = await fetch(apiUrl("/auth/login"), {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        });
-        const json = await res.json();
-        if (!res.ok) return { ok: false, error: json.error ?? "Sign-in failed." };
-        applyAuth({
-          accessToken: json.data.tokens.accessToken,
-          refreshToken: json.data.tokens.refreshToken,
-          expiresAt: json.data.tokens.accessTokenExpiresAt,
-          user: json.data.user,
-        });
-        return { ok: true };
-      } catch {
-        return { ok: false, error: "Could not reach the server. Try again." };
-      }
-    },
-    [applyAuth],
+    (email: string, password: string) => start(() => webClient.signIn(email, password)),
+    [start],
   );
-
   const register = useCallback(
-    async (email: string, name: string, password: string) => {
-      try {
-        const res = await fetch(apiUrl("/auth/register"), {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, name, password }),
-        });
-        const json = await res.json();
-        if (!res.ok) return { ok: false, error: json.error ?? "Registration failed." };
-        applyAuth({
-          accessToken: json.data.tokens.accessToken,
-          refreshToken: json.data.tokens.refreshToken,
-          expiresAt: json.data.tokens.accessTokenExpiresAt,
-          user: json.data.user,
-        });
-        return { ok: true };
-      } catch {
-        return { ok: false, error: "Could not reach the server. Try again." };
-      }
-    },
-    [applyAuth],
+    (email: string, name: string, password: string) => start(() => webClient.register(email, name, password)),
+    [start],
   );
-
-  const logout = useCallback(() => applyAuth(null), [applyAuth]);
-
-  /** Fetch with Bearer token; rotates the refresh token once on 401 then retries. */
-  const authFetch = useCallback(
-    async (path: string, init: RequestInit = {}): Promise<Response> => {
-      let auth = load();
-      if (!auth) throw new Error("Not signed in.");
-
-      const doFetch = (accessToken: string) =>
-        fetch(apiUrl(path), {
-          ...init,
-          headers: { ...(init.headers ?? {}), Authorization: `Bearer ${accessToken}` },
-        });
-
-      let res = await doFetch(auth.accessToken);
-      if (res.status === 401) {
-        refreshInFlight ??= rotateRefreshToken(auth.refreshToken).then((a) => a !== null).finally(() => {
-          refreshInFlight = null;
-        });
-        const refreshed = await refreshInFlight;
-        if (!refreshed) {
-          applyAuth(null);
-          throw new Error("Session expired. Please sign in again.");
-        }
-        auth = load();
-        res = await doFetch(auth!.accessToken);
-      }
-      return res;
-    },
-    [applyAuth],
-  );
+  const logout = useCallback(() => {
+    void webClient.signOut();
+    setUser(null);
+  }, []);
 
   const value = useMemo(
-    () => ({ user, login, register, logout, authFetch }),
-    [user, login, register, logout, authFetch],
+    () => ({ user, login, register, logout, authFetch: webClient.authFetch }),
+    [user, login, register, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

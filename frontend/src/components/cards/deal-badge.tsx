@@ -1,6 +1,6 @@
-import { formatPeso } from "@/lib/format";
+import { formatPeso } from "@atlas/api";
 import { cn } from "@/lib/cn";
-import type { DealScore } from "@/lib/types";
+import type { DealScore } from "@atlas/api";
 
 const STYLES: Record<DealScore["rating"], { label: string; cls: string }> = {
   great: { label: "Great deal", cls: "bg-confirmed/10 text-confirmed border-confirmed/30" },

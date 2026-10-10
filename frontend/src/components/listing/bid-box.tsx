@@ -8,7 +8,7 @@ import { Countdown } from "@/components/ui/countdown";
 import { useAuth } from "@/lib/auth";
 import { createOrder, makeOffer, maxRedeemable, payOrder as payOrderApi, placeBid, fetchMyRewards } from "@/lib/api";
 import { payOutcome } from "@/lib/checkout";
-import { formatPeso } from "@/lib/format";
+import { formatPeso } from "@atlas/api";
 import { cn } from "@/lib/cn";
 
 interface Props {

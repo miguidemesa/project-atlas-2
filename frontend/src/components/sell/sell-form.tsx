@@ -9,9 +9,9 @@ import { CardArt, type CardArtListing } from "@/components/cards/card-art";
 import { useAuth } from "@/lib/auth";
 import { competingPriceCheck, createListing, type CompetingResult, scanCard, uploadListingPhoto } from "@/lib/api";
 import { GROUP_LABELS } from "@/lib/categories";
-import { LANGUAGE_OPTIONS } from "@/lib/format";
+import { LANGUAGE_OPTIONS } from "@atlas/api";
 import { cn } from "@/lib/cn";
-import type { CategoryInfo } from "@/lib/types";
+import type { CategoryInfo } from "@atlas/api";
 import { AUCTION_HOURS, CONDITIONS, GRADERS, GRADES, sellSchema, toListingPayload, type SellValues } from "./sell-schema";
 
 const STEPS = ["The card", "Condition", "Photos", "Format & price"] as const;

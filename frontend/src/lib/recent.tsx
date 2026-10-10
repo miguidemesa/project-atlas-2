@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { recordAffinityEvent } from "@/lib/affinity";
-import type { Category, Listing } from "@/lib/types";
+import type { Category, Listing } from "@atlas/api";
 
 const RECENT_KEY = "atlas-recent.v1";
 export const MAX_RECENT = 10;

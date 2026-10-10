@@ -11,7 +11,7 @@ import { ListingCard, conditionChip } from "@/components/cards/listing-card";
 import { ViewTracker } from "@/lib/recent";
 import { loadFeed, loadListing } from "@/lib/api";
 import { cn } from "@/lib/cn";
-import { languageName } from "@/lib/format";
+import { languageName } from "@atlas/api";
 
 export const dynamic = "force-dynamic";
 

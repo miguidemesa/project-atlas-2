@@ -2,8 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { GameLine } from "@/components/ui/game-line";
 import { SectionTitle } from "@/components/ui/section-title";
-import { formatPeso, timeAgo } from "@/lib/format";
-import type { RecentSale } from "@/lib/types";
+import { formatPeso, timeAgo } from "@atlas/api";
+import type { RecentSale } from "@atlas/api";
 
 /** Real paid orders, newest first. Hidden until there is one. */
 export function SoldStrip({ sales, id = "recently-sold" }: { sales: RecentSale[]; id?: string }) {

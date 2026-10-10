@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
-import { formatPeso } from "@/lib/format";
+import { formatPeso } from "@atlas/api";
 import { cn } from "@/lib/cn";
 
 type Tab = "payouts" | "disputes";

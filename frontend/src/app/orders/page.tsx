@@ -16,7 +16,7 @@ import {
   shipOrder,
   type Order,
 } from "@/lib/api";
-import { formatPeso } from "@/lib/format";
+import { formatPeso } from "@atlas/api";
 import { cn } from "@/lib/cn";
 
 const STATUS_META: Record<Order["status"], { label: string; cls: string }> = {
