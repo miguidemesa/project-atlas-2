@@ -7,8 +7,10 @@ import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { createQueryClient } from "@/api/query-client";
+import { SessionProvider } from "@/session/SessionProvider";
 import { FONTS } from "@/theme/fonts";
-import { ThemeProvider, navigationTheme, useTheme } from "@/theme/ThemeProvider";
+import { navigationTheme } from "@/theme/navigation";
+import { ThemeProvider, useHeaderOptions, useTheme } from "@/theme/ThemeProvider";
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -28,8 +30,10 @@ export default function RootLayout() {
       <ThemeProvider>
         <NavigationThemeProvider value={navigationTheme}>
           <QueryClientProvider client={queryClient}>
-            <StatusBar style="light" />
-            <AppFrame />
+            <SessionProvider>
+              <StatusBar style="light" />
+              <AppFrame />
+            </SessionProvider>
           </QueryClientProvider>
         </NavigationThemeProvider>
       </ThemeProvider>
@@ -40,5 +44,12 @@ export default function RootLayout() {
 
 function AppFrame() {
   const { color } = useTheme();
-  return <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.base } }} />;
+  const header = useHeaderOptions();
+  return (
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.base } }}>
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="sign-in" options={{ ...header, presentation: "modal", headerShown: true, title: "Sign in" }} />
+      <Stack.Screen name="register" options={{ ...header, presentation: "modal", headerShown: true, title: "Create an account" }} />
+    </Stack>
+  );
 }

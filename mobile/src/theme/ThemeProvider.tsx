@@ -1,5 +1,4 @@
 import { createContext, useContext, useMemo, type ReactNode } from "react";
-import { DarkTheme } from "expo-router";
 import { theme, type SkinId } from "@atlas/tokens";
 
 const SkinContext = createContext<SkinId>("atlas");
@@ -29,17 +28,3 @@ export function useHeaderOptions() {
     [color, type],
   );
 }
-
-/** React Navigation's colours, so nothing flashes white between screens. */
-export const navigationTheme = {
-  ...DarkTheme,
-  colors: {
-    ...DarkTheme.colors,
-    primary: theme.color.accent,
-    background: theme.color.base,
-    card: theme.color.chrome,
-    text: theme.color.ink,
-    border: theme.color.line,
-    notification: theme.color.accent,
-  },
-};
