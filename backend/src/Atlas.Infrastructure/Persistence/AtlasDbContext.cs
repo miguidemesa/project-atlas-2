@@ -1,3 +1,4 @@
+using Atlas.Domain.Notifications;
 using Atlas.Domain.Auctions;
 using Atlas.Domain.Listings;
 using Atlas.Domain.Messages;
@@ -34,6 +35,9 @@ public class AtlasDbContext(DbContextOptions<AtlasDbContext> options)
     public DbSet<WalletEntry> WalletEntries => Set<WalletEntry>();
     public DbSet<PayoutRequest> PayoutRequests => Set<PayoutRequest>();
     public DbSet<Dispute> Disputes => Set<Dispute>();
+    public DbSet<PushDevice> PushDevices => Set<PushDevice>();
+    public DbSet<NotificationPreference> NotificationPreferences => Set<NotificationPreference>();
+    public DbSet<Notification> Notifications => Set<Notification>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
