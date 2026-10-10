@@ -2,6 +2,7 @@ using System.Text;
 using Atlas.Application.Ai;
 using Atlas.Application.Common.Interfaces;
 using Atlas.Application.MarketData;
+using Atlas.Infrastructure.Accounts;
 using Atlas.Infrastructure.Ai;
 using Atlas.Infrastructure.Authentication;
 using Atlas.Infrastructure.Bids;
@@ -72,6 +73,7 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<ITokenService, TokenService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<AccountDeletion>();
 
         AddObjectStorage(services, config);
         AddMarketData(services, config);
