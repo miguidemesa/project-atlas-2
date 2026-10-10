@@ -1,10 +1,12 @@
+import { QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import { Stack, ThemeProvider as NavigationThemeProvider } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { createQueryClient } from "@/api/query-client";
 import { FONTS } from "@/theme/fonts";
 import { ThemeProvider, navigationTheme, useTheme } from "@/theme/ThemeProvider";
 
@@ -12,6 +14,7 @@ void SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts(FONTS);
+  const [queryClient] = useState(createQueryClient);
 
   useEffect(() => {
     if (fontsLoaded || fontError) void SplashScreen.hideAsync();
@@ -24,8 +27,10 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ThemeProvider>
         <NavigationThemeProvider value={navigationTheme}>
-          <StatusBar style="light" />
-          <AppFrame />
+          <QueryClientProvider client={queryClient}>
+            <StatusBar style="light" />
+            <AppFrame />
+          </QueryClientProvider>
         </NavigationThemeProvider>
       </ThemeProvider>
     </SafeAreaProvider>
