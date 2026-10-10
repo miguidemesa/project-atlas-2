@@ -1,46 +1,86 @@
-# Backend
-backend/**/bin/
-backend/**/obj/
-backend/**/node_modules/
-backend/**/App_Data/uploads/
-*.user
-*.suo
-
-# Frontend
-frontend/node_modules/
-frontend/.next/
-frontend/out/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-
-# Env
+# Environment files and credentials (including examples)
 .env
-.env.local
-.env.*.local
+.env.*
+env.example
+env.*.example
+.envrc
+secrets.json
+appsettings.Local.json
+appsettings.*.local.json
+.npmrc
+.pypirc
+.netrc
+.aws/
+.azure/
+.gcloud/
+*.pem
+*.key
+*.p8
+*.p12
+*.pfx
+*.ppk
 
-# Superpowers
-.superpowers/
-
-# OS
-.DS_Store
-Thumbs.db
+# Dependencies and build output
 node_modules/
-backend/**/bin/
-backend/**/obj/
-frontend/.next/
-**/node_modules/
+bin/
+obj/
+.next/
+out/
+build/
+dist/
+coverage/
+TestResults/
+*.tsbuildinfo
+next-env.d.ts
+App_Data/uploads/
+.vercel/
 
-# AI agent files — local only, never commit
+# Local SDK state, caches and logs
+.dotnet/
+.nuget/
+.local/
+.cache/
+__pycache__/
+*.pyc
+**/Library/Application Support/Microsoft/DeveloperTools/
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# AI tooling and generated planning files
 CLAUDE.md
 AGENTS.md
+GEMINI.md
 PRODUCT.md
 .claude/
 .agents/
 .ai/
 .codex/
+.gemini/
+.cursor/
 .impeccable/
 .superpowers/
+.aider*
 docs/superpowers/
+graphify-out/
+
+# Local worktrees and IDE state
+.worktrees/
+worktrees/
+.vscode/
+.idea/
+.vs/
+*.user
+*.suo
+*.swp
+*.swo
+*~
+
+# Operating system files
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini

@@ -67,4 +67,4 @@ Not built yet: logout, email verification, password reset, Google sign-in (not y
 
 - Never trust the client for user ID, email verification status, or role.
 - Refresh token rotation prevents token reuse attacks.
-- All critical business decisions happen server-side (see `CLAUDE.md` domain rules).
+- All critical business decisions happen server-side.
