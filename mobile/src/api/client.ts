@@ -8,6 +8,9 @@ export const SIGNED_OUT = "atlas.signed-out";
 /** The iOS Simulator reaches the Mac's localhost; the Android emulator needs EXPO_PUBLIC_API_URL=http://10.0.2.2:5080. */
 export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:5080";
 
+/** The web origin shared links point at; until the production domain exists, whatever web URL this build names. */
+export const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL ?? "http://localhost:3000";
+
 export const client = createClient({
   baseUrl: API_URL,
   tokenStore: secureTokenStore,
