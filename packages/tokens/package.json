@@ -1,0 +1,19 @@
+{
+  "name": "@atlas/tokens",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/theme.ts",
+  "types": "src/theme.ts",
+  "scripts": {
+    "build": "node scripts/generate.ts",
+    "test": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@vitest/coverage-v8": "^4.1.11",
+    "typescript": "^5",
+    "vitest": "^4.1.11"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "atlas",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "packages/*"
+  ]
+}

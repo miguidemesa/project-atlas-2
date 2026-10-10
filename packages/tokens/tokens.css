@@ -1,0 +1,393 @@
+/* Generated from tokens.json by scripts/generate.ts. Don't edit: change tokens.json, then run npm run build -w @atlas/tokens. */
+:root, [data-theme="atlas"] {
+  --color-base: #0c121e;
+  --color-elevated: #121a29;
+  --color-raised: #18233a;
+  --color-stage: #0a0f1a;
+  --color-well: #0e1524;
+  --color-well-line: #1f2a3d;
+  --color-avatar: #24314a;
+  --color-chrome: #090e18;
+  --color-line: rgba(150,175,225,0.12);
+  --color-line-hv: rgba(150,175,225,0.22);
+  --color-line-strong: rgba(150,175,225,0.34);
+  --color-hover-wash: rgba(150,175,225,0.08);
+  --color-scrim: rgba(3,6,12,0.66);
+  --color-ink: #eef3ff;
+  --color-ink-soft: #cdd6ea;
+  --color-ink-dim: #9eabc6;
+  --color-ink-faint: #7f8ba6;
+  --color-ink-ghost: #36425c;
+  --color-accent: #40e2e7;
+  --color-accent-hover: #7aeef1;
+  --color-on-accent: #04181a;
+  --color-accent-wash: #0b2126;
+  --color-accent-line: rgba(64,226,231,0.26);
+  --color-foil-1: #7cf2ff;
+  --color-foil-2: #b39cff;
+  --color-foil-3: #ff8fd6;
+  --color-foil-4: #ffd27a;
+  --color-confirmed: #48d597;
+  --color-confirmed-line: rgba(72,213,151,0.45);
+  --color-confirmed-wash: rgba(72,213,151,0.14);
+  --color-fixed: #8ab4ff;
+  --color-fixed-line: rgba(138,180,255,0.45);
+  --color-warn: #f3b65b;
+  --color-warn-line: rgba(243,182,91,0.45);
+  --color-urgent: #ff8a8a;
+  --color-urgent-line: rgba(255,138,138,0.45);
+  --color-graded: #e6c57f;
+  --color-graded-line: rgba(230,197,127,0.5);
+  --color-graded-wash: rgba(230,197,127,0.1);
+  --color-plain-line: rgba(205,214,234,0.22);
+  --color-map-land: #0f1726;
+  --color-map-road: #1c2840;
+  --color-map-water: #0a1e33;
+  --color-map-park: #0f2219;
+  --color-map-label: #7f8ba6;
+  --skin-ground: var(--color-base);
+  --skin-surface: var(--color-elevated);
+  --skin-raised: var(--color-raised);
+  --skin-control: #1d2942;
+  --skin-line: var(--color-line);
+  --skin-line-strong: var(--color-line-hv);
+  --skin-border: var(--color-line-hv);
+  --skin-accent: var(--color-ink);
+  --skin-on-accent: var(--color-base);
+  --skin-text: var(--color-ink-dim);
+  --skin-faint: var(--color-ink-faint);
+  --shadow-lift: 0 22px 44px -20px rgba(2,6,14,0.85);
+  --shadow-fan: 0 28px 48px -18px rgba(2,6,14,0.8);
+  --shadow-pop: 0 18px 48px -12px rgba(2,6,14,0.75);
+}
+
+[data-theme="pokemon"] {
+  --skin-ground: #0a0f1f;
+  --skin-surface: #111a33;
+  --skin-raised: #16213f;
+  --skin-control: #1a2544;
+  --skin-line: rgba(174,182,214,0.14);
+  --skin-line-strong: rgba(174,182,214,0.28);
+  --skin-border: rgba(245,205,71,0.24);
+  --skin-accent: #f5cd47;
+  --skin-on-accent: #1b1505;
+  --skin-text: #aeb6d6;
+  --skin-faint: #8c95b8;
+}
+
+[data-theme="pokemon-30"] {
+  --skin-ground: #160a0c;
+  --skin-surface: #22100f;
+  --skin-raised: #2c1614;
+  --skin-control: #331b18;
+  --skin-line: rgba(240,200,190,0.14);
+  --skin-line-strong: rgba(240,200,190,0.28);
+  --skin-border: rgba(255,207,92,0.28);
+  --skin-accent: #ffcf5c;
+  --skin-on-accent: #241800;
+  --skin-text: #e0c3bb;
+  --skin-faint: #b08d86;
+}
+
+[data-theme="one-piece"] {
+  --skin-ground: #140908;
+  --skin-surface: #1f0f0d;
+  --skin-raised: #2a1512;
+  --skin-control: #2f1915;
+  --skin-line: rgba(216,194,180,0.14);
+  --skin-line-strong: rgba(216,194,180,0.28);
+  --skin-border: rgba(255,122,102,0.28);
+  --skin-accent: #ff7a66;
+  --skin-on-accent: #240805;
+  --skin-text: #d8c2b4;
+  --skin-faint: #a8907f;
+}
+
+[data-theme="basketball"] {
+  --skin-ground: #0a1330;
+  --skin-surface: #111c42;
+  --skin-raised: #17244f;
+  --skin-control: #1b2a5a;
+  --skin-line: rgba(174,187,217,0.14);
+  --skin-line-strong: rgba(174,187,217,0.28);
+  --skin-border: rgba(143,179,245,0.26);
+  --skin-accent: #8fb3f5;
+  --skin-on-accent: #08122c;
+  --skin-text: #aebbd9;
+  --skin-faint: #8794b8;
+}
+
+[data-theme="lorcana"] {
+  --skin-ground: #130a1f;
+  --skin-surface: #1c1030;
+  --skin-raised: #25163f;
+  --skin-control: #2a1a48;
+  --skin-line: rgba(201,188,220,0.14);
+  --skin-line-strong: rgba(201,188,220,0.28);
+  --skin-border: rgba(201,167,242,0.26);
+  --skin-accent: #c9a7f2;
+  --skin-on-accent: #1a0d2b;
+  --skin-text: #c9bcdc;
+  --skin-faint: #9a8db0;
+}
+
+[data-theme="magic"] {
+  --skin-ground: oklch(0.17 0.03 35);
+  --skin-surface: oklch(0.21 0.04 35);
+  --skin-raised: oklch(0.25 0.05 35);
+  --skin-control: oklch(0.27 0.05 35);
+  --skin-line: oklch(0.82 0.03 35 / 0.14);
+  --skin-line-strong: oklch(0.82 0.03 35 / 0.28);
+  --skin-border: oklch(0.84 0.12 35 / 0.25);
+  --skin-accent: oklch(0.84 0.12 35);
+  --skin-on-accent: oklch(0.2 0.04 35);
+  --skin-text: oklch(0.82 0.03 35);
+  --skin-faint: oklch(0.68 0.03 35);
+}
+
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-14: 56px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-card: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-pill: 999px;
+  --size-control-sm: 40px;
+  --size-control: 44px;
+  --size-control-lg: 48px;
+  --size-control-xl: 52px;
+  --size-header: 60px;
+  --size-storebar: 52px;
+  --size-ticker: 40px;
+  --size-header-phone: 56px;
+  --size-tabbar: 72px;
+  --size-rail: 220px;
+  --size-content: 1280px;
+  --easing-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --easing-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --easing-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --duration-press: 160ms;
+  --duration-color: 180ms;
+  --duration-hover: 220ms;
+  --duration-sheet: 320ms;
+  --duration-exit: 200ms;
+  --z-sticky: 10;
+  --z-header: 20;
+  --z-menu: 30;
+  --z-sheet: 40;
+  --z-toast: 50;
+  --font-display: Unbounded, ui-sans-serif, system-ui, sans-serif;
+  --font-sans: Onest, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.t-hub-title {
+  font-family: var(--font-display);
+  font-size: 64px;
+  line-height: 68px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.t-hub-title-phone {
+  font-family: var(--font-display);
+  font-size: 38px;
+  line-height: 42px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.t-display {
+  font-family: var(--font-display);
+  font-size: 44px;
+  line-height: 50px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.t-display-phone {
+  font-family: var(--font-display);
+  font-size: 26px;
+  line-height: 32px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.t-stub-day {
+  font-family: var(--font-display);
+  font-size: 56px;
+  line-height: 56px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.t-wordmark {
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 24px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.t-title-1 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  line-height: 34px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.t-title-1-phone {
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.t-title-2 {
+  font-family: var(--font-display);
+  font-size: 17px;
+  line-height: 22px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.t-title-2-phone {
+  font-family: var(--font-display);
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.t-door {
+  font-family: var(--font-display);
+  font-size: 17px;
+  line-height: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.t-door-phone {
+  font-family: var(--font-display);
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 700;
+}
+
+.t-price-xl {
+  font-family: var(--font-display);
+  font-size: 36px;
+  line-height: 40px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.t-price-lg {
+  font-family: var(--font-display);
+  font-size: 24px;
+  line-height: 30px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.t-price {
+  font-family: var(--font-display);
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 600;
+}
+
+.t-title-3 {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 700;
+}
+
+.t-title-4 {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 650;
+}
+
+.t-body-lg {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  line-height: 28px;
+  font-weight: 400;
+}
+
+.t-body {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 400;
+}
+
+.t-body-strong {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+.t-small {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 400;
+}
+
+.t-caption {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+}
+
+.t-label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.t-stub {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+.t-mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+}
+
+.t-mono-lg {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  line-height: 30px;
+  font-weight: 600;
+}
