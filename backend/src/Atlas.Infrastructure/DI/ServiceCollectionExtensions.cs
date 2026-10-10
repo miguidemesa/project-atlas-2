@@ -76,6 +76,7 @@ public static class ServiceCollectionExtensions
         AddObjectStorage(services, config);
         AddMarketData(services, config);
         AddPayments(services, config);
+        AddPush(services, config);
 
         // email notifications: Resend when keyed, console otherwise
         if (!string.IsNullOrWhiteSpace(config["Notifications:Resend:ApiKey"]))
@@ -84,6 +85,19 @@ public static class ServiceCollectionExtensions
             services.AddSingleton<IEmailSender, ConsoleEmailSender>();
 
         return services;
+    }
+
+    private static void AddPush(IServiceCollection services, IConfiguration config)
+    {
+        services.Configure<PushOptions>(config.GetSection(PushOptions.Section));
+        services.AddHttpClient<ExpoPushClient>((sp, http) =>
+        {
+            http.BaseAddress = new Uri(sp.GetRequiredService<IOptions<PushOptions>>().Value.ExpoBaseUrl);
+            http.Timeout = TimeSpan.FromSeconds(15);
+        });
+        services.AddScoped<NotificationService>();
+        services.AddScoped<PushSender>();
+        services.AddHostedService<PushWorker>();
     }
 
     private static void AddPayments(IServiceCollection services, IConfiguration config)

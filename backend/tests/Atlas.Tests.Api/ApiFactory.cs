@@ -1,3 +1,6 @@
+using Atlas.Infrastructure.Notifications;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Atlas.Infrastructure.Authentication;
@@ -40,7 +43,12 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
                 $"Refusing to drop database '{database}'. ATLAS_TEST_DB must name a database containing 'test'.");
     }
 
-    protected override void ConfigureWebHost(IWebHostBuilder builder) => builder.UseEnvironment("Development");
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        builder.UseEnvironment("Development");
+        // tests never reach Expo's real push service; FakeExpo.Host turns the worker back on against a fake
+        builder.ConfigureTestServices(services => services.Configure<PushOptions>(o => o.WorkerEnabled = false));
+    }
 
     public AtlasDbContext NewDb() =>
         new(new DbContextOptionsBuilder<AtlasDbContext>().UseNpgsql(ConnectionString).Options);

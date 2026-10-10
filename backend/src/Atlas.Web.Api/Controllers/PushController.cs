@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using Atlas.Domain.Notifications;
+using Atlas.Infrastructure.Notifications;
 using Atlas.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,7 +16,7 @@ public sealed record SavePreferencesRequest(IReadOnlyList<PreferenceDto>? Prefer
 [ApiController]
 [Authorize]
 [Route("api/me")]
-public class PushController(AtlasDbContext db) : ControllerBase
+public class PushController(AtlasDbContext db, NotificationService notifications, IWebHostEnvironment env) : ControllerBase
 {
     private static readonly Regex ExpoToken = new(@"^Expo(nent)?PushToken\[[^\]]{1,180}\]$", RegexOptions.Compiled);
 
@@ -86,6 +87,17 @@ public class PushController(AtlasDbContext db) : ControllerBase
         }
         await db.SaveChangesAsync(ct);
         return Ok(new { data = await PreferencesAsync(userId, ct) });
+    }
+
+    /// <summary>"Send me a test alert" from the app's notification settings. Development only.</summary>
+    [HttpPost("notifications/test")]
+    public async Task<IActionResult> SendTestAlert(CancellationToken ct)
+    {
+        if (!env.IsDevelopment()) return NotFound(new { error = "Not found." });
+        if (User.UserId() is not { } userId) return Unauthorized();
+        var notification = await notifications.NotifyAsync(userId, NotificationCategory.Announcements,
+            "Test alert", "Push alerts are working on this phone.", "atlas://me/notifications", ct);
+        return Accepted(new { data = new { id = notification.Id } });
     }
 
     /// <summary>Every category in enum order; push stays on until the user turns a category off.</summary>
