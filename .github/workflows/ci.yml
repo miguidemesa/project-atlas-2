@@ -84,3 +84,20 @@ jobs:
       - run: npm ci
       - run: npm run typecheck -w packages
       - run: npm test -w packages
+
+  mobile:
+    name: Typecheck & test mobile app
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+        working-directory: .
+      - run: npx tsc --noEmit
+      - run: npm test -- --ci
