@@ -50,7 +50,8 @@ export default async function HomePage() {
   const spotlight = tilted ? topStore!.spotlight : (store?.spotlight ?? []);
   const sellersInTop = (topStore?.topSellers.length ?? 0) > 0;
   const sellers: TopSeller[] = sellersInTop ? topStore!.topSellers : (store?.topSellers ?? []);
-  const salesBySeller = Object.fromEntries([...(store?.topSellers ?? []), ...sellers].map((s) => [s.id, s.sales]));
+  // All-games counts only: the carousel says "N sales in 30 days", which a per-game count would understate.
+  const salesBySeller = Object.fromEntries((store?.topSellers ?? []).map((s) => [s.id, s.sales]));
 
   return (
     <div className="mx-auto max-w-[1440px] px-4 pb-16 pt-6 md:px-8 min-[1100px]:grid min-[1100px]:grid-cols-[220px_minmax(0,1fr)] min-[1100px]:gap-10 xl:px-20">

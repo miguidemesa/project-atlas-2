@@ -51,6 +51,9 @@ describe("browseQuery", () => {
   it("keeps a card key for the compare view, dropping blank or over-long ones", () => {
     expect(browseQuery({ card: "pokemon|charizard ex|151|199/165" }, categories).card).toBe("pokemon|charizard ex|151|199/165");
     expect(browseQuery({ card: "  " }, categories).card).toBeUndefined();
-    expect(browseQuery({ card: "x".repeat(301) }, categories).card).toBeUndefined();
+    // the longest real key: game slug, 200-char name, 200-char set, 30-char number
+    const longest = ["one_piece", "n".repeat(200), "s".repeat(200), "c".repeat(30)].join("|");
+    expect(browseQuery({ card: longest }, categories).card).toBe(longest);
+    expect(browseQuery({ card: "x".repeat(501) }, categories).card).toBeUndefined();
   });
 });

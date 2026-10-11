@@ -3,7 +3,8 @@ import { LANGUAGE_OPTIONS } from "@atlas/api";
 import type { CategoryInfo, ListingType } from "@atlas/api";
 
 const SORTS = ["newest", "popular", "price_asc", "price_desc", "ending"] as const;
-const MAX_CARD_KEY = 300;
+/** Above the longest real key (40-char slug, 200-char name, 200-char set, 30-char number, separators). */
+const MAX_CARD_KEY = 500;
 const TYPES: ListingType[] = ["single_card", "lot", "hobby_box", "accessory"];
 
 export type BrowseParams = Partial<
