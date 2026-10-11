@@ -6,7 +6,7 @@ import { FeaturedCarousel } from "./featured-carousel";
 vi.mock("next/link", () => ({
   default: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => <a href={href} {...rest}>{children}</a>,
 }));
-vi.mock("next/image", () => ({ default: ({ alt }: { alt: string }) => <img alt={alt} /> }));
+vi.mock("next/image", () => ({ default: () => null })); // the blurred backdrop isn't under test
 
 beforeAll(stubMatchMedia);
 let cleanup = () => {};
