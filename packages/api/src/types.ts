@@ -120,6 +120,7 @@ export interface Listing {
   photos: string[];
   sellerId: string;
   sellerName: string;
+  sellerVerified: boolean;
   price: number;
   currentBid?: number | null;
   bidCount?: number | null;

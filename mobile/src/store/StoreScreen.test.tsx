@@ -6,7 +6,7 @@ import * as Haptics from "expo-haptics";
 import { Share } from "react-native";
 
 const listing = (id: string, title: string, price: number) => ({
-  id, title, price, format: "fixed", set: "151", year: 2023, cardNumber: "199/165", sellerName: "Kolektib & Co.",
+  id, title, price, format: "fixed", set: "151", year: 2023, cardNumber: "199/165", sellerName: "Kolektib & Co.", sellerVerified: false,
 });
 const storefront = (shelves: Record<string, unknown[]>) => ({
   category: null, activeListings: 2, categories: [], spotlight: [], trending: [], grails: [], endingSoon: [],

@@ -102,4 +102,21 @@ public class FeedTests(ApiFactory factory)
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
+
+    [Fact]
+    public async Task Every_Item_Says_Whether_Its_Seller_Is_Verified()
+    {
+        var (seller, sellerId) = await factory.SignInNewUserAsync("Verified Shop");
+        var listing = await TestListings.CreateAsync(seller, category: "weiss_schwarz");
+        await using (var db = factory.NewDb())
+        {
+            db.SellerProfiles.Add(new Atlas.Domain.Sellers.SellerProfile { UserId = sellerId, DisplayName = "Verified Shop", VerificationBadge = true });
+            await db.SaveChangesAsync();
+        }
+
+        var item = (await FeedAsync("category=weiss_schwarz&pageSize=60")).Items.Single(l => l.Id == listing.Id);
+
+        item.SellerVerified.Should().BeTrue();
+        item.SellerName.Should().Be("Verified Shop");
+    }
 }

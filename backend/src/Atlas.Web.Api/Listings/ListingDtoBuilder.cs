@@ -26,7 +26,7 @@ public sealed class ListingDtoBuilder(AtlasDbContext db)
             .GroupBy(b => b.ListingId)
             .ToDictionaryAsync(g => g.Key, g => g.Count(), ct);
         var scores = await DealScoresAsync(listings, ct);
-        var sellerNames = await SellerNamesAsync(listings.Select(l => l.SellerId), ct);
+        var sellers = await SellersAsync(listings.Select(l => l.SellerId), ct);
         var photos = withDetail ? await PhotosAsync(ids, ct) : new Dictionary<Guid, List<string>>();
 
         return listings.Select(l =>
@@ -41,7 +41,8 @@ public sealed class ListingDtoBuilder(AtlasDbContext db)
                 l.ImageUrl,
                 withDetail ? listingPhotos : [],
                 l.SellerId,
-                sellerNames.GetValueOrDefault(l.SellerId, string.Empty),
+                sellers.GetValueOrDefault(l.SellerId).Name ?? string.Empty,
+                sellers.GetValueOrDefault(l.SellerId).Verified,
                 l.Price,
                 auction?.CurrentBid,
                 auction is null ? null : bidCounts.GetValueOrDefault(l.Id),
@@ -97,22 +98,23 @@ public sealed class ListingDtoBuilder(AtlasDbContext db)
         .Select(h => new PricePointDto(h.SaleDate.ToString("yyyy-MM-dd"), h.SalePrice))
         .ToList();
 
-    private async Task<Dictionary<Guid, string>> SellerNamesAsync(IEnumerable<Guid> sellerIds, CancellationToken ct)
+    /// <summary>Each seller's shown name and verified mark; users without a seller profile are never verified.</summary>
+    private async Task<Dictionary<Guid, (string Name, bool Verified)>> SellersAsync(IEnumerable<Guid> sellerIds, CancellationToken ct)
     {
         var ids = sellerIds.Distinct().ToList();
-        var names = await db.SellerProfiles.AsNoTracking()
+        var sellers = await db.SellerProfiles.AsNoTracking()
             .Where(s => ids.Contains(s.UserId))
-            .ToDictionaryAsync(s => s.UserId, s => s.DisplayName, ct);
-        var missing = ids.Where(id => !names.ContainsKey(id)).ToList();
+            .ToDictionaryAsync(s => s.UserId, s => (s.DisplayName, s.VerificationBadge), ct);
+        var missing = ids.Where(id => !sellers.ContainsKey(id)).ToList();
         if (missing.Count > 0)
         {
             var users = await db.Users.AsNoTracking()
                 .Where(u => missing.Contains(u.Id))
                 .Select(u => new { u.Id, u.Name })
                 .ToListAsync(ct);
-            foreach (var u in users) names[u.Id] = u.Name;
+            foreach (var u in users) sellers[u.Id] = (u.Name, false);
         }
-        return names;
+        return sellers;
     }
 
     private async Task<Dictionary<Guid, List<string>>> PhotosAsync(List<Guid> ids, CancellationToken ct) =>

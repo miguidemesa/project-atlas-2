@@ -22,6 +22,7 @@ public sealed record ListingDto(
     IReadOnlyList<string> Photos,
     Guid SellerId,
     string SellerName,
+    bool SellerVerified,
     decimal Price,
     decimal? CurrentBid,
     int? BidCount,
