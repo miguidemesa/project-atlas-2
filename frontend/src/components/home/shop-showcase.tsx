@@ -9,10 +9,10 @@ import type { TopSeller } from "@atlas/api";
 const FAN = ["-rotate-12 motion-safe:group-hover:-rotate-[18deg]", "z-10", "rotate-12 motion-safe:group-hover:rotate-[18deg]"];
 
 /** Sellers as shop showcases: real 30-day sales, live listings, a rating only once reviews exist, and their newest cards fanned. */
-export function ShopShowcase({ sellers }: { sellers: TopSeller[] }) {
+export function ShopShowcase({ sellers, sub = "Sellers with the most paid orders, last 30 days" }: { sellers: TopSeller[]; sub?: string }) {
   if (sellers.length === 0) return null;
   return (
-    <SwipeRow id="shops" title="Top sellers" sub="Ranked by paid orders in the last 30 days">
+    <SwipeRow id="shops" title="Shops worth following" sub={sub} wide>
       {sellers.map((s) => (
         <li key={s.id} className="snap-start">
           <ShopTile seller={s} />

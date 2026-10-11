@@ -3,12 +3,28 @@
 import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { SectionTitle } from "@/components/ui/section-title";
+import { cn } from "@/lib/cn";
 import { usePrefersReducedMotion } from "@/lib/use-reduced-motion";
 
 const PAGE_FRACTION = 0.85;
 
 /** A titled row that swipes on phones and pages with arrows on the web; only the row scrolls, never the page. */
-export function SwipeRow({ id, title, sub, href, children }: { id: string; title: string; sub?: string; href?: string; children: React.ReactNode }) {
+export function SwipeRow({
+  id,
+  title,
+  sub,
+  href,
+  wide = false,
+  children,
+}: {
+  id: string;
+  title: string;
+  sub?: string;
+  href?: string;
+  /** Wider items (shop showcases) instead of card tiles. */
+  wide?: boolean;
+  children: React.ReactNode;
+}) {
   const ref = useRef<HTMLUListElement>(null);
   const reduced = usePrefersReducedMotion();
   const page = (dir: 1 | -1) =>
@@ -26,7 +42,13 @@ export function SwipeRow({ id, title, sub, href, children }: { id: string; title
           <button type="button" className={arrow} aria-label={`Scroll ${title} right`} onClick={() => page(1)}><ChevronRight size={18} strokeWidth={1.75} aria-hidden /></button>
         </div>
       </div>
-      <ul ref={ref} className="no-scrollbar -mx-4 grid auto-cols-[46%] grid-flow-col gap-3 overflow-x-auto overscroll-x-contain scroll-px-4 px-4 pb-3 [scroll-snap-type:x_mandatory] md:mx-0 md:auto-cols-[196px] md:gap-[18px] md:scroll-px-0 md:px-0">
+      <ul
+        ref={ref}
+        className={cn(
+          "no-scrollbar -mx-4 grid grid-flow-col gap-3 overflow-x-auto overscroll-x-contain scroll-px-4 px-4 pb-3 [scroll-snap-type:x_mandatory] md:mx-0 md:gap-[18px] md:scroll-px-0 md:px-0",
+          wide ? "auto-cols-[84%] md:auto-cols-[320px]" : "auto-cols-[46%] md:auto-cols-[196px]",
+        )}
+      >
         {children}
       </ul>
     </section>

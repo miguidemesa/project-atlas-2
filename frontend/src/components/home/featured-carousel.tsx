@@ -3,21 +3,35 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useReducer, useState } from "react";
-import { Pause, Play } from "lucide-react";
+import { Pause, Play, Sparkles } from "lucide-react";
 import { CardImage } from "@/components/cards/card-image";
 import { conditionChip } from "@/components/cards/listing-card";
 import { TiltCard } from "@/components/cards/tilt-card";
 import { tierFor } from "@atlas/api";
 import { buttonPrimary } from "@/components/ui/button-styles";
 import { GameLine } from "@/components/ui/game-line";
+import { SellerLine } from "@/components/ui/seller-line";
 import { autoplays, carouselReducer, SLIDE_MS } from "@/lib/carousel";
 import { cn } from "@/lib/cn";
 import { cardSubtitle, formatPeso } from "@atlas/api";
 import type { Listing } from "@atlas/api";
 import { usePrefersReducedMotion } from "@/lib/use-reduced-motion";
 
-/** The store's featured capsule: a 5 s carousel on the web, a swipeable track on phones. */
-export function FeaturedCarousel({ listings, label = "Featured" }: { listings: Listing[]; label?: string }) {
+/**
+ * The store's featured capsule: a 5 s carousel on the web, a swipeable track on phones. `reason` says why these
+ * cards are featured; `salesBySeller` adds a seller's real 30-day sales where the storefront knows them.
+ */
+export function FeaturedCarousel({
+  listings,
+  label = "Featured",
+  reason,
+  salesBySeller = {},
+}: {
+  listings: Listing[];
+  label?: string;
+  reason?: string;
+  salesBySeller?: Record<string, number>;
+}) {
   const [state, dispatch] = useReducer(carouselReducer, { index: 0, count: listings.length, paused: false });
   const [held, setHeld] = useState(false);
   const reduced = usePrefersReducedMotion();
@@ -63,6 +77,12 @@ export function FeaturedCarousel({ listings, label = "Featured" }: { listings: L
             aria-label={`${state.index + 1} of ${listings.length}: ${current.title}`}
             className="flex min-w-0 flex-col gap-3 p-8"
           >
+            {reason && (
+              <p className="inline-flex items-center gap-2 text-[13px] font-medium text-accent">
+                <Sparkles size={15} strokeWidth={1.75} aria-hidden />
+                {reason}
+              </p>
+            )}
             <GameLine slug={current.category} className="text-sm text-ink-dim" />
             <h3 className="t-title-1 line-clamp-2 text-ink">{current.title}</h3>
             <p className="text-sm text-ink-dim">{cardSubtitle(current)}</p>
@@ -70,7 +90,12 @@ export function FeaturedCarousel({ listings, label = "Featured" }: { listings: L
               <span className={cn("t-label inline-flex h-[22px] w-fit items-center rounded-full border px-2 uppercase", chip.cls)}>{chip.label}</span>
             )}
             <p className="t-price-lg mt-2 text-ink">{formatPeso(current.currentBid ?? current.price)}</p>
-            <p className="text-sm text-ink-dim">Sold by {current.sellerName}</p>
+            <div className="flex flex-col gap-1">
+              <SellerLine name={current.sellerName} verified={current.sellerVerified} className="max-w-xs" />
+              {salesBySeller[current.sellerId] !== undefined && (
+                <span className="pl-8 text-xs text-ink-faint">{salesBySeller[current.sellerId]} sales in 30 days</span>
+              )}
+            </div>
             <Link href={`/listing/${current.id}`} className={cn(buttonPrimary, "mt-auto self-start")}>
               View listing
             </Link>
@@ -123,6 +148,12 @@ export function FeaturedCarousel({ listings, label = "Featured" }: { listings: L
       </section>
 
       <section aria-label={label} className="md:hidden">
+        {reason && (
+          <p className="mb-3 inline-flex items-center gap-2 text-[13px] font-medium text-accent">
+            <Sparkles size={15} strokeWidth={1.75} aria-hidden />
+            {reason}
+          </p>
+        )}
         <ul className="no-scrollbar -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4">
           {listings.map((l, i) => (
             <li key={l.id} className="w-[318px] shrink-0 snap-start">

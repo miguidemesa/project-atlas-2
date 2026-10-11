@@ -35,14 +35,15 @@ const show = (g: CardGroup) => {
 describe("GroupTile", () => {
   it("shows a card from one seller as a normal listing tile", () => {
     const c = show(group(1));
-    expect(c.textContent).not.toContain("sellers ·");
+    expect(c.textContent).not.toMatch(/\d sellers/);
     expect(c.querySelector("a")!.getAttribute("href")).toBe("/listing/l1");
     expect(c.querySelector("[aria-label='Verified seller']")).not.toBeNull();
   });
 
   it("groups several sellers into one tile that opens the compare view", () => {
     const c = show(group(4));
-    expect(c.textContent).toContain("4 sellers · from ₱3,200");
+    expect(c.textContent).toContain("from ₱3,200");
+    expect(c.textContent).toContain("4 sellers · NM, LP");
     expect(c.querySelector("a")!.getAttribute("href")).toBe(
       `/browse?card=${encodeURIComponent("pokemon|charizard ex|151|199/165")}&sort=price_asc`,
     );

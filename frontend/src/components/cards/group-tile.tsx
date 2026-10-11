@@ -4,7 +4,7 @@ import { cardSubtitle, formatPeso, type CardGroup } from "@atlas/api";
 import { CardImage } from "./card-image";
 import { ListingCard } from "./listing-card";
 
-/** One tile per card: several sellers stack into "N sellers · from ₱X" and open the compare view; one seller is a normal tile. */
+/** One tile per card: several sellers stack into "from ₱X" and "N sellers · conditions", and open the compare view; one seller is a normal tile. */
 export function GroupTile({ group }: { group: CardGroup }) {
   if (group.sellers <= 1) return <ListingCard listing={group.lead} />;
   const { lead } = group;
@@ -21,10 +21,8 @@ export function GroupTile({ group }: { group: CardGroup }) {
       <div className="flex min-w-0 flex-col gap-1">
         <span className="truncate text-[15px] font-semibold leading-5 text-ink">{lead.player}</span>
         <span className="truncate text-[13px] leading-[18px] text-ink-dim">{cardSubtitle(lead)}</span>
-        <span className="mt-1 text-[13px] text-ink-soft">
-          {group.sellers} sellers · from <span className="t-price text-ink">{formatPeso(group.fromPrice)}</span>
-        </span>
-        {group.conditions.length > 0 && <span className="truncate text-xs text-ink-faint">{group.conditions.join(", ")}</span>}
+        <span className="t-price mt-1 text-ink">from {formatPeso(group.fromPrice)}</span>
+        <span className="truncate text-xs text-ink-dim">{[`${group.sellers} sellers`, group.conditions.join(", ")].filter(Boolean).join(" · ")}</span>
         <span className="mt-1 flex items-center justify-between border-t border-line pt-2.5 text-[13px] text-ink-soft group-hover:text-ink">
           Compare {group.listings} listings
           <ChevronRight size={16} strokeWidth={1.75} aria-hidden />
