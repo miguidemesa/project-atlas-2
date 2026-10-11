@@ -4,4 +4,5 @@ import type { ListingQuery } from "./endpoints";
 export const queryKeys = {
   feed: (q: ListingQuery) => ["feed", q] as const,
   storefront: (category?: string) => ["storefront", category ?? "home"] as const,
+  notificationPreferences: () => ["me", "notification-preferences"] as const,
 };

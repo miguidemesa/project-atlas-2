@@ -34,7 +34,13 @@
         }
       ],
       "expo-image",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "color": "#40e2e7"
+        }
+      ]
     ],
     "experiments": {
       "reactCompiler": true

@@ -4,6 +4,7 @@ import { useSession } from "@/session/SessionProvider";
 import { useTheme } from "@/theme/ThemeProvider";
 import { Button } from "@/ui/Button";
 import { EmptyState } from "@/ui/EmptyState";
+import { LinkRow } from "@/ui/LinkRow";
 import { Screen } from "@/ui/Screen";
 import { Text } from "@/ui/Text";
 
@@ -36,6 +37,7 @@ export function MeScreen() {
         <Text style={[type.title3, { color: color.ink }]}>{user.name}</Text>
         <Text style={[type.small, { color: color.inkDim }]}>{user.email}</Text>
       </View>
+      <LinkRow label="Notifications" onPress={() => router.push("/me/notifications")} />
       <View style={{ padding: space[4] }}>
         <Button testID="me-sign-out" variant="ghost" label="Sign out" onPress={() => void signOut()} />
       </View>

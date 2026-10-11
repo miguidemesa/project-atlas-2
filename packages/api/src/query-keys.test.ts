@@ -6,5 +6,6 @@ describe("queryKeys", () => {
     expect(queryKeys.feed({ category: "pokemon" })).toEqual(["feed", { category: "pokemon" }]);
     expect(queryKeys.storefront()).toEqual(["storefront", "home"]);
     expect(queryKeys.storefront("one_piece")).toEqual(["storefront", "one_piece"]);
+    expect(queryKeys.notificationPreferences()).toEqual(["me", "notification-preferences"]);
   });
 });

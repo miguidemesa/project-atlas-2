@@ -2,11 +2,14 @@ import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react-native";
 import type { ReactNode } from "react";
 import { client } from "@/api/client";
+import { unregisterThisPhone } from "@/push/push";
 import { fakeApi } from "@/test/fake-api";
 import { testQueryClient } from "@/test/render";
 import { ANA } from "@/test/session";
 import { SessionProvider, useSession } from "./SessionProvider";
 import { secureTokenStore } from "./token-store";
+
+jest.mock("@/push/push", () => ({ unregisterThisPhone: jest.fn(async () => undefined) }));
 
 const wrapperFor =
   (queryClient: QueryClient) =>
@@ -38,6 +41,7 @@ it("signs in, then signs out by forgetting both tokens and the cached data", asy
 
   await act(() => result.current.signOut());
   expect(result.current.user).toBeNull();
+  expect(unregisterThisPhone).toHaveBeenCalledTimes(1);
   expect(await secureTokenStore.getRefreshToken()).toBeNull();
   expect(queryClient.getQueryData(["me", "notification-preferences"])).toBeUndefined();
 });

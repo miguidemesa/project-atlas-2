@@ -78,3 +78,40 @@ describe("createEndpoints", () => {
     await expect(api.parseSearchQuery("graded charizard")).resolves.toEqual({ category: "pokemon", graded: true });
   });
 });
+
+describe("push and notification endpoints", () => {
+  const signedIn: TokenStore = { ...signedOut, getAccessToken: async () => "access-1" };
+  const push = createEndpoints(createClient({ baseUrl: "http://api.test", tokenStore: signedIn, onSignedOut: () => undefined }));
+
+  it("registers and unregisters a phone with the signed-in person's token", async () => {
+    const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => json(200, { data: {} }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await push.registerDevice("ExponentPushToken[abc]", "ios");
+    await push.unregisterDevice("ExponentPushToken[abc]");
+
+    const [[registerUrl, register], [unregisterUrl, unregister]] = fetchMock.mock.calls;
+    expect(registerUrl).toBe("http://api.test/api/me/devices");
+    expect(register?.method).toBe("POST");
+    expect(register?.body).toBe(JSON.stringify({ token: "ExponentPushToken[abc]", platform: "ios" }));
+    expect(new Headers(register?.headers).get("Authorization")).toBe("Bearer access-1");
+    expect(unregisterUrl).toBe("http://api.test/api/me/devices/ExponentPushToken%5Babc%5D");
+    expect(unregister?.method).toBe("DELETE");
+  });
+
+  it("reads and saves notification preferences and asks for a test alert", async () => {
+    const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => json(200, { data: [] }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await push.loadNotificationPreferences();
+    await push.saveNotificationPreferences([{ category: "offers", pushEnabled: false }]);
+    await push.sendTestAlert();
+
+    expect(fetchMock.mock.calls.map(([url, init]) => `${init?.method ?? "GET"} ${url}`)).toEqual([
+      "GET http://api.test/api/me/notification-preferences",
+      "PUT http://api.test/api/me/notification-preferences",
+      "POST http://api.test/api/me/notifications/test",
+    ]);
+    expect(fetchMock.mock.calls[1][1]?.body).toBe(JSON.stringify({ preferences: [{ category: "offers", pushEnabled: false }] }));
+  });
+});

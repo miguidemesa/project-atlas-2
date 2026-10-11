@@ -1,5 +1,6 @@
 import type { ParsedSearch, SellerReview } from "./actions";
 import type { ApiClient } from "./client";
+import type { NotificationPreference } from "./notifications";
 import type { CategoryInfo, Listing, ListingDetail, ListingType, Paged, SellerPage, Storefront } from "./types";
 
 export interface ListingQuery {
@@ -37,6 +38,12 @@ export function nextPage(last: Paged<unknown>): number | undefined {
   return last.page * last.pageSize < last.total ? last.page + 1 : undefined;
 }
 
+const sendJson = (method: string, body: unknown): RequestInit => ({
+  method,
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(body),
+});
+
 /**
  * Every read the web and the app share, bound to one client. Failures throw an ApiError; screens show an
  * error with Try again, never stand-in data.
@@ -66,6 +73,15 @@ export function createEndpoints(client: ApiClient) {
         return null;
       }
     },
+    registerDevice: (token: string, platform: "ios" | "android") =>
+      client.authed<{ token: string; platform: string }>("/me/devices", sendJson("POST", { token, platform })),
+    unregisterDevice: (token: string) =>
+      client.authed<void>(`/me/devices/${encodeURIComponent(token)}`, { method: "DELETE" }),
+    loadNotificationPreferences: () => client.authed<NotificationPreference[]>("/me/notification-preferences"),
+    saveNotificationPreferences: (preferences: NotificationPreference[]) =>
+      client.authed<NotificationPreference[]>("/me/notification-preferences", sendJson("PUT", { preferences })),
+    /** Development builds only: the API answers 404 elsewhere. */
+    sendTestAlert: () => client.authed<{ id: string }>("/me/notifications/test", { method: "POST" }),
   };
 }
 

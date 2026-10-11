@@ -9,6 +9,8 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { createQueryClient, persistOptions } from "@/api/query-client";
 import { connectOnlineManager } from "@/net/online";
+import { PushEffects } from "@/push/PushEffects";
+import { showAlertsInForeground } from "@/push/push";
 import { SessionProvider } from "@/session/SessionProvider";
 import { FONTS } from "@/theme/fonts";
 import { navigationTheme } from "@/theme/navigation";
@@ -17,6 +19,7 @@ import { OfflineBar } from "@/ui/OfflineBar";
 
 void SplashScreen.preventAutoHideAsync();
 connectOnlineManager();
+showAlertsInForeground();
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts(FONTS);
@@ -35,6 +38,7 @@ export default function RootLayout() {
         <NavigationThemeProvider value={navigationTheme}>
           <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
             <SessionProvider>
+              <PushEffects />
               <StatusBar style="light" />
               <AppFrame />
             </SessionProvider>

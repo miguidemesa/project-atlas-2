@@ -3,6 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { DeviceEventEmitter } from "react-native";
 import type { AuthUser } from "@atlas/api";
 import { SIGNED_OUT, client } from "@/api/client";
+import { unregisterThisPhone } from "@/push/push";
 import { secureTokenStore } from "./token-store";
 
 export interface Session {
@@ -46,6 +47,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
+    await unregisterThisPhone(); // first, while the access token still works
     await client.signOut();
     queryClient.clear();
     setUser(null);
