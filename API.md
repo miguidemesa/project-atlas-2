@@ -29,14 +29,15 @@ Not built yet: logout, email verification, password reset, Google sign-in (not y
 
 | Method | Path | Auth | Notes |
 |---|---|---|---|
-| GET | `/api/storefront` | — | home shelves: spotlight, trending, grails, ending soon, new arrivals, recently sold, per-category counts (cached 60s) |
+| GET | `/api/storefront` | — | home shelves: spotlight, trending, grails, ending soon, new arrivals, recently sold, top sellers (30-day paid orders, rating only once reviewed, live listing count), per-category counts (cached 60s) |
 | GET | `/api/storefront?category=pokemon` | — | one game's hub, plus its sets; unknown slug is 400 |
 
 ## Listings
 
 | Method | Path | Auth | Notes |
 |---|---|---|---|
-| GET | `/api/listings` | — | live listings: `category, format (fixed\|auction), type, graded, minPrice, maxPrice, language, player, q, sort (newest\|popular\|price_asc\|price_desc\|ending), page, pageSize` (max 60) |
+| GET | `/api/listings` | — | live listings: `category, format (fixed\|auction), type, graded, minPrice, maxPrice, language, player, q, card, sort (newest\|popular\|price_asc\|price_desc\|ending), page, pageSize` (max 60). `card` is a key from `/groups` (the compare view); a malformed key is 400. Every item carries `sellerName` and `sellerVerified` |
+| GET | `/api/listings/groups?category=&take=` | — | the same card from several sellers as one group (`key`, cheapest `lead`, `sellers`, `listings`, `fromPrice`, `conditions`), newest first, `take` 1–24; until P3 "same card" is game, name, set and number, ignoring case and spacing |
 | GET | `/api/listings/{id}` | — | detail with photos, seller and price history |
 | GET | `/api/listings/mine` | Bearer | the caller's listings |
 | POST | `/api/listings` | Bearer | create (category must be a slug from `/api/categories`) |
