@@ -47,4 +47,10 @@ describe("browseQuery", () => {
     expect(browseQuery({ q: "  wemby " }, categories).q).toBe("wemby");
     expect(browseQuery({ q: "   " }, categories).q).toBeUndefined();
   });
+
+  it("keeps a card key for the compare view, dropping blank or over-long ones", () => {
+    expect(browseQuery({ card: "pokemon|charizard ex|151|199/165" }, categories).card).toBe("pokemon|charizard ex|151|199/165");
+    expect(browseQuery({ card: "  " }, categories).card).toBeUndefined();
+    expect(browseQuery({ card: "x".repeat(301) }, categories).card).toBeUndefined();
+  });
 });

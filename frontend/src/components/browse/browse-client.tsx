@@ -113,6 +113,7 @@ export function BrowseClient({ initial, categories }: { initial: ListingQuery; c
     sort,
     q,
     player: initial.player,
+    card: initial.card,
     pageSize: PAGE_SIZE,
   };
 

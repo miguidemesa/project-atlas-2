@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { BrowseClient } from "@/components/browse/browse-client";
-import { loadCategories } from "@/lib/api";
+import { loadCategories, loadFeed } from "@/lib/api";
 import { browseQuery, type BrowseParams } from "@/lib/browse-query";
 import { categoryName } from "@/lib/categories";
 
@@ -10,7 +10,10 @@ export const dynamic = "force-dynamic";
 export default async function BrowsePage({ searchParams }: { searchParams: Promise<BrowseParams> }) {
   const [sp, categories] = await Promise.all([searchParams, loadCategories()]);
   const initial = browseQuery(sp, categories);
-  const heading = sp.player
+  const compared = initial.card ? await compareCount(initial.card) : null;
+  const heading = initial.card
+    ? compared === null ? "Compare listings" : `Compare ${compared} listings`
+    : sp.player
     ? `${sp.player} cards`
     : (categoryName(categories, initial.category) ?? (initial.format === "auction" ? "Live auctions" : "Browse the market"));
 
@@ -25,4 +28,13 @@ export default async function BrowsePage({ searchParams }: { searchParams: Promi
       <BrowseClient key={JSON.stringify(initial)} initial={initial} categories={categories} />
     </div>
   );
+}
+
+/** How many live listings the compare view holds; null when the API can't say (the heading drops the number). */
+async function compareCount(card: string): Promise<number | null> {
+  try {
+    return (await loadFeed({ card, pageSize: 1 })).total;
+  } catch {
+    return null;
+  }
 }
