@@ -115,3 +115,10 @@ describe("push and notification endpoints", () => {
     expect(fetchMock.mock.calls[1][1]?.body).toBe(JSON.stringify({ preferences: [{ category: "offers", pushEnabled: false }] }));
   });
 });
+
+describe("app config", () => {
+  it("reads the minimum app version without signing in", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => json(200, { data: { minimumAppVersion: "1.0.0" } })));
+    await expect(api.loadAppConfig()).resolves.toEqual({ minimumAppVersion: "1.0.0" });
+  });
+});

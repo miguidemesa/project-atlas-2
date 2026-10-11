@@ -7,5 +7,6 @@ describe("queryKeys", () => {
     expect(queryKeys.storefront()).toEqual(["storefront", "home"]);
     expect(queryKeys.storefront("one_piece")).toEqual(["storefront", "one_piece"]);
     expect(queryKeys.notificationPreferences()).toEqual(["me", "notification-preferences"]);
+    expect(queryKeys.appConfig()).toEqual(["app-config"]);
   });
 });

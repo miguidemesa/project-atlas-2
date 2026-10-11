@@ -38,6 +38,11 @@ export function nextPage(last: Paged<unknown>): number | undefined {
   return last.page * last.pageSize < last.total ? last.page + 1 : undefined;
 }
 
+/** GET /api/app-config: an app older than minimumAppVersion shows "Update Atlas". */
+export interface AppConfig {
+  minimumAppVersion: string;
+}
+
 const sendJson = (method: string, body: unknown): RequestInit => ({
   method,
   headers: { "Content-Type": "application/json" },
@@ -82,6 +87,7 @@ export function createEndpoints(client: ApiClient) {
       client.authed<NotificationPreference[]>("/me/notification-preferences", sendJson("PUT", { preferences })),
     /** Development builds only: the API answers 404 elsewhere. */
     sendTestAlert: () => client.authed<{ id: string }>("/me/notifications/test", { method: "POST" }),
+    loadAppConfig: () => client.get<AppConfig>("/app-config"),
   };
 }
 

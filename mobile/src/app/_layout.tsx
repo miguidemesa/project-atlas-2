@@ -16,6 +16,7 @@ import { FONTS } from "@/theme/fonts";
 import { navigationTheme } from "@/theme/navigation";
 import { ThemeProvider, useHeaderOptions, useTheme } from "@/theme/ThemeProvider";
 import { OfflineBar } from "@/ui/OfflineBar";
+import { UpdateGate } from "@/update/UpdateGate";
 
 void SplashScreen.preventAutoHideAsync();
 connectOnlineManager();
@@ -56,11 +57,13 @@ function AppFrame() {
   return (
     <View style={{ flex: 1, backgroundColor: color.base }}>
       <OfflineBar />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.base } }}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="sign-in" options={{ ...header, presentation: "modal", headerShown: true, title: "Sign in" }} />
-        <Stack.Screen name="register" options={{ ...header, presentation: "modal", headerShown: true, title: "Create an account" }} />
-      </Stack>
+      <UpdateGate>
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.base } }}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="sign-in" options={{ ...header, presentation: "modal", headerShown: true, title: "Sign in" }} />
+          <Stack.Screen name="register" options={{ ...header, presentation: "modal", headerShown: true, title: "Create an account" }} />
+        </Stack>
+      </UpdateGate>
     </View>
   );
 }
