@@ -1,11 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readInterest, topGames } from "./interest-cookie";
-
-describe("topGames", () => {
-  it("returns the visitor's strongest games, highest first", () => {
-    expect(topGames({ pokemon: 5, basketball: 9, magic: 0, lorcana: 2 })).toEqual(["basketball", "pokemon", "lorcana"]);
-  });
-});
+import { readInterest } from "./interest-cookie";
 
 describe("readInterest", () => {
   const known = ["pokemon", "basketball", "one_piece", "lorcana"];

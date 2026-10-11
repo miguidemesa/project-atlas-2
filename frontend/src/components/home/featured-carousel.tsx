@@ -11,7 +11,7 @@ import { tierFor } from "@atlas/api";
 import { buttonPrimary } from "@/components/ui/button-styles";
 import { GameLine } from "@/components/ui/game-line";
 import { SellerLine } from "@/components/ui/seller-line";
-import { autoplays, carouselReducer, SLIDE_MS } from "@/lib/carousel";
+import { autoplays, carouselReducer, SLIDE_MS } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { cardSubtitle, formatPeso } from "@atlas/api";
 import type { Listing } from "@atlas/api";

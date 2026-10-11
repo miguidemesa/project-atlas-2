@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { BrowseClient } from "@/components/browse/browse-client";
-import { loadCategories, loadFeed } from "@/lib/api";
-import { browseQuery, type BrowseParams } from "@/lib/browse-query";
+import { browseQuery, loadCategories, loadFeed, type BrowseParams } from "@/lib/api";
 import { categoryName } from "@/lib/categories";
 
 export const metadata: Metadata = { title: "Browse" };

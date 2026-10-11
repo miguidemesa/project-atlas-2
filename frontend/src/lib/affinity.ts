@@ -5,27 +5,17 @@
  * user across devices — this module stays as the anonymous fallback.
  */
 
+import { isGameSlug, MAX_EVENTS, scoreInterest, type InterestEvent, type InterestKind, type InterestScores } from "@atlas/api";
 import { writeInterestCookie } from "./interest-cookie";
 
-export type AffinityEventKind = "view" | "watch" | "search" | "browse";
+export type AffinityEventKind = InterestKind;
+export type AffinityEvent = InterestEvent;
+/** Category slug → share of recent interest. A missing slug means zero. */
+export type AffinityScores = InterestScores;
 
-const KIND_WEIGHTS: Record<AffinityEventKind, number> = { view: 1, watch: 1.6, search: 1.2, browse: 0.6 };
-
-const HALF_LIFE_DAYS = 10;
 const STORAGE_KEY = "atlas-affinity.v1";
-const MAX_EVENTS = 200;
-const SLUG = /^[a-z0-9_]{2,40}$/;
 /** Slugs renamed when every game joined the category list; events stored before that still count. */
 const RENAMED: Record<string, string> = { nba: "basketball", disney: "lorcana" };
-
-export interface AffinityEvent {
-  category: string;
-  kind: AffinityEventKind;
-  at: number; // epoch ms
-}
-
-/** Category slug → share of recent interest. A missing slug means zero. */
-export type AffinityScores = Record<string, number>;
 
 export function emptyScores(): AffinityScores {
   return {};
@@ -53,7 +43,7 @@ function saveEvents(events: AffinityEvent[]) {
 }
 
 export function recordAffinityEvent(category: string, kind: AffinityEventKind, now = Date.now()) {
-  if (!SLUG.test(category)) return;
+  if (!isGameSlug(category)) return;
   const events = loadEvents();
   events.push({ category, kind, at: now });
   saveEvents(events);
@@ -64,18 +54,9 @@ export function recordAffinityEvent(category: string, kind: AffinityEventKind, n
   }
 }
 
-/** Decay-corrected, normalized scores in [0..1]; empty for a cold visitor. */
+/** Decay-corrected, normalized scores in [0..1]; empty for a cold visitor (scoring shared with the app). */
 export function getAffinity(now = Date.now()): AffinityScores {
-  const scores = emptyScores();
-  const halfLifeMs = HALF_LIFE_DAYS * 86_400_000;
-  let total = 0;
-  for (const e of loadEvents()) {
-    const weight = KIND_WEIGHTS[e.kind] * Math.pow(0.5, Math.max(0, now - e.at) / halfLifeMs);
-    scores[e.category] = (scores[e.category] ?? 0) + weight;
-    total += weight;
-  }
-  if (total > 0) for (const key of Object.keys(scores)) scores[key] /= total;
-  return scores;
+  return scoreInterest(loadEvents(), now);
 }
 
 export function topCategory(scores: AffinityScores): { category: string; share: number } | null {

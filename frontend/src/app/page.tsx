@@ -11,8 +11,7 @@ import { YourGames } from "@/components/home/your-games";
 import { buttonGhost } from "@/components/ui/button-styles";
 import { SectionTitle } from "@/components/ui/section-title";
 import { SwipeRow } from "@/components/ui/swipe-row";
-import { loadCardGroups, loadCategories, loadFeed, loadStorefront } from "@/lib/api";
-import { homeGames } from "@/lib/home-order";
+import { homeGames, loadCardGroups, loadCategories, loadFeed, loadStorefront } from "@/lib/api";
 import { INTEREST_COOKIE } from "@/lib/interest-cookie";
 import type { CategoryInfo, Storefront, TopSeller } from "@atlas/api";
 
@@ -37,7 +36,7 @@ export default async function HomePage() {
     cookies(),
   ]);
   const categories = categoryList ?? [];
-  const { personalized, own, order } = homeGames(categories, jar.get(INTEREST_COOKIE)?.value);
+  const { personalized, own, order } = homeGames(categories, (jar.get(INTEREST_COOKIE)?.value ?? "").split(","));
   const [top, second] = order;
 
   const [topStore, groups, secondFeed] = await Promise.all([

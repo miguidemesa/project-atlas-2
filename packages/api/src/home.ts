@@ -1,19 +1,18 @@
-import type { CategoryInfo } from "@atlas/api";
 import { busiest } from "./categories";
-import { readInterest } from "./interest-cookie";
+import { pickGames } from "./interest";
+import type { CategoryInfo } from "./types";
 
 const HOME_GAMES = 8;
 
 /**
- * The games the home is ordered by: the visitor's own (from the interest cookie) followed by the busiest others,
- * or only the busiest for a first visit. `own` counts the visitor's games at the front of `order`. A tampered
- * cookie can't add a game that doesn't exist.
+ * The games the home is ordered by: the visitor's own followed by the busiest others, or only the busiest for a
+ * first visit. `own` counts the visitor's games at the front of `order`.
  */
 export function homeGames(
   categories: CategoryInfo[],
-  rawCookie: string | undefined,
+  wanted: Iterable<string>,
 ): { personalized: boolean; own: number; order: CategoryInfo[] } {
-  const mine = readInterest(rawCookie, categories.map((c) => c.slug))
+  const mine = pickGames(wanted, categories.map((c) => c.slug))
     .map((slug) => categories.find((c) => c.slug === slug))
     .filter((c): c is CategoryInfo => c !== undefined);
   const others = busiest(categories, HOME_GAMES).filter((c) => !mine.includes(c));

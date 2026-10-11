@@ -52,3 +52,16 @@ export function cardSubtitle(l: {
 }): string {
   return [l.year, [l.set, l.cardNumber].filter(Boolean).join(" "), l.parallel].filter(Boolean).join(" · ");
 }
+
+const MINUTE = 60_000;
+
+/** An auction's time left as a short countdown, or "Ended". */
+export function timeLeft(endsAt: string, now = Date.now()): string {
+  const minutes = Math.floor((new Date(endsAt).getTime() - now) / MINUTE);
+  if (minutes < 0) return "Ended";
+  const days = Math.floor(minutes / 1440);
+  const hours = Math.floor((minutes % 1440) / 60);
+  if (days > 0) return `${days}d ${hours}h`;
+  if (hours > 0) return `${hours}h ${minutes % 60}m`;
+  return `${minutes}m`;
+}

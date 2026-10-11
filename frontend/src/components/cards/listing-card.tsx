@@ -4,28 +4,25 @@ import { TiltCard } from "./tilt-card";
 import { tierFor } from "@atlas/api";
 import { DealBadge } from "./deal-badge";
 import { Countdown } from "@/components/ui/countdown";
-import { cardSubtitle, formatPeso } from "@atlas/api";
+import { cardSubtitle, conditionTone, formatPeso, type ConditionTone } from "@atlas/api";
 import { cn } from "@/lib/cn";
 import { GameLine } from "@/components/ui/game-line";
 import { SellerLine } from "@/components/ui/seller-line";
 import type { Listing } from "@atlas/api";
 
-const CONDITION_CHIP: Record<string, string> = {
-  NM: "text-confirmed border-confirmed/45",
-  LP: "text-fixed border-fixed/45",
-  MP: "text-warn border-warn/45",
-  HP: "text-urgent border-urgent/45",
-  DMG: "text-urgent border-urgent/45",
+const TONE_CLS: Record<ConditionTone, string> = {
+  graded: "text-graded border-graded-line bg-graded-wash",
+  confirmed: "text-confirmed border-confirmed/45",
+  fixed: "text-fixed border-fixed/45",
+  warn: "text-warn border-warn/45",
+  urgent: "text-urgent border-urgent/45",
+  plain: "text-ink-dim border-line-hv",
 };
 
 /** The grade ("PSA 10") or raw condition ("NM") as a chip, or null when the listing has neither. */
 export function conditionChip(listing: Listing): { label: string; cls: string } | null {
-  if (listing.graded && listing.gradingCompany) {
-    const label = [listing.gradingCompany, listing.gradeValue].filter(Boolean).join(" ");
-    return { label, cls: "text-graded border-graded-line bg-graded-wash" };
-  }
-  if (!listing.condition) return null;
-  return { label: listing.condition, cls: CONDITION_CHIP[listing.condition] ?? "text-ink-dim border-line-hv" };
+  const tone = conditionTone(listing);
+  return tone ? { label: tone.label, cls: TONE_CLS[tone.tone] } : null;
 }
 
 export function ListingCard({ listing }: { listing: Listing }) {

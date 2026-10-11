@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { browseQuery } from "./browse-query";
-import type { CategoryInfo } from "@atlas/api";
+import { browseQuery } from "./browse";
+import type { CategoryInfo } from "./types";
 
 const categories: CategoryInfo[] = [{ slug: "pokemon", name: "Pokémon", group: "tcg", hue: 95, activeListings: 3 }];
 
