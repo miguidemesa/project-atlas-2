@@ -1,0 +1,45 @@
+# Signs in, opens the Store tab and lifts a card into the peek (spec section 8). Run on the iOS Simulator with a development build installed
+# (`npx expo run:ios`) and the API on http://localhost:5080 with a local, seeded database:
+#   maestro test -e ATLAS_EMAIL=kolektibco@seed.atlas.local -e ATLAS_PASSWORD='<seed password from DbSeeder.cs>' mobile/.maestro/smoke.yaml
+appId: ph.atlas.app
+---
+- launchApp
+- tapOn:
+    id: "tab-me"
+- runFlow:
+    when:
+      visible:
+        id: "me-sign-out"
+    commands:
+      - tapOn:
+          id: "me-sign-out"
+- tapOn:
+    id: "me-sign-in"
+- tapOn:
+    id: "email-input"
+- inputText: ${ATLAS_EMAIL}
+- tapOn:
+    id: "password-input"
+- inputText: ${ATLAS_PASSWORD}
+- hideKeyboard
+- tapOn:
+    id: "sign-in-submit"
+- extendedWaitUntil:
+    visible:
+      id: "me-sign-out"
+    timeout: 10000
+- tapOn:
+    id: "tab-store"
+- extendedWaitUntil:
+    visible:
+      id: "store-list"
+    timeout: 15000
+- longPressOn:
+    id: "listing-row-.*"
+    index: 0
+- assertVisible:
+    id: "lift-share"
+- tapOn:
+    id: "lift-scrim"
+- assertNotVisible:
+    id: "lift-peek"
