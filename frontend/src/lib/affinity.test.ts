@@ -6,6 +6,13 @@ const DAY = 86_400_000;
 describe("affinity engine", () => {
   beforeEach(() => window.localStorage.clear());
 
+  it("mirrors the visitor's top games into the interest cookie", () => {
+    recordAffinityEvent("pokemon", "view");
+    recordAffinityEvent("pokemon", "view");
+    recordAffinityEvent("one_piece", "view");
+    expect(document.cookie).toContain("atlas_games=pokemon,one_piece");
+  });
+
   it("has no scores for a cold visitor", () => {
     expect(getAffinity()).toEqual({});
     expect(topCategory(getAffinity())).toBeNull();

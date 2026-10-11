@@ -5,6 +5,8 @@
  * user across devices — this module stays as the anonymous fallback.
  */
 
+import { writeInterestCookie } from "./interest-cookie";
+
 export type AffinityEventKind = "view" | "watch" | "search" | "browse";
 
 const KIND_WEIGHTS: Record<AffinityEventKind, number> = { view: 1, watch: 1.6, search: 1.2, browse: 0.6 };
@@ -55,6 +57,11 @@ export function recordAffinityEvent(category: string, kind: AffinityEventKind, n
   const events = loadEvents();
   events.push({ category, kind, at: now });
   saveEvents(events);
+  try {
+    writeInterestCookie(getAffinity(now)); // lets the server order the home by the visitor's games, with no flash
+  } catch {
+    // cookies blocked: the home falls back to the busiest games
+  }
 }
 
 /** Decay-corrected, normalized scores in [0..1]; empty for a cold visitor. */
