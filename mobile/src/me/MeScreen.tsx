@@ -38,6 +38,7 @@ export function MeScreen() {
         <Text style={[type.small, { color: color.inkDim }]}>{user.email}</Text>
       </View>
       <LinkRow label="Notifications" onPress={() => router.push("/me/notifications")} />
+      <LinkRow label="Delete account" onPress={() => router.push("/me/delete-account")} />
       <View style={{ padding: space[4] }}>
         <Button testID="me-sign-out" variant="ghost" label="Sign out" onPress={() => void signOut()} />
       </View>

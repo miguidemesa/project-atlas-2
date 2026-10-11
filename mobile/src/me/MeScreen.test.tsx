@@ -26,6 +26,8 @@ it("shows who is signed in and signs out", async () => {
   expect(await screen.findByText("Ana Reyes")).toBeOnTheScreen();
   await fireEvent.press(screen.getByRole("button", { name: "Notifications" }));
   expect(router.push).toHaveBeenCalledWith("/me/notifications");
+  await fireEvent.press(screen.getByRole("button", { name: "Delete account" }));
+  expect(router.push).toHaveBeenCalledWith("/me/delete-account");
   await fireEvent.press(screen.getByRole("button", { name: "Sign out" }));
 
   expect(await screen.findByRole("button", { name: "Sign in" })).toBeOnTheScreen();

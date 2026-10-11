@@ -88,6 +88,8 @@ export function createEndpoints(client: ApiClient) {
     /** Development builds only: the API answers 404 elsewhere. */
     sendTestAlert: () => client.authed<{ id: string }>("/me/notifications/test", { method: "POST" }),
     loadAppConfig: () => client.get<AppConfig>("/app-config"),
+    /** 204 when the account is anonymized; 409 with what to finish first while something is still open. */
+    deleteAccount: () => client.authed<void>("/me", { method: "DELETE" }),
   };
 }
 

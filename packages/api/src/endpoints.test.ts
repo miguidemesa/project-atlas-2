@@ -122,3 +122,19 @@ describe("app config", () => {
     await expect(api.loadAppConfig()).resolves.toEqual({ minimumAppVersion: "1.0.0" });
   });
 });
+
+describe("account deletion", () => {
+  it("sends DELETE /api/me with the signed-in person's token", async () => {
+    const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => new Response(null, { status: 204 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const signedIn: TokenStore = { ...signedOut, getAccessToken: async () => "access-1" };
+    const account = createEndpoints(createClient({ baseUrl: "http://api.test", tokenStore: signedIn, onSignedOut: () => undefined }));
+
+    await expect(account.deleteAccount()).resolves.toBeUndefined();
+
+    const [[url, init]] = fetchMock.mock.calls;
+    expect(url).toBe("http://api.test/api/me");
+    expect(init?.method).toBe("DELETE");
+    expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer access-1");
+  });
+});
