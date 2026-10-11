@@ -1,7 +1,7 @@
 import type { ParsedSearch, SellerReview } from "./actions";
 import type { ApiClient } from "./client";
 import type { NotificationPreference } from "./notifications";
-import type { CategoryInfo, Listing, ListingDetail, ListingType, Paged, SellerPage, Storefront } from "./types";
+import type { CardGroup, CategoryInfo, Listing, ListingDetail, ListingType, Paged, SellerPage, Storefront } from "./types";
 
 export interface ListingQuery {
   category?: string;
@@ -13,12 +13,14 @@ export interface ListingQuery {
   maxPrice?: number;
   language?: string;
   q?: string;
+  /** A card key from a CardGroup: every live listing of that card (the compare view). */
+  card?: string;
   sort?: "newest" | "popular" | "price_asc" | "price_desc" | "ending";
   page?: number;
   pageSize?: number;
 }
 
-const FEED_KEYS = ["category", "format", "type", "player", "language", "sort", "q"] as const;
+const FEED_KEYS = ["category", "format", "type", "player", "language", "sort", "q", "card"] as const;
 
 /** Path and query for GET /api/listings, with only the filters that are set. */
 export function feedQuery(f: ListingQuery): string {
@@ -59,6 +61,9 @@ export function createEndpoints(client: ApiClient) {
     loadStorefront: (category?: string) =>
       client.get<Storefront>(category ? `/storefront?category=${encodeURIComponent(category)}` : "/storefront"),
     loadCategories: () => client.get<CategoryInfo[]>("/categories"),
+    /** The same card from several sellers grouped into one tile, newest first. */
+    loadCardGroups: (category?: string, take = 12) =>
+      client.get<CardGroup[]>(`/listings/groups?${new URLSearchParams({ ...(category ? { category } : {}), take: String(take) })}`),
     loadListing: (id: string) =>
       client.getOrNull<ListingDetail>(`/listings/${encodeURIComponent(id)}`, { cache: "no-store" }),
     loadSeller: (id: string) => client.getOrNull<SellerPage>(`/sellers/${encodeURIComponent(id)}`),

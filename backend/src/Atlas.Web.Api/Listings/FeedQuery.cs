@@ -13,6 +13,9 @@ public sealed class FeedQuery
     public string? Player { get; init; }
     public string? Q { get; init; }
 
+    /// <summary>A CardKey: listings of exactly that card, any condition (the compare view).</summary>
+    public string? Card { get; init; }
+
     /// <summary>newest (default) | popular | price_asc | price_desc | ending</summary>
     public string? Sort { get; init; }
 

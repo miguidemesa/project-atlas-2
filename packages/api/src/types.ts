@@ -65,6 +65,17 @@ export interface TopSeller {
   listings: Listing[];
 }
 
+/** Live listings of one card from several sellers (until P3, "same card" = game, name, set and number). */
+export interface CardGroup {
+  key: string;
+  /** The cheapest listing of the card. */
+  lead: Listing;
+  sellers: number;
+  listings: number;
+  fromPrice: number;
+  conditions: string[];
+}
+
 export interface Storefront {
   category: string | null;
   activeListings: number;

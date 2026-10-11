@@ -10,6 +10,12 @@ describe("feedQuery", () => {
     );
   });
 
+  it("keeps a card key for the compare view", () => {
+    expect(feedQuery({ card: "pokemon|charizard ex|151|199/165", sort: "price_asc" })).toBe(
+      "/listings?page=1&pageSize=24&sort=price_asc&card=pokemon%7Ccharizard+ex%7C151%7C199%2F165",
+    );
+  });
+
   it("encodes free text", () => {
     expect(feedQuery({ q: "100% pikachu" })).toBe("/listings?page=1&pageSize=24&q=100%25+pikachu");
   });
@@ -48,6 +54,8 @@ describe("createEndpoints", () => {
     await api.loadListing("a b");
     await api.loadSeller("s1");
     await api.loadSellerReviews("s1");
+    await api.loadCardGroups();
+    await api.loadCardGroups("pokemon", 6);
 
     expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
       "http://api.test/api/listings?page=1&pageSize=24&category=pokemon",
@@ -57,6 +65,8 @@ describe("createEndpoints", () => {
       "http://api.test/api/listings/a%20b",
       "http://api.test/api/sellers/s1",
       "http://api.test/api/sellers/s1/reviews",
+      "http://api.test/api/listings/groups?take=12",
+      "http://api.test/api/listings/groups?category=pokemon&take=6",
     ]);
   });
 

@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 using Atlas.Application.Common.Interfaces;
 using Atlas.Application.Listings;
 using Atlas.Domain.Listings;
@@ -48,6 +49,17 @@ public class ListingsController(
         if (f.MaxPrice is { } cap) query = query.Where(l => l.Price <= cap);
         if (!string.IsNullOrWhiteSpace(f.Language)) query = query.Where(l => l.Language == f.Language);
         if (!string.IsNullOrWhiteSpace(f.Player)) query = query.Where(l => l.Player == f.Player);
+        if (!string.IsNullOrWhiteSpace(f.Card))
+        {
+            if (!CardKey.TryParse(f.Card, out var k)) return BadRequest(new { error = "Unknown card." });
+            // Same normalization as CardKey (lower case, inner spaces collapsed), in SQL through regexp_replace.
+            query = query.Where(l => l.Category == k.Category
+                && Regex.Replace(l.Player.ToLower(), @"\s+", " ") == k.Player
+                && Regex.Replace(l.Set.ToLower(), @"\s+", " ") == k.Set
+                && (k.Number == ""
+                    ? l.CardNumber == null || l.CardNumber == ""
+                    : Regex.Replace(l.CardNumber!.ToLower(), @"\s+", " ") == k.Number));
+        }
         if (!string.IsNullOrWhiteSpace(f.Q))
         {
             var pattern = $"%{EscapeLike(f.Q.Trim())}%";
@@ -70,6 +82,36 @@ public class ListingsController(
         var total = await query.CountAsync(ct);
         var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
         return Ok(new { data = new PagedResult<ListingDto>(await dtos.BuildAsync(items, ct), total, page, pageSize) });
+    }
+
+    /// <summary>Live listings grouped by card (see CardKey), newest first; the cheapest listing leads each group.</summary>
+    [HttpGet("groups")]
+    public async Task<IActionResult> Groups([FromQuery] string? category, [FromQuery] int take = 12, CancellationToken ct = default)
+    {
+        if (category is not null && !CategoryList.IsValid(category))
+            return BadRequest(new { error = $"Unknown category '{category}'." });
+        var query = db.LiveListings(DateTime.UtcNow);
+        if (category is not null) query = query.Where(l => l.Category == category);
+        // ponytail: groups the 500 newest live listings in memory; a catalog id (P3) moves this into SQL
+        var recent = await query.OrderByDescending(l => l.CreatedAt).ThenBy(l => l.Id).Take(500).ToListAsync(ct);
+        var groups = recent
+            .GroupBy(l => CardKey.For(l.Category, l.Player, l.Set, l.CardNumber))
+            .Select(g => new { g.Key, Items = g.OrderBy(l => l.Price).ThenBy(l => l.Id).ToList(), Newest = g.Max(l => l.CreatedAt) })
+            .OrderByDescending(g => g.Newest)
+            .Take(Math.Clamp(take, 1, 24))
+            .ToList();
+        var leads = (await dtos.BuildAsync(groups.Select(g => g.Items[0]).ToList(), ct)).ToDictionary(d => d.Id);
+        return Ok(new
+        {
+            data = groups.Select(g => new CardGroupDto(
+                g.Key,
+                leads[g.Items[0].Id],
+                g.Items.Select(l => l.SellerId).Distinct().Count(),
+                g.Items.Count,
+                g.Items[0].Price,
+                g.Items.Select(l => l.Graded ? $"{l.GradingCompany} {l.GradeValue}".Trim() : l.Condition ?? "")
+                    .Where(c => c != "").Distinct().ToList())).ToList(),
+        });
     }
 
     [HttpGet("{id:guid}")]

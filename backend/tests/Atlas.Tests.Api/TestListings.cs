@@ -7,16 +7,17 @@ namespace Atlas.Tests.Api;
 public static class TestListings
 {
     public static async Task<ListingDto> CreateAsync(HttpClient seller, string category = "pokemon",
-        string format = "fixed", decimal price = 1500m, string language = "en", string set = "Test Set")
+        string format = "fixed", decimal price = 1500m, string language = "en", string set = "Test Set",
+        string? player = null, string cardNumber = "001/100")
     {
         var res = await seller.PostAsJsonAsync("/api/listings", new
         {
             category,
-            player = $"Test Card {Guid.NewGuid():N}"[..20],
+            player = player ?? $"Test Card {Guid.NewGuid():N}"[..20],
             team = category == "basketball" ? "Test Team" : null,
             year = category == "basketball" ? 2024 : (int?)null,
             set,
-            cardNumber = "001/100",
+            cardNumber,
             language,
             graded = false,
             condition = "NM",

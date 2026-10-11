@@ -51,7 +51,8 @@ export const webClient = createClient({
 
 const endpoints = createEndpoints(webClient);
 
-export const { loadFeed, loadStorefront, loadCategories, loadSeller, loadSellerReviews, parseSearchQuery } = endpoints;
+export const { loadFeed, loadStorefront, loadCategories, loadCardGroups, loadSeller, loadSellerReviews, parseSearchQuery } =
+  endpoints;
 
 /** Cached per request so generateMetadata and the page share one call. */
 export const loadListing = cache(endpoints.loadListing);
