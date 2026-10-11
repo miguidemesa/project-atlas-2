@@ -3,7 +3,7 @@ import { storeTabs } from "./store-tabs";
 import type { Listing, TopSeller } from "@atlas/api";
 
 const listing = (id: string) => ({ id }) as Listing;
-const seller = (id: string) => ({ id, displayName: id, sales: 1, verified: false, listings: [] }) as TopSeller;
+const seller = (id: string) => ({ id, displayName: id, sales: 1, verified: false, ratingAvg: null, ratingCount: 0, liveListings: 0, listings: [] }) as TopSeller;
 const empty = { trending: [], newArrivals: [], topSellers: [], endingSoon: [] };
 
 describe("storeTabs", () => {

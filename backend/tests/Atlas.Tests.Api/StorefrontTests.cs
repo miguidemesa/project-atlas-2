@@ -109,6 +109,9 @@ public class StorefrontTests(ApiFactory factory)
         top.Sales.Should().Be(2);
         top.DisplayName.Should().Be("Busy Seller");
         top.Listings.Should().ContainSingle(l => l.Id == stillListed.Id); // sold listings aren't live
+        top.LiveListings.Should().Be(1);
+        top.RatingCount.Should().Be(0);
+        top.RatingAvg.Should().BeNull(); // no reviews yet: never a made-up rating
     }
 
     [Fact]

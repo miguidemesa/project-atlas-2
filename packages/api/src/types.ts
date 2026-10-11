@@ -58,6 +58,10 @@ export interface TopSeller {
   displayName: string;
   sales: number;
   verified: boolean;
+  /** Null until the seller's first review: never a made-up rating. */
+  ratingAvg: number | null;
+  ratingCount: number;
+  liveListings: number;
   listings: Listing[];
 }
 

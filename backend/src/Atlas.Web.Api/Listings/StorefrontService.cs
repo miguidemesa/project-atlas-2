@@ -123,6 +123,11 @@ public sealed class StorefrontService(AtlasDbContext db, ListingDtoBuilder dtos,
         var names = await db.Users.AsNoTracking()
             .Where(u => ids.Contains(u.Id))
             .ToDictionaryAsync(u => u.Id, u => u.Name, ct);
+        var reviews = await db.Reviews.AsNoTracking()
+            .Where(r => ids.Contains(r.RevieweeId))
+            .GroupBy(r => r.RevieweeId)
+            .Select(g => new { g.Key, Count = g.Count(), Avg = g.Average(r => (double)r.Rating) })
+            .ToDictionaryAsync(g => g.Key, ct);
 
         var result = new List<TopSellerDto>(ranked.Count);
         foreach (var r in ranked)
@@ -132,11 +137,15 @@ public sealed class StorefrontService(AtlasDbContext db, ListingDtoBuilder dtos,
                 .OrderByDescending(l => l.CreatedAt).ThenBy(l => l.Id)
                 .Take(SellerPreview).ToListAsync(ct);
             var hasProfile = profiles.TryGetValue(r.SellerId, out var profile);
+            var rated = reviews.GetValueOrDefault(r.SellerId);
             result.Add(new TopSellerDto(
                 r.SellerId,
                 hasProfile ? profile.DisplayName : names.GetValueOrDefault(r.SellerId) ?? "Atlas seller",
                 r.Sales,
                 hasProfile && profile.VerificationBadge,
+                rated is null ? null : Math.Round((decimal)rated.Avg, 1),
+                rated?.Count ?? 0,
+                await scopedLive.CountAsync(l => l.SellerId == r.SellerId, ct),
                 await dtos.BuildAsync(live, ct)));
         }
         return result;
