@@ -7,6 +7,7 @@ import { Countdown } from "@/components/ui/countdown";
 import { cardSubtitle, formatPeso } from "@atlas/api";
 import { cn } from "@/lib/cn";
 import { GameLine } from "@/components/ui/game-line";
+import { SellerLine } from "@/components/ui/seller-line";
 import type { Listing } from "@atlas/api";
 
 const CONDITION_CHIP: Record<string, string> = {
@@ -59,15 +60,13 @@ export function ListingCard({ listing }: { listing: Listing }) {
             <Countdown endsAt={listing.endsAt!} /> · {listing.bidCount ?? 0} bids
           </span>
         )}
-        <span className="flex min-w-0 items-center justify-between gap-2 text-xs text-ink-faint">
-          <GameLine slug={listing.category} className="shrink-0" />
-          <span className="truncate">{listing.sellerName}</span>
-        </span>
+        <GameLine slug={listing.category} className="text-xs text-ink-faint" />
         {listing.dealScore && (
           <div className="pt-0.5">
             <DealBadge score={listing.dealScore} />
           </div>
         )}
+        <SellerLine name={listing.sellerName} verified={listing.sellerVerified} className="mt-1 border-t border-line pt-2.5" />
       </div>
     </Link>
   );
