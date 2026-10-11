@@ -20,3 +20,13 @@ export function render(ui: React.ReactNode): { container: HTMLElement; cleanup: 
     },
   };
 }
+
+/** jsdom has no matchMedia; components that ask about reduced motion or fine pointers get "no match". */
+export function stubMatchMedia(): void {
+  window.matchMedia = ((query: string) => ({
+    matches: false,
+    media: query,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  })) as unknown as typeof window.matchMedia;
+}

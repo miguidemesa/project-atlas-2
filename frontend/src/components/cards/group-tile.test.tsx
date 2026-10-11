@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { render } from "@/test/render";
+import { render, stubMatchMedia } from "@/test/render";
 import { CategoriesProvider } from "@/lib/categories-context";
 import type { CardGroup, Listing } from "@atlas/api";
 import { GroupTile } from "./group-tile";
@@ -8,10 +8,7 @@ vi.mock("next/link", () => ({
   default: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => <a href={href} {...rest}>{children}</a>,
 }));
 
-// jsdom has no matchMedia; the listing tile's tilt asks it about reduced motion and fine pointers.
-beforeAll(() => {
-  window.matchMedia = ((query: string) => ({ matches: false, media: query, addEventListener: () => {}, removeEventListener: () => {} })) as unknown as typeof window.matchMedia;
-});
+beforeAll(stubMatchMedia);
 
 let cleanup = () => {};
 afterEach(() => cleanup());

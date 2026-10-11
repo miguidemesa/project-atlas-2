@@ -10,9 +10,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/cn";
 import { cardSubtitle, formatPeso } from "@atlas/api";
 import type { StoreTab } from "@/lib/store-tabs";
-import type { Listing, TopSeller } from "@atlas/api";
+import type { Listing } from "@atlas/api";
 
-/** Store tabs (New and trending, Top sellers, Ending soon): ranked rows with a preview panel on the web. */
+/** Store tabs (New and trending, Ending soon): ranked rows with a preview panel on the web. */
 export function StoreTabs({ tabs }: { tabs: StoreTab[] }) {
   const [active, setActive] = useState<string>(tabs[0].id);
   const [preview, setPreview] = useState(0);
@@ -40,24 +40,14 @@ export function StoreTabs({ tabs }: { tabs: StoreTab[] }) {
       {tabs.map((t) => (
         <TabsContent key={t.id} value={t.id} className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_380px]">
           <ol className="flex flex-col gap-1">
-            {"listings" in t
-              ? t.listings.map((l, i) => (
-                  <li key={l.id} onPointerEnter={() => setPreview(i)} onFocus={() => setPreview(i)}>
-                    <ListingRow listing={l} rank={i + 1} active={i === preview} />
-                  </li>
-                ))
-              : t.sellers.map((s, i) => (
-                  <li key={s.id} onPointerEnter={() => setPreview(i)} onFocus={() => setPreview(i)}>
-                    <SellerRow seller={s} rank={i + 1} active={i === preview} />
-                  </li>
-                ))}
+            {t.listings.map((l, i) => (
+              <li key={l.id} onPointerEnter={() => setPreview(i)} onFocus={() => setPreview(i)}>
+                <ListingRow listing={l} rank={i + 1} active={i === preview} />
+              </li>
+            ))}
           </ol>
           <aside aria-label="Preview" className="hidden md:block">
-            {"listings" in t ? (
-              <ListingPreview listing={t.listings[preview] ?? t.listings[0]} />
-            ) : (
-              <SellerPreview seller={t.sellers[preview] ?? t.sellers[0]} />
-            )}
+            <ListingPreview listing={t.listings[preview] ?? t.listings[0]} />
           </aside>
         </TabsContent>
       ))}
@@ -88,26 +78,6 @@ function ListingRow({ listing, rank, active }: { listing: Listing; rank: number;
   );
 }
 
-function SellerRow({ seller, rank, active }: { seller: TopSeller; rank: number; active: boolean }) {
-  return (
-    <Link href={`/sellers/${seller.id}`} className={rowCls(active)}>
-      <span className="t-mono w-5 shrink-0 text-ink-faint">{rank}</span>
-      <span aria-hidden className="flex size-10 shrink-0 items-center justify-center rounded-full bg-avatar font-display text-sm text-ink">
-        {seller.displayName.charAt(0).toUpperCase()}
-      </span>
-      <span className="flex min-w-0 flex-1 flex-col">
-        <span className="flex min-w-0 items-center gap-2 text-[15px] font-semibold text-ink">
-          <span className="truncate">{seller.displayName}</span>
-          {seller.verified && <span className={cn(chipCls, "border-confirmed-line text-confirmed")}>Verified</span>}
-        </span>
-        <span className="text-xs text-ink-dim">
-          {seller.sales} {seller.sales === 1 ? "sale" : "sales"} in 30 days
-        </span>
-      </span>
-    </Link>
-  );
-}
-
 function ListingPreview({ listing }: { listing: Listing }) {
   const chip = conditionChip(listing);
   return (
@@ -127,27 +97,3 @@ function ListingPreview({ listing }: { listing: Listing }) {
   );
 }
 
-function SellerPreview({ seller }: { seller: TopSeller }) {
-  return (
-    <div className="flex flex-col gap-4 rounded-[16px] border border-line bg-elevated p-5">
-      <p className="text-lg font-semibold text-ink">{seller.displayName}</p>
-      <p className="text-sm text-ink-dim">
-        {seller.sales} paid {seller.sales === 1 ? "order" : "orders"} in the last 30 days
-      </p>
-      {seller.listings.length > 0 && (
-        <ul className="grid grid-cols-3 gap-2">
-          {seller.listings.map((l) => (
-            <li key={l.id}>
-              <Link href={`/listing/${l.id}`} aria-label={l.title} className="relative block aspect-[63/88] overflow-hidden rounded-[10px] border border-well-line bg-well">
-                <CardImage listing={l} />
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-      <Link href={`/sellers/${seller.id}`} className="inline-flex min-h-11 items-center text-sm font-semibold text-accent hover:text-accent-hover">
-        Visit {seller.displayName}
-      </Link>
-    </div>
-  );
-}
