@@ -53,6 +53,18 @@ frontend/
 - Dark-first UI using the token system defined in `DESIGN.md`.
 - All business decisions stay server-authoritative — the client never decides user ID, payment status, auction status, order status, or listing ownership.
 
+## Workspaces
+
+npm workspaces at the root: `frontend/`, `mobile/` and `packages/*`, with one `package-lock.json`.
+
+- `packages/tokens` (`@atlas/tokens`): the design system's `tokens.json` and a generator writing `tokens.css` and `src/theme.ts`.
+- `packages/api` (`@atlas/api`): `createClient({ baseUrl, tokenStore, onSignedOut })` with a single-flight refresh, `createEndpoints(client)`, types, format helpers, query keys, zod schemas and the foil tiers (`tierFor`). The web binds it in `frontend/src/lib/api.ts` (localStorage); the app in `mobile/src/api/client.ts` (refresh token in the Keychain or Keystore, access token in memory).
+- `mobile/` (Expo SDK 57, Expo Router): routes in `src/app/` only re-export screens from feature folders (`src/store`, `src/session`, `src/me`, `src/push`, `src/update`); UI pieces in `src/ui/`; card photos, tilt and the long-press lift in `src/cards/`; springs, durations, haptics and the Reduce Motion hook in `src/motion/`.
+
+## Push alerts
+
+`NotificationService.NotifyAsync` is the one entry point: it writes a `notifications` row (the in-app list) and marks it `Pending` when the user allows push for its category. `PushWorker` (a hosted service) polls due rows and `PushSender` sends them through Expo's push API in batches of up to 100, retrying temporary failures at 30s, 1m, 2m and 4m and disabling tokens Expo reports as `DeviceNotRegistered`. Pushes never send inside the request that raised them. Phases P4 to P7 add their triggers by calling `NotifyAsync`.
+
 ## Key Architectural Decisions
 
 | Decision | Choice | Why |

@@ -57,6 +57,18 @@ Not built yet: logout, email verification, password reset, Google sign-in (not y
 - MIME type check: JPEG, PNG, WebP only (magic-byte sniff, not extension)
 - Max 6 photos per listing
 
+## Phone app and account
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET | `/api/app-config` | — | `{ minimumAppVersion }` (setting `App:MinimumVersion`); older apps show "Update Atlas" |
+| POST | `/api/me/devices` | Bearer | register or refresh this phone's Expo push token: `{ token, platform: "ios" \| "android" }`; a token moves to the account that registers it last |
+| DELETE | `/api/me/devices/{token}` | Bearer | stop alerts to this phone (sign-out); 204 |
+| GET | `/api/me/notification-preferences` | Bearer | `[{ category, pushEnabled }]` for bids, orders, offers, following and announcements; push is on until turned off |
+| PUT | `/api/me/notification-preferences` | Bearer | `{ preferences: [{ category, pushEnabled }] }` |
+| POST | `/api/me/notifications/test` | Bearer | Development only: sends the caller a test alert |
+| DELETE | `/api/me` | Bearer | delete the account: 409 with what to finish first while an order, dispute, winning bid, payout or wallet balance is open; otherwise anonymized, 204 |
+
 ## Health
 
 | Method | Path | Auth | Notes |
