@@ -11,6 +11,8 @@ public class Listing
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string? ImageUrl { get; set; }
+    /// <summary>The first photo's 480px copy, for tiles; null when it has none.</summary>
+    public string? ImageSmallUrl { get; set; }
     /// <summary>Category slug from Atlas.Application.Listings.CategoryList.</summary>
     public string Category { get; set; } = string.Empty;
     /// <summary>The player on a sports card, or the card or character name for every other game.</summary>

@@ -76,6 +76,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<AccountDeletion>();
 
         AddObjectStorage(services, config);
+        services.AddSingleton<IPhotoSizer, ImageSharpPhotoSizer>();
         AddMarketData(services, config);
         AddPayments(services, config);
         AddPush(services, config);

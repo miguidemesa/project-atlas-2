@@ -14,6 +14,10 @@ public class ListingPhotoConfiguration : IEntityTypeConfiguration<ListingPhoto>
         b.Property(x => x.ListingId).HasColumnName("listing_id").IsRequired();
         b.Property(x => x.StorageKey).HasColumnName("storage_key").HasMaxLength(500).IsRequired();
         b.Property(x => x.Url).HasColumnName("url").HasMaxLength(1000);
+        b.Property(x => x.LargeKey).HasColumnName("large_key").HasMaxLength(500);
+        b.Property(x => x.LargeUrl).HasColumnName("large_url").HasMaxLength(1000);
+        b.Property(x => x.SmallKey).HasColumnName("small_key").HasMaxLength(500);
+        b.Property(x => x.SmallUrl).HasColumnName("small_url").HasMaxLength(1000);
         b.Property(x => x.SortOrder).HasColumnName("sort_order").IsRequired();
 
         b.HasIndex(x => x.ListingId).HasDatabaseName("idx_listing_photos_listing");
